@@ -1,0 +1,310 @@
+<p align="center">
+  <img src="screenshots/banner.png" alt="KJQV: unofficial KaraFun queue viewer" width="100%">
+</p>
+
+<p align="center">
+  <a href="https://kjqv.github.io/"><img src="https://img.shields.io/badge/Open%20KJQV-ff5fb0?style=for-the-badge" alt="Open KJQV"></a>
+  <a href="https://kjqv.github.io/?demo"><img src="https://img.shields.io/badge/See%20a%20preview-ffb347?style=for-the-badge" alt="See a preview"></a>
+  <a href="https://ko-fi.com/4kjqv"><img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-7b2ff7?style=for-the-badge&logo=kofi&logoColor=white" alt="Buy me a coffee on Ko-fi"></a>
+</p>
+
+<p align="center">
+  A free webpage that turns any device with a browser into a live KaraFun queue display.<br>
+  Now Singing, Up Next and the line, updating instantly as you run your night, in your own colors with your own logo.<br>
+  No account, no install.
+</p>
+
+<p align="center"><sub><i>An independent project by a fellow KJ. Unofficial; not made by or affiliated with KaraFun. KaraFun is a trademark of its owner.</i></sub></p>
+
+**Open it:** https://kjqv.github.io/ · **Preview:** https://kjqv.github.io/?demo shows a made-up sample queue (your real queue needs KaraFun with remote control on). It runs on any smart TV with a browser, or any device with a browser hooked up to a screen: a Fire Stick (Silk), a laptop on HDMI, a tablet, a Raspberry Pi, and so on.
+
+| Your colors | Or a theme |
+|---|---|
+| ![Now Singing, Up Next and Coming Up](screenshots/sample-playing.png) | ![Goth theme with two mics and no timers](screenshots/sample-goth.png) |
+
+## What it shows
+
+- **Now Singing:** the current singer and song, with time left.
+- **Up Next:** the next singer, big, so they know to get ready. Before you press play, the singer whose song is loaded shows here.
+- **Coming Up:** the rest of the line, with a rough wait time for each person.
+
+**Optional extras:**
+
+- **Spotlight mode** (`spotlight=on` or `loop`, *experimental*): the screen wipes over to a big full-screen card: **NOW SINGING** while a song plays, **UP NEXT** near the end and between songs, switching back and forth with the normal screen. [See it in goth](https://kjqv.github.io/goth).
+- **Scan-to-sing QR code** (`qr=on`) so guests can join your KaraFun session and add songs. Use it in place of your logo, flip between your logo and the QR code like a coin every 5 seconds (`qr=split`), or show both, small (`qr=both`).
+- **Applause mode** (`applause=on`, *experimental*): a big "MAKE SOME NOISE FOR (name)!!!" when each singer finishes.
+- **Equity mode** (`equity=on`, *experimental*): spaces out repeat singers in KaraFun's queue so everyone gets a turn.
+- **Planned breaks and announcements:** queue `BRB KJ 15`, `DANCE! 10` or `LAST CALL` as a singer name and the screen shows a countdown, a DANCE PARTY or a flashing LAST CALL. Nothing to turn on.
+- **Idle screen** (`idle=5`, *experimental*): switches to your logo and Up Next when nothing's played for a while.
+
+It follows KaraFun exactly: skip, reorder or delete in KaraFun and the screen updates instantly. A song queued with no singer name shows the artist in the big slot instead. Colors, counts, timings and the rest can be changed in the link (see [Make it your own](#make-it-your-own)).
+
+KaraFun doesn't share the playback position, so the time-left countdown starts when you press play and follows pauses. If you open the page in the middle of a song on a new device, it shows the song's length until the next song starts. In the last 20 seconds of a song, the Up Next box glows so the next singer heads up (and with `time=both`, the countdown flashes too).
+
+## About your KaraFun code
+
+The first time you open the page, it asks for the 6-digit **remote control code** that KaraFun already shows your guests (it's in the QR code they scan to add songs) and connects to your session with it.
+
+- The code is saved only in that device's browser. It only appears on the screen if you turn on `qr=on`, which shows the same join QR code KaraFun gives your guests.
+- There's no account and no server collecting anything. The page talks directly to KaraFun.
+- It only **reads** the queue and never changes it. It shows up as **KJQV** in KaraFun's list of connected guests.
+
+## What you need
+
+- A [KaraFun subscription](https://www.karafun.com/subscribe.html) *(KaraFun's site; KJQV is not affiliated with KaraFun)* with **Remote control** (it's in Settings on iPad/iPhone, or the remote icon above the player on Mac/Windows).
+- **[KaraFun Pro](https://www.karafun.com/pro/) is recommended.** *(KaraFun's site; not affiliated.)* Pro lets your remote control code stay the same every session, but **it's off by default**: turn on the fixed (permanent) code in KaraFun's remote control settings. Then you set the screen up once and your bookmark keeps working. On other plans the code changes each session, so you'd enter the new code on the screen every time (press select → **Change code**). Pro is also KaraFun's plan for public venues: it includes the commercial license you need to run karaoke at a bar or event.
+- Any device or display with a web browser: a smart TV, a Fire Stick, a laptop or Raspberry Pi on HDMI, a tablet.
+
+## Setup
+
+1. In KaraFun, turn on **Remote control** and note the 6-digit code. To show singer names, turn on **Ask options** in KaraFun's queue settings.
+2. Open https://kjqv.github.io/ in the browser on the device driving your screen.
+3. Enter your code on the on-screen number pad. A Fire TV remote's arrows and select button work.
+
+The code is saved on that device, so next time you just open the page. You can also bookmark it with your code built in: `?code=123456`.
+
+On a TV remote or keyboard, press any arrow or select/Enter to open a small menu with **Full screen** and **Change code**.
+
+## Make it your own
+
+![What you can adjust](screenshots/what-you-can-adjust.png)
+
+Tip: add any of these to the preview link to see how they look on the sample queue, like `https://kjqv.github.io/?demo&theme=goth`. The preview doesn't save anything.
+
+Add your logo and colors right in the link, separated by `&`. Anything you leave out uses the defaults: no logo, a purple fade, and orange-to-red names.
+
+<details>
+<summary><b>All options (tap to open)</b></summary>
+
+| Option | What it does | Example |
+|---|---|---|
+| `code` | Your KaraFun remote control code | `code=123456` |
+| `logo` | A direct link to your logo image. A transparent PNG looks best | `logo=https://i.imgur.com/abc123.png` |
+| `bg1`, `bg2` | Background fade colors, top-left to bottom-right | `bg1=0b3d2e&bg2=1f7a5a` |
+| `up1`, `up2` | Coming Up name colors, from next in line to last | `up1=00e5ff&up2=0055ff` |
+| `now` | Now Singing color (default green) | `now=39ff88` |
+| `next` | Up Next color (default yellow) | `next=fcff00` |
+| `count` | How many people show in Coming Up, 0 to 12 (default 8). `0` hides Coming Up | `count=6` |
+| `icons` | `icons=off` hides the mic and sound bars next to the current singer | `icons=off` |
+| `pulse` | `pulse=off` stops the Now Singing box from pulsing | `pulse=off` |
+| `font` | `rounded`, `retro`, `marker`, `pixel` (arcade pixel font with an RGB split), or the name of any [Google Font](https://fonts.google.com) | `font=pixel` or `font=Lobster` |
+| `time` | Time left on the current song: `bar` (default, progress bar only), `both` (bar plus a small countdown that flashes in the last 20 seconds), `text` or `off` | `time=both` |
+| `clock` | Clock next to COMING UP. Follows the device's region (12- or 24-hour) unless you set `12` or `24`; `off` hides it | `clock=24` |
+| `eta` | Shows a calculated estimate of how long until each Coming Up singer is up (like "~12 min"), based on KaraFun's song lengths plus the `gap` between singers. On by default for Coming Up; `on` also shows it next to UP NEXT; `time` shows estimated clock times ("~11:48"); `off` hides them | `eta=on` or `eta=off` |
+| `gap` | Seconds to allow between singers for the estimates (default 60) | `gap=90` |
+| `long` | Song lines too long to fit: `alternate` (default, title and artist take turns) or `scroll` (slides sideways) | `long=scroll` |
+| `caps` | Singer names in capitals (on by default); `off` shows names as typed | `caps=off` |
+| `numbers` | `off` hides the place numbers in Coming Up | `numbers=off` |
+| `line` | `on` adds a line under COMING UP (the clock sits above it) | `line=on` |
+| `bgimg` | A wallpaper behind everything: a direct link to a PNG or JPG (darkened a little so names stay readable) | `bgimg=https://i.imgur.com/abc123.jpg` |
+| `pattern` | A faint tiled pattern over the background: `crosses`, `petrine` (black upside-down crosses), `tinycrosses` (tiny upside-down crosses), `mics`, `notes`, `trees` (little Christmas tree outlines) or `houndstooth` | `pattern=notes` |
+| `scroll` | `on` makes the background pattern drift upward forever (`down` for downward; on by default in goth, `off` to stop it) | `scroll=on` |
+| `drip` | `on` adds blood dripping from the top of the QR card and from SCAN TO SING | `drip=on` |
+| `mic` | `flicker` makes the Now Singing mic flicker like a dying candle, in your Now Singing color | `mic=flicker` |
+| `mics` | `2` puts a mic on both sides of NOW SINGING | `mics=2` |
+| `flourish` | `on` makes COMING UP stark white with a soft glow and a curl on each side (on by default in goth) | `flourish=on` |
+| `nextflicker` | `on` makes the UP NEXT label flicker like a failing neon sign | `nextflicker=on` |
+| `excited` | `on` for enthusiastic mode: NOW SINGING! | `excited=on` |
+| `dots` | `on` adds "…" after UP NEXT | `dots=on` |
+| `upin` | `on` turns the UP NEXT label into a live countdown, like UP IN 3 MIN (it says UP NEXT again in the last minute) | `upin=on` |
+| `align` | `left` or `right` lines up the NOW SINGING and UP NEXT labels on that side of their column instead of centering them | `align=right` |
+| `vu` | `swap` puts the VU bars next to NOW SINGING and the mic next to the singer's name; `off` hides the VU bars | `vu=swap` |
+| `portrait` | `on` for a screen mounted upright. Without it, a phone held upright shows the TV-shaped screen with a note to turn the phone sideways | `portrait=on` |
+| `qr` | `on` puts a QR code where the logo goes (or replaces it) so guests can scan it to join your KaraFun session and add songs. It opens the same link as KaraFun's own QR code. Or give it your own link (a sign-up form, say). `split` flips between your logo and the QR code like a coin (every 5 seconds; `qrswap=10` for 10). `both` shows your logo small on top with the QR code under it. `qrbg` sets the card color behind the code (default white; keep it light so it still scans). `qrtext` changes the caption (default SCAN TO SING) | `qr=on`, `qr=split` or `qr=both` |
+| `theme` | A ready-made look. `goth`: red and black, gothic lettering, tiny white upside-down crosses slowly drifting down, two flickering red mics, a softly glowing UP NEXT label, a glowing COMING UP, a progress bar but no countdown, wait times or clock, and a red QR card if you turn on `qr`. `xmas`: deep green and red with little Christmas tree outlines scrolling by 🎄. Anything else you set overrides the theme | `theme=goth` ([see it](https://kjqv.github.io/goth)) or `theme=xmas` |
+| `dance` | DANCE PARTY flashes through rainbow colors by default; give it one color to use that instead | `dance=ff2ad4` |
+| `title` | `title=off` hides song titles in Coming Up | `title=off` |
+| `artist` | `artist=off` hides artist names in Coming Up | `artist=off` |
+| `songs` | `songs=off` shows only singer names in Coming Up (same as both of the above) | `songs=off` |
+| `blank` | A singer name to treat as "no name" (shows the artist instead). Separate several with commas | `blank=Guest` |
+
+</details>
+
+### Extra modes
+
+Tap one to read more. Planned breaks work any time; the others are off until you turn them on.
+
+<details open>
+<summary><b>Spotlight mode <i>(experimental)</i></b></summary>
+
+Keeps the focus on who's up next. Off by default.
+
+- `spotlight=on`: when a song ends (after the applause, if that's on), the screen wipes over to a full-screen **UP NEXT** card with the next singer's name, big and glowing. After 10 seconds it wipes back to the normal screen, then back to the card 10 seconds later, back and forth until the next song starts.
+- `spotlight=loop`: the card all night, during songs too: 10 seconds of the card, then 10 seconds of the normal screen. While a song has more than 30 seconds left, the card shows **NOW SINGING** and the current singer (in the Now Singing color); in the last 30 seconds and between songs it switches to **UP NEXT** (with `upin=on` it says UP IN 3 MIN).
+- It skips BRB, DANCE! and LAST CALL breaks.
+- See everything together in goth: **https://kjqv.github.io/goth**
+
+| While a song plays | Near the end and between songs |
+|---|---|
+| ![NOW SINGING card](screenshots/spotlight-now.png) | ![UP NEXT card](screenshots/spotlight-next.png) |
+
+</details>
+
+<details>
+<summary><b>Applause mode <i>(experimental)</i></b></summary>
+
+Off by default. Add `applause=on` and when a singer finishes, the screen shows a big **MAKE SOME NOISE FOR (name)!!!** for 10 seconds (`applause=15` for 15, anywhere from 3 to 60). After that it stays on your logo with Up Next along the bottom until the next song starts. With no logo it says "Thank you, (name)!" instead. It only fires after a song has played for at least 30 seconds, and it skips BRB, Dance Party and other special names.
+
+| When a song ends | Then, until you hit play |
+|---|---|
+| ![Make some noise splash](screenshots/sample-applause.png) | ![Logo and Up Next](screenshots/sample-applause-after.png) |
+
+</details>
+
+<details>
+<summary><b>Equity mode <i>(experimental)</i></b></summary>
+
+Off by default. Turn it on with `equity=on` and the screen spaces out repeat singers in KaraFun's queue, keeping at least 3 other singers between someone's songs. Set your own number with `equity=5`, or use `equity=scale` to have the spacing grow with the crowd: about a third of the people in line (5 singers → 1 between repeats, 15 singers → 5).
+
+- Same name = same singer. Give two Susans different names ("Susan B", "Susan K").
+- It never moves the song that's on or the one in Up Next.
+- Anything you move by hand in KaraFun stays where you put it.
+- If there aren't enough other singers, the extra songs go to the end.
+- BRB, DANCE! and LAST CALL entries never move, and don't count as singers.
+- See it on the sample queue: `https://kjqv.github.io/?demo&equity=on`
+
+</details>
+
+<details>
+<summary><b>Planned breaks and announcements</b></summary>
+
+Type one of these as the singer name on any song. Don't press play on it; skip it when you're back. The number is minutes (optional), and everyone's wait time after it includes them. When it comes up, the screen switches to the break screen with whoever's after it in Up Next.
+
+| Singer name | What the screen shows |
+|---|---|
+| `BRB KJ 15` | "15 min break · KJ will be back" in the line (in black letters, so it stands out as a break), then "KJ will be back · in about 15 min". KJ can be any name, BRB can go anywhere in it (`Bowser BRB 5`), or leave the name out (`BRB 10`) |
+| `DANCE! 10` (or `Dance Party 10`) | **DANCE PARTY** flashing through rainbow colors (or your `dance=` color), then "Karaoke's back in about 10 min" |
+| `LAST CALL` | **LAST CALL** flashing in red, "Get your drink orders in!" |
+
+These are just singer names to KaraFun, so KaraFun's own screen and scrolling queue will still show them as typed ("BRB KJ 15" and so on). Only this screen turns them into breaks and announcements.
+
+</details>
+
+<details>
+<summary><b>Idle screen <i>(experimental)</i></b></summary>
+
+Turn this on with `idle=5` and if nothing has played for 5 minutes, the screen switches to a simpler idle screen: your logo big in the middle (or "Short break" if you haven't set a logo) plus the Up Next box. As soon as you press play, it goes back to normal. It's off by default. Planned breaks (`BRB`, `DANCE!`, `LAST CALL`) work either way.
+
+| Option | What it does | Example |
+|---|---|---|
+| `idle` | Turns on the idle screen after this many minutes without playback (off by default; `on` = 5) | `idle=5` |
+
+![Idle screen](screenshots/sample-break.png)
+
+</details>
+
+### Color ideas
+
+Copy any of these onto the end of your link (after your `code=`):
+
+![Color options](screenshots/color-options.png)
+
+<details>
+<summary><b>All color presets (tap to open)</b></summary>
+
+| Look | Add to your link |
+|---|---|
+| Creamsicle | `&bg1=7a2e05&bg2=d9600f&now=ffd8a8&next=ffffff&up1=ffb366&up2=fff0dc` |
+| VHS | `&bg1=050508&bg2=14141f&now=00ff66&next=ff2a2a&up1=3a8bff&up2=b04dff` |
+| Arcade | `&bg1=000000&bg2=101010&now=39ff14&next=ffe600&up1=00e5ff&up2=ff00aa` |
+| Whiskey | `&bg1=1a0f07&bg2=3d2412&now=ffcc66&next=fff1d6&up1=e8a85f&up2=b5652b` |
+| Ice | `&bg1=071a2b&bg2=0e3a5a&now=7df9ff&next=ffffff&up1=bde8ff&up2=4fa8ff` |
+| Tiki | `&bg1=00332e&bg2=00594f&now=ffd23f&next=ff6b6b&up1=7cf5d1&up2=2ec4b6` |
+| Synthwave | `&bg1=1a0533&bg2=4b0e5e&now=00f0ff&next=ff2ad4&up1=ffb347&up2=ff5fb0` |
+| Miami | `&bg1=0b1e3f&bg2=2a1b5c&now=36f1cd&next=ff77e9&up1=ffd3f5&up2=ff4fae` |
+| Blacklight | `&bg1=0d001a&bg2=24004d&now=c6ff00&next=ff00e6&up1=b388ff&up2=7c4dff` |
+
+</details>
+
+Colors are hex codes **without** the `#`. On/off options accept `off`, `0` or `no`. A full example:
+
+```
+https://kjqv.github.io/?code=123456&logo=https://i.imgur.com/abc123.png&bg1=0b3d2e&bg2=1f7a5a&up1=00e5ff&up2=0055ff
+```
+
+### Themes and fonts
+
+| `theme=goth` | `font=pixel` |
+|---|---|
+| ![Goth theme](screenshots/theme-gothclub.png) | ![Pixel font](screenshots/font-space.png) |
+
+### Example looks
+
+![Four example looks: clean, black and white with every detail, colorful with a logo, and Goth](screenshots/example-looks.png)
+
+- **Clean** (names and songs only): `&eta=off&clock=off&numbers=off&icons=off&pulse=off&time=off`
+- **Black & white, every detail:** `&bg1=0a0a0a&bg2=262626&now=ffffff&next=ffffff&up1=f2f2f2&up2=8c8c8c&dance=ffffff&time=both&line=on`
+- **Colorful, medium details, logo:** `&bg1=1a0533&bg2=4b0e5e&now=00f0ff&next=ff2ad4&up1=ffb347&up2=ff5fb0&clock=off&numbers=off&logo=https://i.imgur.com/abc123.png`
+- **Goth:** `&theme=goth`
+
+### Example setups
+
+Tap **Preview** to see each one on the sample queue. To use one, put the options after your own code: `https://kjqv.github.io/?code=123456` + the options.
+
+| Setup | Try it | Options |
+|---|---|---|
+| Monochrome, clock on, 5 minutes per singer change | [Preview](https://kjqv.github.io/?demo&bg1=111111&bg2=2e2e2e&now=ffffff&next=ffffff&up1=f0f0f0&up2=8a8a8a&dance=ffffff&icons=off&pulse=off&gap=300) | `&bg1=111111&bg2=2e2e2e&now=ffffff&next=ffffff&up1=f0f0f0&up2=8a8a8a&dance=ffffff&icons=off&pulse=off&gap=300` |
+| Names only, no clocks or timers | [Preview](https://kjqv.github.io/?demo&songs=off&time=off&eta=off&clock=off&count=12) | `&songs=off&time=off&eta=off&clock=off&count=12` |
+| Big text for a far-away patio TV | [Preview](https://kjqv.github.io/?demo&count=4&songs=off&font=rounded) | `&count=4&songs=off&font=rounded` |
+| Retro look, scrolling song titles, 24-hour clock with start times | [Preview](https://kjqv.github.io/?demo&font=retro&long=scroll&clock=24&eta=time) | `&font=retro&long=scroll&clock=24&eta=time` |
+
+### Hosting your logo (and wallpaper)
+
+Any PNG or JPG hosted on the web works: point `logo=` (or `bgimg=`) at the image's own address, usually ending in `.png` or `.jpg`. A transparent PNG looks best for logos.
+
+- **Imgur** is an easy free option: upload while signed in, then right-click the image and copy its address (it starts with `i.imgur.com`).
+- If the image doesn't load, that spot just stays empty and the queue still works.
+- Want to see how a logo looks first? Try the sample: `logo=https://kjqv.github.io/sample-logo.png` (or a red one for goth: `logo=https://kjqv.github.io/sample-logo-red.png`)
+
+### Tips
+
+- **Settings are remembered on that device.** A link with any options replaces the saved look (it doesn't mix with the old one), and a plain `?code=` link keeps it. Open your full link once, then **bookmark it** so you can get back in one click. Add `?reset` to clear the saved code and settings.
+- **Shorten the link** with bit.ly, or with [go.aftvnews.com](https://go.aftvnews.com) *(not affiliated)* for Fire Sticks, to save a lot of typing with a remote.
+
+## More info
+
+<details>
+<summary><b>Fire Stick tips</b></summary>
+
+- **Hide Silk's address bar:** once the page loads, press **down** on the remote.
+- **Stop the screensaver:** turn off **Ambient Experience**, or set **Settings → Display & Sounds → Screensaver → Start Time → Never**.
+- **Edges cut off?** The TV is cropping the picture. Try **Settings → Display & Sounds → Display → Calibrate Display** on the Fire Stick, or set the TV's picture size to "Just Scan" or "Fit to Screen".
+- **Typing the link:** Amazon's Fire TV phone app gives you a phone keyboard.
+- **Not seeing an update?** Silk can keep an old copy for up to 10 minutes. Add something like `&v=2` to the end of the link to force a fresh one.
+
+</details>
+
+<details>
+<summary><b>How it works</b></summary>
+
+KaraFun's public remote page (`karafun.com/<code>/`) embeds a short-lived WebSocket address for the session. This page fetches that (KaraFun allows cross-origin reads), loads KaraFun's own `WebKCS` client from their CDN, and listens for `remote.QueueEvent` and `remote.StatusEvent` as a read-only listener. It names itself **KJQV** so it shows up clearly in KaraFun's list of connected guests. It reconnects on its own if Wi-Fi drops or KaraFun restarts.
+
+This relies on KaraFun's undocumented remote protocol, so a KaraFun update could break it.
+
+Tested with KaraFun on iPad and a 1st-gen Fire Stick in Silk, plus desktop browsers.
+
+</details>
+
+<details>
+<summary><b>Run your own copy</b></summary>
+
+Fork this repo and turn on GitHub Pages (**Settings → Pages → Deploy from a branch → `main` / root**). There's no build step.
+
+</details>
+
+<details>
+<summary><b>Rotato.rocks: a great solution, and why it didn't work for me</b></summary>
+
+[Rotato.rocks](https://rotato.rocks) *(not affiliated)* is a great tool, and if you want software to *run* your singer rotation, use it. It just solves a different problem than I had. It keeps its own rotation (singers cycle back to the bottom of its list), it doesn't follow along when you skip or reorder in KaraFun, and it means signing up for an account and connecting your KaraFun session to another service.
+
+I wanted KaraFun to stay in charge of the queue, with no account or sign-up, and my remote code never leaving the screen's own browser. KJQV just shows what KaraFun already knows.
+
+</details>
+
+## Support
+
+KJQV is free and always will be. If it makes your karaoke night better, you can [buy me a coffee on Ko-fi](https://ko-fi.com/4kjqv) ☕
+
+## License
+
+MIT. See [LICENSE](LICENSE). Provided as-is, with no warranty.

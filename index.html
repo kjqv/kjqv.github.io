@@ -1,0 +1,1869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="description" content="A free webpage that turns any device with a browser into a live karaoke queue display: Now Singing, Up Next, Coming Up and wait times.">
+<meta property="og:title" content="KJQV · Unofficial KaraFun queue viewer">
+<meta property="og:description" content="A free webpage that turns any device with a browser into a live karaoke queue display: Now Singing, Up Next, Coming Up and wait times.">
+<meta property="og:image" content="https://kjqv.github.io/screenshots/sample-playing.png">
+<meta property="og:url" content="https://kjqv.github.io/">
+<meta name="twitter:card" content="summary_large_image">
+<title>KJQV · Unofficial KaraFun queue viewer</title>
+<style>
+  :root {
+    --bg: #1c0870;
+    --fg: #ffffff;
+    --dim: rgba(255,255,255,.66);
+    --line: rgba(255,255,255,.16);
+    --yellow: #fcff00;
+    --teal: #00a3a3;
+    --blue: #1f7cf0;
+    --indigo: #4a1dff;
+    --purple: #a03ae6;
+    --now: 57,255,136;   /* Now Singing color (r,g,b) */
+    --next: 252,255,0;   /* Up Next color (r,g,b) */
+    --accent: rgb(var(--next));
+    --accent2: #3fd4d4;
+  }
+  * { box-sizing: border-box; }
+  /* Silk on Fire TV hides its address bar once a page scrolls a little, so the page is made
+     2px taller than the screen and nudged down (see hideSilkBar). */
+  html.silkfix, html.silkfix body { overflow-y: auto !important; overflow-x: hidden; }
+  html.silkfix body { min-height: calc(100vh + 300px); }
+  html.silkfix .safe { position: fixed; } /* content stays put while the page scrolls */
+  /* Purple fade from the logo's indigo (#3A00FF) to its violet (#9226D6), darkened so text stays readable. */
+  html, body { margin: 0; height: 100%; background: #1c0870 linear-gradient(135deg, #1c0870 0%, #2a0c9e 40%, #4a1690 75%, #5e1c95 100%); color: var(--fg);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    overflow: hidden; }
+  /* 5% safe margins: some TVs crop the edges */
+  .safe { position: absolute; inset: 5vh 5vw; display: flex; flex-direction: column; }
+  .hidden { display: none !important; }
+
+  /* ---------- brand logo (top right) ---------- */
+  /* Logo in the top-right corner */
+  /* As tall as the Now Singing + Up Next boxes together */
+  #brand { position: absolute; top: 0; right: 0; height: 51.8vh; width: 44vh; object-fit: contain; object-position: top right; transition: transform .38s ease-in; transform: perspective(120vh) rotateY(0deg); }
+  /* qr=both: logo small on top, QR code under it (side by side on the big idle / applause screen) */
+  #brandQr { position: absolute; right: 0; top: 20.5vh; height: 31.3vh; width: 44vh; object-fit: contain; object-position: top right; }
+  body.qrboth #brand { height: 19vh; }
+  body.qrboth.intermission #brand { height: calc((100% - 30vh) * .36); }
+  body.qrboth.intermission #brandQr { top: calc((100% - 30vh) * .4); left: 0; right: 0; width: 100%; height: calc((100% - 30vh) * .58); object-position: center; }
+  #brand { transform-origin: calc(100% - 22vh) 50%; }
+  /* Before play (just the Up Next box up top): Coming Up stays where it sits during a song */
+  /* and the Up Next box sits centered in the space the two boxes normally take */
+  body.prestart:not(.intermission) #heroWrap { margin-top: 13.4vh; }
+  body.prestart:not(.intermission) #nextWrap { margin-top: calc(2.2vh + 13.4vh + var(--logopush, 0px)); }
+  body.intermission #brand { transform-origin: 50% 50%; }
+  #brand.flipping { transform: perspective(120vh) rotateY(90deg); }
+  /* drip=on: blood running down from the top edge of the logo / QR card */
+  #patLayer { position: fixed; left: 0; right: 0; top: -120px; height: calc(100% + 240px);
+    z-index: -1; pointer-events: none; -webkit-animation: patmove 8s linear infinite; animation: patmove 8s linear infinite; will-change: transform; }
+  #brandFx { position: absolute; pointer-events: none; transition: opacity .2s; }
+  #brandFx svg { display: block; width: 100%; height: auto; overflow: visible; }
+  body.flipping-brand #brandFx { opacity: 0; }
+  #top { padding-right: 46vh; } /* keep names clear of the logo */
+  #view.nologo #top { padding-right: 0; }
+  /* Intermission (DJ break): big logo in the middle, Up Next box along the bottom */
+  #breakMsg { display: none; }
+  body.intermission #brand { top: 0; left: 0; right: 0; width: 100%; height: calc(100% - 30vh); object-position: center; }
+  body.intermission #top { padding-right: 0; margin-top: auto; }
+  body.intermission #view.nologo #breakMsg, body.intermission.custombreak #breakMsg { display: flex; flex-direction: column; justify-content: center; align-items: center;
+    position: absolute; top: 0; left: 0; right: 0; height: calc(100% - 30vh); text-align: center;
+    font-size: 14vh; font-weight: 900; line-height: 1.1; color: #fff; }
+  #breakMsg span { font-size: 6vh; font-weight: 700; opacity: .6; }
+  /* applause=on: a full-screen "make some noise" splash when a singer finishes */
+  #applause { position: fixed; inset: 0; z-index: 50; display: none; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 0 6vw; background: radial-gradient(ellipse at center, rgba(var(--now),.28), rgba(0,0,0,.92) 70%), #000; }
+  /* spotlight=on / loop: Up Next takes over the whole screen for a bit, wiping in and out */
+  #spot { position: fixed; inset: 0; z-index: 45; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 0 6vw; box-sizing: border-box; visibility: hidden; opacity: 0;
+    background: radial-gradient(ellipse at center, rgba(var(--next),.22), rgba(0,0,0,.9) 70%), #000;
+    -webkit-clip-path: inset(0 0 100% 0); clip-path: inset(0 0 100% 0);   /* wipes down from the top */
+    transition: clip-path .8s cubic-bezier(.7,0,.3,1), -webkit-clip-path .8s cubic-bezier(.7,0,.3,1), opacity .8s, visibility 0s .8s; }
+  #spot.on { visibility: visible; opacity: 1; -webkit-clip-path: inset(0 0 0 0); clip-path: inset(0 0 0 0);
+    transition: clip-path .8s cubic-bezier(.7,0,.3,1), -webkit-clip-path .8s cubic-bezier(.7,0,.3,1), opacity .4s, visibility 0s; }
+  #spot .slabel { font-size: 8vh; font-weight: 900; letter-spacing: .14em; color: #fff; opacity: .9; }
+  #spot .sname { max-width: 100%; font-size: 24vh; line-height: 1.1; font-weight: 900; color: rgb(var(--next)); white-space: nowrap;
+    padding: 0 .1em; animation: spotglow 2.4s ease-in-out infinite; }
+  #spot .ssong { font-size: 5vh; font-weight: 800; color: #fff; opacity: .8; margin-top: 1vh; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  @keyframes spotglow { 0%, 100% { text-shadow: 0 0 2vh rgba(var(--next),.45); } 50% { text-shadow: 0 0 6vh rgba(var(--next),.9); } }
+  body.caps #spot .sname { text-transform: uppercase; }
+  #spot.nowcard .sname { color: rgb(var(--now)); animation-name: spotglownow; }
+  @keyframes spotglownow { 0%, 100% { text-shadow: 0 0 .6vh rgba(var(--now),.06); } 50% { text-shadow: 0 0 1.2vh rgba(var(--now),.14); } }
+  #spot.nowcard .slabel { color: rgb(var(--now)); }
+  /* The card's own copy of the moving pattern, twice as fast */
+  #spot { overflow: hidden; }
+  #spot > :not(#spotPat) { position: relative; z-index: 1; }
+  #spotPat { position: absolute; left: 0; right: 0; display: none; pointer-events: none;
+    -webkit-animation: patmove 4s linear infinite; animation: patmove 4s linear infinite; will-change: transform; }
+  /* Goth spotlight: gothic ornaments around the label and a flickering name */
+  body.gothspot #spot .slabel { display: flex; align-items: center; gap: .5em; }
+  body.gothspot #spot .slabel::before, body.gothspot #spot .slabel::after { content: ""; width: 3.4em; height: .7em;
+    background: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 24'%3E%3Cpath d='M2 14 Q50 15.5 92 13 L119 2 Q106 13.5 94 16.5 Q50 19 2 14 Z' fill='%23ffffff'/%3E%3C/svg%3E") center / contain no-repeat; filter: drop-shadow(0 0 .5vh rgba(255,255,255,.5)); }
+  body.gothspot #spot .slabel::before { transform: scaleX(-1); }
+  /* NOW SINGING card: wings in the Now Singing color, to match the name */
+  body.gothspot #spot.nowcard .slabel::before, body.gothspot #spot.nowcard .slabel::after {
+    background: rgb(var(--now)); -webkit-mask: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 24'%3E%3Cpath d='M2 14 Q50 15.5 92 13 L119 2 Q106 13.5 94 16.5 Q50 19 2 14 Z' fill='%23ffffff'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 24'%3E%3Cpath d='M2 14 Q50 15.5 92 13 L119 2 Q106 13.5 94 16.5 Q50 19 2 14 Z' fill='%23ffffff'/%3E%3C/svg%3E") center / contain no-repeat;
+    filter: drop-shadow(0 0 .6vh rgba(var(--now),.7)); }
+  body.gothspot #spot .sname { animation: nameflicker 6.2s linear infinite; text-shadow: 0 0 2.5vh rgba(var(--next),.6); }
+  /* Gothic capitals run together (LILITH reads like UUTH): give the letters some air */
+  body.gothspot #nowBarName, body.gothspot #heroName, body.gothspot #list .who, body.gothspot #spot .sname, body.gothspot #applause .aname { letter-spacing: .09em; }
+  /* goth song lines: title white with a red outline, artist black with a white outline */
+  body.gothspot #nowBarSong, body.gothspot #heroSong, body.gothspot #spot .ssong { color: #fff; text-shadow: -0.6px 0px 0 #ff1a1a, 0.6px 0px 0 #ff1a1a, 0px -0.6px 0 #ff1a1a, 0px 0.6px 0 #ff1a1a; }
+  body.gothspot #nowBarSong .art, body.gothspot #heroSong .art, body.gothspot #spot .ssong .art { color: #000; opacity: 1; text-shadow: -0.75px 0px 0 rgba(255,255,255,.9), 0.75px 0px 0 rgba(255,255,255,.9), 0px -0.75px 0 rgba(255,255,255,.9), 0px 0.75px 0 rgba(255,255,255,.9), -0.75px -0.75px 0 rgba(255,255,255,.9), 0.75px -0.75px 0 rgba(255,255,255,.9), -0.75px 0.75px 0 rgba(255,255,255,.9), 0.75px 0.75px 0 rgba(255,255,255,.9); }
+  /* goth NOW SINGING card: the label flickers between black and red, the name just glows */
+  body.gothspot #spot.nowcard .sname { animation: spotglownow 2.4s ease-in-out infinite; }
+  @keyframes blackred { 0%, 30%, 34%, 77%, 80%, 100% { color: rgb(var(--now)); text-shadow: 0 0 .8vh rgba(var(--now),.3); }
+    31%, 33% { color: rgba(var(--now),.35); text-shadow: none; } 78% { color: rgba(var(--now),.45); text-shadow: none; } }
+  /* NOW SINGING card with two mics: a small mic on each side of the label, blinking together */
+  #spot .slabel { display: flex; align-items: center; justify-content: center; gap: .5em; }
+  #spot .smic { display: none; flex: none; height: .9em; width: auto; color: rgb(var(--now)); }
+  body.twomics #spot.nowcard .smic { display: block; }
+  body.twomics.micflicker #spot.nowcard .smic { animation: micflicker 5.6s linear infinite; }
+  #applause.on { display: flex; animation: applausein .6s ease-out; }
+  #applause .pre { font-size: 7vh; font-weight: 900; letter-spacing: .12em; color: #fff; opacity: .85; text-transform: uppercase; }
+  #applause .aname { max-width: 100%; font-size: 22vh; line-height: 1.05; font-weight: 900; color: rgb(var(--now)); white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; text-shadow: 0 0 6vh rgba(var(--now),.7); animation: applausebeat .9s ease-in-out infinite; padding: 0 .1em; }
+  #applause .claps { font-size: 7vh; margin-top: 2vh; letter-spacing: .3em; color: #fff; opacity: .7; }
+  @keyframes applausein { from { opacity: 0; transform: scale(1.08); } to { opacity: 1; transform: none; } }
+  @keyframes applausebeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+  /* BRB / Dance Party: message under a smaller logo */
+  body.intermission.custombreak #brand { height: calc(100% - 60vh); }
+  body.intermission.custombreak #view:not(.nologo) #breakMsg { top: calc(100% - 60vh); height: 28vh; font-size: 11vh; }
+  /* LAST CALL: flashing red */
+  @keyframes lastcall { 0%, 49% { opacity: 1; } 50%, 100% { opacity: .25; } }
+  .lastcall { color: #ff2a2a !important; -webkit-text-fill-color: #ff2a2a; text-shadow: 0 0 3vh rgba(255,42,42,.7) !important;
+    animation: lastcall 1s linear infinite; }
+  /* Rainbow text (DANCE PARTY) */
+  @keyframes rainbow { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+  /* Rainbow (DANCE PARTY): the whole word flashes through the colors */
+  @keyframes rainbowflash {
+    0% { color: #ff3b3b; text-shadow: 0 0 1.4vh #ff3b3b; } 14% { color: #ff9f1c; text-shadow: 0 0 1.4vh #ff9f1c; }
+    28% { color: #ffe600; text-shadow: 0 0 1.4vh #ffe600; } 42% { color: #39ff88; text-shadow: 0 0 1.4vh #39ff88; }
+    57% { color: #00e5ff; text-shadow: 0 0 1.4vh #00e5ff; } 71% { color: #6a5cff; text-shadow: 0 0 1.4vh #6a5cff; }
+    85% { color: #ff3bd4; text-shadow: 0 0 1.4vh #ff3bd4; } 100% { color: #ff3b3b; text-shadow: 0 0 1.4vh #ff3b3b; } }
+  .rainbow { -webkit-animation: rainbowflash 2.8s steps(1) infinite; animation: rainbowflash 2.8s steps(1) infinite; }
+  /* goth: DANCE PARTY fades between white and blood red instead */
+  @keyframes gothflash { 0%, 100% { color: #ffffff; text-shadow: 0 0 1.4vh rgba(255,255,255,.7); } 50% { color: #ff1a1a; text-shadow: 0 0 1.6vh rgba(255,26,26,.8); } }
+  body.gothspot .rainbow { -webkit-animation: gothflash 1.8s ease-in-out infinite; animation: gothflash 1.8s ease-in-out infinite; }
+  /* BRB / break lines in Coming Up: black letters with a white halo, so a break looks different from a singer */
+  #list .who.brb { color: #000 !important; text-shadow: 0 0 .4vh rgba(255,255,255,.95), 0 0 1.2vh rgba(255,255,255,.55) !important; }
+  /* Link toggles */
+  body.noicons #nowBar .mic, body.noicons #nowBar .wave { display: none; }
+  body.nopulse #nowBar::after { animation: none; }
+  body.nosongs #list .what { display: none; }
+  /* caps=on (default): singer names in capitals */
+  body.caps #nowBarName, body.caps #heroName, body.caps #list .who { text-transform: uppercase; }
+  body.nonumbers #list .num { display: none; }
+  /* mics=2: a mic on both sides of NOW SINGING */
+  .mic2 { display: none; }
+  body.twomics #nowBar .mic2 { display: block; }
+  body.twomics #hero .labelmic { display: none; }   /* keep UP NEXT centered to match */
+  /* mic=flicker: the Now Singing mic flickers (in the Now Singing color) like a dying candle */
+  @keyframes micflicker { 0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; filter: drop-shadow(0 0 1.2vh rgb(var(--now))); }
+    20%, 24%, 55% { opacity: .15; filter: none; } 70% { opacity: .8; } 72% { opacity: .3; } 74% { opacity: 1; } }
+  body.micflicker #nowBar .labelmic { animation: micflicker 5.6s linear infinite; }
+  /* nextflicker=on: the UP NEXT label flickers like a failing neon sign (on by default in goth) */
+  @keyframes nameflicker { 0%, 31%, 35%, 61%, 63%, 100% { opacity: 1; } 32%, 34% { opacity: .2; } 62% { opacity: .45; } 80% { opacity: .9; } 81% { opacity: .35; } 82% { opacity: 1; } }
+  body.nextflicker #nextLabelText { animation: nameflicker 7.4s linear infinite; }
+  /* goth: UP NEXT softly glows (nextflicker=on swaps this for the flicker) */
+  @keyframes labelglow { 0%, 100% { text-shadow: 0 0 .6vh rgba(var(--next),.25); } 50% { text-shadow: 0 0 2.2vh rgba(var(--next),.7); } }
+  body.gothspot:not(.nextflicker) #nextLabelText { animation: labelglow 3.4s ease-in-out infinite; }
+  /* line=on: a rule under COMING UP (the clock sits above it) */
+  body.rule #nextLabel { border-bottom: .3vh solid rgba(255,255,255,.3); padding-bottom: .8vh; }
+  /* with a logo, the line fades out before it reaches the logo's corner */
+  body.rule #view:not(.nologo) #nextLabel { border-image: linear-gradient(to right, rgba(255,255,255,.3) 0, rgba(255,255,255,.3) calc(100% - 52vh), rgba(255,255,255,0) calc(100% - 40vh)) 1; }
+  /* font=space: arcade pixel font with an RGB split */
+  body.rgbfont #nowBarName, body.rgbfont #heroName, body.rgbfont .who, body.rgbfont .boxLabel, body.rgbfont #nextLabel,
+  body.rgbfont #breakMsg { text-shadow: -.07em 0 rgba(255,0,70,.75), .07em 0 rgba(0,210,255,.75) !important; }
+  body.rgbfont .boxLabel { font-size: 4.6vh; line-height: 1.5; }
+  body.rgbfont #heroLabel { font-size: 4.6vh; }
+  body.rgbfont #heroEta { font-size: .36em; }
+  body.nosongs #list .who { max-width: 100%; }
+
+  /* ---------- queue view ---------- */
+  .label { font-size: 2.8vh; letter-spacing: .32em; color: #ffc27a; text-transform: uppercase; }
+
+  /* Now singing bar: only while a song is playing. Smaller, green. */
+  /* Slow pulse so the current singer "flashes" gently. Opacity only: cheap on a Fire Stick. */
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+  /* Now Singing and Up Next share the same box size */
+  /* Now Singing and Up Next: same size; big label on the left, name + song on the right */
+  #nowBar, #hero { box-sizing: border-box; height: 25vh; margin: 0 0 1.8vh; padding: .8vh 1.4vw;
+    border-radius: 2.4vh; border: .4vh solid; text-align: left;
+    display: flex; flex-direction: row; align-items: center; gap: 1.6vw; }
+  .boxLabel { flex: none; width: 26vw; box-sizing: border-box; text-align: center; font-size: 6.4vh; font-weight: 900; line-height: 1.05;
+    letter-spacing: .04em; padding: 0 1vw; border-right: .3vh solid rgba(var(--now),.45); }
+  .boxBody { min-width: 0; flex: 1; text-align: left; }
+  /* Time left on the current song (top right of the Now Singing box) + a thin progress bar */
+  #nowBar { position: relative; }
+  #nowTime { position: absolute; top: 1.4vh; right: 2vw; font-size: 2.8vh; font-weight: 700; color: #fff; opacity: .35;
+    font-variant-numeric: tabular-nums; }
+  /* Progress bar: a rounded track inset from the box edges */
+  #nowTrack { position: absolute; left: 2vw; right: 2vw; bottom: 1.6vh; height: 1.9vh; border-radius: 1.2vh;
+    background: rgba(var(--now), .18); overflow: hidden; }
+  #nowProg { height: 100%; width: 0; border-radius: 1.2vh; background: rgb(var(--now)); opacity: .85;
+    transition: width 1s linear; }
+  body.timebar #nowBar { padding-bottom: 4.9vh; } /* room for the progress bar */
+  /* Only the outline and glow pulse (on a separate layer, opacity only: cheap on a Fire Stick); the name stays solid. */
+  #nowBar { color: rgb(var(--now)); background: rgba(var(--now),.12); border-color: rgba(var(--now),.25); }
+  #nowBar::after { content: ""; position: absolute; inset: -.4vh; border-radius: 2.6vh; pointer-events: none;
+    border: .4vh solid rgba(var(--now),.75); box-shadow: 0 0 3vh rgba(var(--now),.35);
+    animation: pulse 5.2s ease-in-out infinite; }
+  #nowBarRow { display: flex; align-items: center; justify-content: flex-start; gap: 1.4vw; }
+  #nowBar .mic { flex: none; height: 7.2vh; width: auto; }
+  #nowBarLabel, #heroLabel { display: flex; align-items: center; justify-content: center; gap: .8vw; }
+  /* align=left: NOW SINGING / UP NEXT sit at the left edge of their column instead of centered */
+  body.alignleft .boxLabel { text-align: left; }
+  body.alignleft #nowBarLabel, body.alignleft #heroLabel { justify-content: flex-start; }
+  body.alignright .boxLabel { text-align: right; }
+  body.alignright #nowBarLabel, body.alignright #heroLabel { justify-content: flex-end; }
+  /* vu=swap: the VU bars sit by the label and the mic sits by the name; vu=off: no VU bars */
+  .boxLabel .labelwave, #nowBarRow .namemic { display: none; }
+  #nowBar .namemic { flex: none; height: 6.5vh; width: auto; }
+  #hero .labelwave { visibility: hidden; width: 7.95vh; }   /* same width as the 7 VU bars */
+  body.vuswap #nowBar .labelmic { display: none; }
+  body.vuswap #nowBar .labelwave { display: flex; }
+  body.vuswap #hero .labelmic { display: none; }
+  body.vuswap #hero .labelwave { display: flex; }
+  body.vuswap .namewave { display: none; }
+  body.vuswap #nowBar .namemic { display: block; }
+  body.vuswap #heroEta:not(.hidden) ~ .labelwave { display: none; }
+  body.vuswap.micflicker #nowBar .namemic { animation: micflicker 5.6s linear infinite; }
+  body.vuoff .namewave, body.vuoff .labelwave { display: none !important; }
+  body.vuswap #nowBar .mic2 { display: none; }
+  body.noicons #nowBar .namemic, body.noicons .labelwave { display: none !important; }
+  /* invisible spacer the size of the Now Singing mic, so both labels line up */
+  #hero .labelmic { height: 6.5vh; width: auto; visibility: hidden; }
+  body.noicons #hero .labelmic { display: none; }
+  #nowBar .labelmic { height: 6.5vh; width: auto; }
+  /* Animated equalizer bars: transform-only animation, light on the Fire Stick */
+  .wave { flex: none; display: flex; align-items: center; gap: .45vh; height: 4.4vh; }
+  .wave i { display: block; width: .75vh; height: 100%; border-radius: 1vh; background: rgb(var(--now));
+    transform-origin: center; animation: eq 1s ease-in-out infinite; }
+  .wave i:nth-child(2) { animation-delay: -.2s; } .wave i:nth-child(3) { animation-delay: -.5s; }
+  .wave i:nth-child(4) { animation-delay: -.8s; } .wave i:nth-child(5) { animation-delay: -.35s; }
+  .wave i:nth-child(6) { animation-delay: -.65s; } .wave i:nth-child(7) { animation-delay: -.1s; }
+  @keyframes eq { 0%, 100% { transform: scaleY(.2); } 50% { transform: scaleY(1); } }
+  #nowBarText { min-width: 0; flex: 1; }
+  #nowBarLabel { }
+  #nowBarName { min-width: 0; flex: 0 1 auto; font-size: 13vh; font-weight: 800; line-height: 1.12; padding-bottom: .1em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    text-shadow: 0 0 .6vh rgba(var(--now),.1); }
+  #nowBarSong { font-size: 4.6vh; font-weight: 800; color: #fff; margin-top: .6vh; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Hero: the singer who goes next, big and yellow. Name shrinks to fit (see fitName). */
+  #heroLabel { color: #fff; border-color: rgba(var(--next),.45); font-size: 7vh; }
+  #hero { background: linear-gradient(90deg, rgba(var(--next),.16), rgba(var(--next),.04));
+    border-color: rgba(var(--next),.55); box-shadow: 0 0 4vh rgba(var(--next),.12); }
+  #heroName { font-size: 16vh; font-weight: 800; line-height: 1.12; padding-bottom: .1em; color: var(--accent);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    text-shadow: 0 0 1.4vh rgba(var(--next),.4); }
+  #heroSong { font-size: 4.6vh; font-weight: 800; color: #fff; margin-top: .6vh;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #empty { font-size: 8vh; color: var(--dim); margin: 2vh 0 4vh; }
+  #nextLabel { font-size: 4.4vh; font-weight: 800; letter-spacing: .24em; color: #ffc27a; }
+  /* Coming up: fills the first column, then a second column, side by side */
+  /* Gap and divider between the two big boxes and Coming Up */
+  #nextWrap { flex: 1; min-height: 0; display: flex; flex-direction: column; margin-top: calc(2.2vh + var(--logopush, 0px)); }
+  #list { --s: 1; flex: 1; min-height: 0; overflow: hidden; margin-top: 1vh; display: grid; grid-auto-flow: column;
+    grid-template-columns: 1fr; column-gap: 4vw; align-content: start; }
+  #list.two { grid-template-columns: 1fr 1fr; }
+  .row { min-width: 0; display: flex; align-items: baseline; gap: 1.2vw; padding: calc(var(--s) * .2vh) 0; border-bottom: 1px solid var(--line); }
+  .num { width: 4vw; font-size: calc(var(--s) * 3.6vh); color: var(--dim); text-align: right; flex: none; }
+  .who { font-size: calc(var(--s) * 7.75vh); font-weight: 800; color: #ff9f1c; line-height: 1.12; padding-bottom: .08em; flex: 0 1 auto; max-width: 70%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cell { min-width: 0; flex: 1; display: flex; align-items: baseline; gap: 1.2vw; }
+  /* Text too long for its space slides slowly back and forth so the whole title can be read */
+  /* Song + artist that don't fit together take turns: title, then artist (see flipText) */
+  .mq { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; transition: opacity .35s; }
+  .mq.fade { opacity: 0; }
+  /* long=scroll: overflowing song lines scroll sideways instead of alternating */
+  .scrolling { text-overflow: clip !important; }
+  .scr { display: inline-block; white-space: nowrap; animation: scr var(--dur, 12s) linear infinite; }
+  @keyframes scr { 0%, 15% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  /* Clock (right of COMING UP) and estimated start times */
+  #nextLabel { display: flex; justify-content: space-between; align-items: baseline; }
+  /* flourish=on (on in goth): COMING UP in stark white with a soft glow and a curl on each side */
+  body.flourish #nextLabel > span:first-child { color: #fff; text-shadow: 0 0 1.2vh rgba(255,255,255,.55); display: inline-flex; align-items: center; gap: .5em; }
+  body.flourish #nextLabel > span:first-child::before, body.flourish #nextLabel > span:first-child::after {
+    content: ""; width: 3.2em; height: .7em; background: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 24'%3E%3Cpath d='M2 12 H58 C70 12 74 3 84 4 C94 5 95 15 87 17 C80 19 76 12 82 9 C86 7 90 11 87 13 M84 4 C96 0 108 4 118 12 C108 18 98 22 90 20' fill='none' stroke='%23ffffff' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='50' cy='12' r='2.6' fill='%23ffffff'/%3E%3C/svg%3E") center / contain no-repeat;
+    filter: drop-shadow(0 0 .5vh rgba(255,255,255,.6)); }
+  body.flourish #nextLabel > span:first-child::before { transform: scaleX(-1); }
+  #clock { letter-spacing: .02em; color: var(--fg); opacity: .6; font-variant-numeric: tabular-nums; }
+  #clockFloat { display: none; position: absolute; top: 0; right: 0; font-size: 4.4vh; font-weight: 800; opacity: .6;
+    font-variant-numeric: tabular-nums; }
+  body.intermission #clockFloat.on { display: block; }
+  .eta { flex: none; margin-left: auto; padding-left: 1vw; font-size: calc(var(--s) * 3.4vh); font-weight: 700;
+    color: rgba(255,255,255,.5); font-variant-numeric: tabular-nums; }
+  #hero { position: relative; }
+  /* keep big names clear of the top-right "3:58 left" / "~5 min" labels */
+  body.hastimetext #nowBarRow { padding-right: calc(var(--tw, 10vw) - 1vw); }
+  /* wait time sits to the right of the UP NEXT label */
+  #heroEta { flex: none; font-size: .48em; font-weight: 800; letter-spacing: .01em; line-height: 1.1; opacity: .6;
+    text-align: left; font-variant-numeric: tabular-nums; }
+  #heroEta:not(.hidden) + .labelmic { display: none; }  /* the wait time takes the mic's spot */
+  /* last ~20 seconds of a song: time left flashes, Up Next glows */
+  @keyframes endflash { 0%, 49% { opacity: 1; } 50%, 100% { opacity: .2; } }
+  @keyframes endglow { 0%, 100% { box-shadow: 0 0 4vh rgba(var(--next),.12); } 50% { box-shadow: 0 0 6vh 1vh rgba(var(--next),.38); } }
+  body.ending #nowTime { opacity: .8; animation: endflash 1s linear infinite; }
+  body.ending #hero { animation: endglow 1.6s ease-in-out infinite; border-color: rgb(var(--next)); }
+  /* Room around names so fancy fonts' overhangs and the soft glow aren't cut off at the edges */
+  #nowBarName, #heroName { padding-left: .15em; padding-right: .15em; margin-left: -.15em; margin-right: -.15em; }
+  #nowBarSong, #heroSong { padding-left: .12em; margin-left: -.12em; }
+  #list .who { padding-left: .12em; padding-right: .12em; margin-left: -.12em; margin-right: -.12em; }
+  #spot .ssong { opacity: 1; }
+  #nowBarSong .art, #heroSong .art, #spot .ssong .art { opacity: .5; } /* artist at half the song title's strength */
+  /* Song line in the big boxes: shrinks to fit; if still too long, the artist is cut short first */
+  .songline { display: flex; align-items: baseline; white-space: nowrap; }
+  .songline .ttl { flex: 0 0 auto; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+  .songline .art { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .what { min-width: 0; flex: 1; font-size: calc(var(--s) * 3.2vh); font-weight: 600; color: rgba(255,255,255,.42); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #more { flex: none; font-size: 2.4vh; color: rgba(255,255,255,.5); margin-top: .8vh; text-align: right;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+  #pill { position: absolute; right: 0; bottom: -2vh; font-size: 1.7vh; padding: .35vh .8vw; opacity: .8;
+    border-radius: 99px; background: rgba(255,255,255,.08); color: var(--dim); }
+  #pill.bad { background: rgba(255,61,90,.18); color: #ffb3c0; }
+
+  /* ---------- menu (any arrow key) ---------- */
+  #menu { position: absolute; left: 50%; bottom: 8vh; transform: translateX(-50%);
+    display: flex; gap: 2vw; background: rgba(20,20,34,.96); padding: 2vh 2vw; border-radius: 2vh;
+    border: 1px solid var(--line); }
+
+  /* ---------- code entry ---------- */
+  #setup { align-items: center; justify-content: center; text-align: center; }
+  #setup h1 { font-size: 3.6vh; margin: 0 0 1vh; text-transform: uppercase; letter-spacing: .08em; }
+  /* Faint KJQV mark behind the code screen */
+  #setupMark { position: absolute; left: 50%; top: 50%; height: 104vh; width: auto; transform: translate(-50%, -50%);
+    opacity: .05; pointer-events: none; z-index: -1; }
+  #setup .brand { font-size: 2.4vh; font-weight: 800; letter-spacing: .3em; color: #ffb347; margin: 0 0 1.4vh; }
+  #setup p { font-size: 2.6vh; color: var(--dim); margin: 0 0 3vh; }
+  #codeBox { font-size: 8vh; font-weight: 800; letter-spacing: .4em; padding-left: .4em;
+    min-height: 11vh; margin-bottom: 3vh; font-variant-numeric: tabular-nums; }
+  #codeBox .ph { color: rgba(255,255,255,.18); }
+  #pad { display: grid; grid-template-columns: repeat(3, 12vh); gap: 1.6vh; justify-content: center; }
+  #about { margin-top: 3vh; font-size: 2.3vh; color: var(--dim); }
+  #about a { color: #fff; }
+  #demoTag { display: none; position: absolute; left: 0; bottom: -3.2vh; font-size: 1.8vh; letter-spacing: .1em;
+    color: rgba(255,255,255,.55); }
+  body.demo #demoTag { display: block; }
+  #setupMsg { min-height: 3.5vh; font-size: 2.6vh; color: #ffb3c0; margin-top: 2.4vh; }
+  /* Upright phone: tighter code screen so it all fits, and the mark sized to the width */
+  @media (max-aspect-ratio: 3/4) {
+    #setup { overflow-y: auto; justify-content: flex-start; padding-top: 1.5vh; }
+    #setup > * { flex: none; }
+    #setup .brand { font-size: 1.5vh; letter-spacing: .18em; margin-bottom: 1vh; }
+    #setup h1 { font-size: 2.4vh; }
+    #setup p { font-size: 1.7vh; margin-bottom: 1.2vh; }
+    #codeBox { font-size: 4.6vh; min-height: 6vh; margin-bottom: 1vh; }
+    #pad { grid-template-columns: repeat(3, 21vw); gap: 1vh; }
+    #pad button { height: 7.6vh; font-size: 3.2vh; }
+    #setupMsg { font-size: 1.6vh; min-height: 2.4vh; margin-top: 1.2vh; }
+    #about { font-size: 1.4vh; margin-top: 1.2vh; }
+    #setupMark { position: fixed; height: auto; width: 96vw; opacity: .06; }
+  }
+
+  /* Fast taps on the keypad shouldn't double-tap-zoom on phones */
+  html, body, button { touch-action: manipulation; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }   /* stop iPhones from enlarging text on their own */
+  button { font: inherit; color: var(--fg); background: rgba(255,255,255,.08);
+    border: .3vh solid transparent; border-radius: 1.6vh; cursor: pointer; }
+  #pad button { height: 10vh; font-size: 4.4vh; font-weight: 700; }
+  #pad button.wide { font-size: 2.6vh; }
+  #menu button { font-size: 2.8vh; padding: 1.6vh 2.4vw; }
+  button:focus { outline: none; border-color: var(--yellow); background: rgba(var(--next),.16); }
+</style>
+</head>
+<body>
+
+<!-- Code entry: shown until a KaraFun remote code is saved on this device -->
+<div id="patLayer" class="hidden" aria-hidden="true"></div>
+<div id="setup" class="safe hidden">
+  <svg id="setupMark" viewBox="0 0 1024 1024" aria-hidden="true">
+    <g transform="translate(0 512) skewX(-5) translate(0 -512)" font-family="Inter, system-ui, sans-serif" font-weight="900" font-style="italic" font-size="440" text-anchor="middle" letter-spacing="-6">
+      <g fill="#ff2a55" transform="translate(-22 -3)"><text x="512" y="478">KJ</text><text x="512" y="873">QV</text></g>
+      <g fill="#2a8bff" transform="translate(22 3)"><text x="512" y="478">KJ</text><text x="512" y="873">QV</text></g>
+      <g fill="#ffffff"><text x="512" y="478">KJ</text><text x="512" y="873">QV</text></g>
+    </g>
+  </svg>
+  <div class="brand">KJQV | UNOFFICIAL QUEUE VIEWER</div>
+  <h1>Enter your remote code</h1>
+  <p>The 6-digit code from KaraFun (Settings → Remote control)</p>
+  <div id="codeBox"></div>
+  <div id="pad"></div>
+  <div id="setupMsg"></div>
+  <div id="about">KJQV: a free live queue display · Not affiliated with KaraFun ·
+    <a href="?demo">Preview a sample screen</a> · <a href="https://github.com/kjqv/kjqv.github.io#readme">What is this?</a></div>
+</div>
+
+<!-- Queue display -->
+<div id="view" class="safe hidden">
+  <img id="brand" class="hidden" alt="">
+  <img id="brandQr" class="hidden" alt="">
+  <div id="brandFx" class="hidden" aria-hidden="true"></div>
+  <div id="clockFloat"></div>
+  <div id="demoTag">PREVIEW · made-up sample queue · kjqv.github.io</div>
+  <div id="breakMsg">Short break<span>Back in a few</span></div>
+  <div id="spot" aria-hidden="true"><div id="spotPat"></div><div class="slabel"><svg class="smic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="2" width="7" height="12" rx="3.5" fill="currentColor" fill-opacity=".25"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/><path d="M8.5 22h7"/></svg><span id="spotLabel">UP NEXT</span><svg class="smic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="2" width="7" height="12" rx="3.5" fill="currentColor" fill-opacity=".25"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/><path d="M8.5 22h7"/></svg></div><div class="sname" id="spotName"></div><div class="ssong" id="spotSong"></div></div>
+  <div id="applause"><div class="pre">Make some noise for</div><div class="aname" id="applauseName"></div><div class="claps">👏 👏 👏</div></div>
+  <div id="top">
+    <div id="nowBar" class="hidden">
+      <div id="nowBarLabel" class="boxLabel"><svg class="mic labelmic mic2" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="2" width="7" height="12" rx="3.5" fill="currentColor" fill-opacity=".25"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/><path d="M8.5 22h7"/></svg><span class="labeltext" id="nowLabelText">NOW<br>SINGING</span><svg class="mic labelmic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="2" width="7" height="12" rx="3.5" fill="currentColor" fill-opacity=".25"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/><path d="M8.5 22h7"/></svg><div class="wave labelwave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+      <div class="boxBody">
+      <div id="nowBarRow">
+        <div id="nowBarName"></div>
+        <div class="wave namewave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <svg class="mic namemic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="2" width="7" height="12" rx="3.5" fill="currentColor" fill-opacity=".25"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/><path d="M8.5 22h7"/></svg>
+      </div>
+      <div id="nowBarSong" class="songline"></div>
+      <div id="nowTime" class="hidden"></div><div id="nowTrack" class="hidden"><div id="nowProg"></div></div>
+      </div>
+    </div>
+    <div id="heroWrap">
+      <div id="hero">
+        <div id="heroLabel" class="boxLabel"><span class="labeltext" id="nextLabelText">UP<br>NEXT</span><span id="heroEta" class="hidden"></span><svg class="mic labelmic" viewBox="0 0 24 24" aria-hidden="true"></svg><div class="wave labelwave"><i></i></div></div>
+        <div class="boxBody">
+          <div id="heroName"></div>
+          <div id="heroSong" class="songline"></div>
+        </div>
+      </div>
+    </div>
+    <div id="empty" class="hidden">The queue is empty. Sign up to sing!</div>
+  </div>
+  <div id="nextWrap">
+    <div id="nextLabel"><span>COMING UP</span><span id="clock"></span></div>
+    <div id="list"></div>
+    <div id="more"></div>
+  </div>
+  <div id="pill">Connecting…</div>
+  <div id="menu" class="hidden">
+    <button id="btnFull">Full screen</button>
+    <button id="btnCode">Change code</button>
+    <button id="btnClose">Close</button>
+  </div>
+</div>
+
+<script>/* qrcode-generator 2.0.4 · MIT · Kazuhiko Arase · github.com/kazuhikoarase/qrcode-generator (used by qr=on) */
+var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],f={},c=function(t,r){o=function(t){for(var r=new Array(t),e=0;e<t;e+=1){r[e]=new Array(t);for(var n=0;n<t;n+=1)r[e][n]=null}return r}(i=4*e+17),l(0,0),l(i-7,0),l(0,i-7),s(),h(),d(t,r),e>=7&&v(t),null==a&&(a=p(e,n,u)),w(a,r)},l=function(t,r){for(var e=-1;e<=7;e+=1)if(!(t+e<=-1||i<=t+e))for(var n=-1;n<=7;n+=1)r+n<=-1||i<=r+n||(o[t+e][r+n]=0<=e&&e<=6&&(0==n||6==n)||0<=n&&n<=6&&(0==e||6==e)||2<=e&&e<=4&&2<=n&&n<=4)},h=function(){for(var t=8;t<i-8;t+=1)null==o[t][6]&&(o[t][6]=t%2==0);for(var r=8;r<i-8;r+=1)null==o[6][r]&&(o[6][r]=r%2==0)},s=function(){for(var t=B.getPatternPosition(e),r=0;r<t.length;r+=1)for(var n=0;n<t.length;n+=1){var i=t[r],a=t[n];if(null==o[i][a])for(var u=-2;u<=2;u+=1)for(var f=-2;f<=2;f+=1)o[i+u][a+f]=-2==u||2==u||-2==f||2==f||0==u&&0==f}},v=function(t){for(var r=B.getBCHTypeNumber(e),n=0;n<18;n+=1){var a=!t&&1==(r>>n&1);o[Math.floor(n/3)][n%3+i-8-3]=a}for(n=0;n<18;n+=1){a=!t&&1==(r>>n&1);o[n%3+i-8-3][Math.floor(n/3)]=a}},d=function(t,r){for(var e=n<<3|r,a=B.getBCHTypeInfo(e),u=0;u<15;u+=1){var f=!t&&1==(a>>u&1);u<6?o[u][8]=f:u<8?o[u+1][8]=f:o[i-15+u][8]=f}for(u=0;u<15;u+=1){f=!t&&1==(a>>u&1);u<8?o[8][i-u-1]=f:u<9?o[8][15-u-1+1]=f:o[8][15-u-1]=f}o[i-8][8]=!t},w=function(t,r){for(var e=-1,n=i-1,a=7,u=0,f=B.getMaskFunction(r),c=i-1;c>0;c-=2)for(6==c&&(c-=1);;){for(var g=0;g<2;g+=1)if(null==o[n][c-g]){var l=!1;u<t.length&&(l=1==(t[u]>>>a&1)),f(n,c-g)&&(l=!l),o[n][c-g]=l,-1==(a-=1)&&(u+=1,a=7)}if((n+=e)<0||i<=n){n-=e,e=-e;break}}},p=function(t,r,e){for(var n=A.getRSBlocks(t,r),o=b(),i=0;i<e.length;i+=1){var a=e[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var u=0;for(i=0;i<n.length;i+=1)u+=n[i].dataCount;if(o.getLengthInBits()>8*u)throw"code length overflow. ("+o.getLengthInBits()+">"+8*u+")";for(o.getLengthInBits()+4<=8*u&&o.put(0,4);o.getLengthInBits()%8!=0;)o.putBit(!1);for(;!(o.getLengthInBits()>=8*u||(o.put(236,8),o.getLengthInBits()>=8*u));)o.put(17,8);return function(t,r){for(var e=0,n=0,o=0,i=new Array(r.length),a=new Array(r.length),u=0;u<r.length;u+=1){var f=r[u].dataCount,c=r[u].totalCount-f;n=Math.max(n,f),o=Math.max(o,c),i[u]=new Array(f);for(var g=0;g<i[u].length;g+=1)i[u][g]=255&t.getBuffer()[g+e];e+=f;var l=B.getErrorCorrectPolynomial(c),h=k(i[u],l.getLength()-1).mod(l);for(a[u]=new Array(l.getLength()-1),g=0;g<a[u].length;g+=1){var s=g+h.getLength()-a[u].length;a[u][g]=s>=0?h.getAt(s):0}}var v=0;for(g=0;g<r.length;g+=1)v+=r[g].totalCount;var d=new Array(v),w=0;for(g=0;g<n;g+=1)for(u=0;u<r.length;u+=1)g<i[u].length&&(d[w]=i[u][g],w+=1);for(g=0;g<o;g+=1)for(u=0;u<r.length;u+=1)g<a[u].length&&(d[w]=a[u][g],w+=1);return d}(o,n)};f.addData=function(t,r){var e=null;switch(r=r||"Byte"){case"Numeric":e=M(t);break;case"Alphanumeric":e=x(t);break;case"Byte":e=m(t);break;case"Kanji":e=L(t);break;default:throw"mode:"+r}u.push(e),a=null},f.isDark=function(t,r){if(t<0||i<=t||r<0||i<=r)throw t+","+r;return o[t][r]},f.getModuleCount=function(){return i},f.make=function(){if(e<1){for(var t=1;t<40;t++){for(var r=A.getRSBlocks(t,n),o=b(),i=0;i<u.length;i++){var a=u[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var g=0;for(i=0;i<r.length;i++)g+=r[i].dataCount;if(o.getLengthInBits()<=8*g)break}e=t}c(!1,function(){for(var t=0,r=0,e=0;e<8;e+=1){c(!0,e);var n=B.getLostPoint(f);(0==e||t>n)&&(t=n,r=e)}return r}())},f.createTableTag=function(t,r){t=t||2;var e="";e+='<table style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: "+(r=void 0===r?4*t:r)+"px;",e+='">',e+="<tbody>";for(var n=0;n<f.getModuleCount();n+=1){e+="<tr>";for(var o=0;o<f.getModuleCount();o+=1)e+='<td style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: 0px;",e+=" width: "+t+"px;",e+=" height: "+t+"px;",e+=" background-color: ",e+=f.isDark(n,o)?"#000000":"#ffffff",e+=";",e+='"/>';e+="</tr>"}return e+="</tbody>",e+="</table>"},f.createSvgTag=function(t,r,e,n){var o={};"object"==typeof arguments[0]&&(t=(o=arguments[0]).cellSize,r=o.margin,e=o.alt,n=o.title),t=t||2,r=void 0===r?4*t:r,(e="string"==typeof e?{text:e}:e||{}).text=e.text||null,e.id=e.text?e.id||"qrcode-description":null,(n="string"==typeof n?{text:n}:n||{}).text=n.text||null,n.id=n.text?n.id||"qrcode-title":null;var i,a,u,c,g=f.getModuleCount()*t+2*r,l="";for(c="l"+t+",0 0,"+t+" -"+t+",0 0,-"+t+"z ",l+='<svg version="1.1" xmlns="http://www.w3.org/2000/svg"',l+=o.scalable?"":' width="'+g+'px" height="'+g+'px"',l+=' viewBox="0 0 '+g+" "+g+'" ',l+=' preserveAspectRatio="xMinYMin meet"',l+=n.text||e.text?' role="img" aria-labelledby="'+y([n.id,e.id].join(" ").trim())+'"':"",l+=">",l+=n.text?'<title id="'+y(n.id)+'">'+y(n.text)+"</title>":"",l+=e.text?'<description id="'+y(e.id)+'">'+y(e.text)+"</description>":"",l+='<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>',l+='<path d="',a=0;a<f.getModuleCount();a+=1)for(u=a*t+r,i=0;i<f.getModuleCount();i+=1)f.isDark(a,i)&&(l+="M"+(i*t+r)+","+u+c);return l+='" stroke="transparent" fill="black"/>',l+="</svg>"},f.createDataURL=function(t,r){t=t||2,r=void 0===r?4*t:r;var e=f.getModuleCount()*t+2*r,n=r,o=e-r;return I(e,e,function(r,e){if(n<=r&&r<o&&n<=e&&e<o){var i=Math.floor((r-n)/t),a=Math.floor((e-n)/t);return f.isDark(a,i)?0:1}return 1})},f.createImgTag=function(t,r,e){t=t||2,r=void 0===r?4*t:r;var n=f.getModuleCount()*t+2*r,o="";return o+="<img",o+=' src="',o+=f.createDataURL(t,r),o+='"',o+=' width="',o+=n,o+='"',o+=' height="',o+=n,o+='"',e&&(o+=' alt="',o+=y(e),o+='"'),o+="/>"};var y=function(t){for(var r="",e=0;e<t.length;e+=1){var n=t.charAt(e);switch(n){case"<":r+="&lt;";break;case">":r+="&gt;";break;case"&":r+="&amp;";break;case'"':r+="&quot;";break;default:r+=n}}return r};return f.createASCII=function(t,r){if((t=t||1)<2)return function(t){t=void 0===t?2:t;var r,e,n,o,i,a=1*f.getModuleCount()+2*t,u=t,c=a-t,g={"██":"█","█ ":"▀"," █":"▄","  ":" "},l={"██":"▀","█ ":"▀"," █":" ","  ":" "},h="";for(r=0;r<a;r+=2){for(n=Math.floor((r-u)/1),o=Math.floor((r+1-u)/1),e=0;e<a;e+=1)i="█",u<=e&&e<c&&u<=r&&r<c&&f.isDark(n,Math.floor((e-u)/1))&&(i=" "),u<=e&&e<c&&u<=r+1&&r+1<c&&f.isDark(o,Math.floor((e-u)/1))?i+=" ":i+="█",h+=t<1&&r+1>=c?l[i]:g[i];h+="\n"}return a%2&&t>0?h.substring(0,h.length-a-1)+Array(a+1).join("▀"):h.substring(0,h.length-1)}(r);t-=1,r=void 0===r?2*t:r;var e,n,o,i,a=f.getModuleCount()*t+2*r,u=r,c=a-r,g=Array(t+1).join("██"),l=Array(t+1).join("  "),h="",s="";for(e=0;e<a;e+=1){for(o=Math.floor((e-u)/t),s="",n=0;n<a;n+=1)i=1,u<=n&&n<c&&u<=e&&e<c&&f.isDark(o,Math.floor((n-u)/t))&&(i=0),s+=i?g:l;for(o=0;o<t;o+=1)h+=s+"\n"}return h.substring(0,h.length-1)},f.renderTo2dContext=function(t,r){r=r||2;for(var e=f.getModuleCount(),n=0;n<e;n++)for(var o=0;o<e;o++)t.fillStyle=f.isDark(n,o)?"black":"white",t.fillRect(o*r,n*r,r,r)},f};t.stringToBytes=(t.stringToBytesFuncs={default:function(t){for(var r=[],e=0;e<t.length;e+=1){var n=t.charCodeAt(e);r.push(255&n)}return r}}).default,t.createStringToBytes=function(t,r){var e=function(){for(var e=S(t),n=function(){var t=e.read();if(-1==t)throw"eof";return t},o=0,i={};;){var a=e.read();if(-1==a)break;var u=n(),f=n()<<8|n();i[String.fromCharCode(a<<8|u)]=f,o+=1}if(o!=r)throw o+" != "+r;return i}(),n="?".charCodeAt(0);return function(t){for(var r=[],o=0;o<t.length;o+=1){var i=t.charCodeAt(o);if(i<128)r.push(i);else{var a=e[t.charAt(o)];"number"==typeof a?(255&a)==a?r.push(a):(r.push(a>>>8),r.push(255&a)):r.push(n)}}return r}};var r,e,n,o,i,a=1,u=2,f=4,c=8,g={L:1,M:0,Q:3,H:2},l=0,h=1,s=2,v=3,d=4,w=5,p=6,y=7,B=(r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],e=1335,n=7973,i=function(t){for(var r=0;0!=t;)r+=1,t>>>=1;return r},(o={}).getBCHTypeInfo=function(t){for(var r=t<<10;i(r)-i(e)>=0;)r^=e<<i(r)-i(e);return 21522^(t<<10|r)},o.getBCHTypeNumber=function(t){for(var r=t<<12;i(r)-i(n)>=0;)r^=n<<i(r)-i(n);return t<<12|r},o.getPatternPosition=function(t){return r[t-1]},o.getMaskFunction=function(t){switch(t){case l:return function(t,r){return(t+r)%2==0};case h:return function(t,r){return t%2==0};case s:return function(t,r){return r%3==0};case v:return function(t,r){return(t+r)%3==0};case d:return function(t,r){return(Math.floor(t/2)+Math.floor(r/3))%2==0};case w:return function(t,r){return t*r%2+t*r%3==0};case p:return function(t,r){return(t*r%2+t*r%3)%2==0};case y:return function(t,r){return(t*r%3+(t+r)%2)%2==0};default:throw"bad maskPattern:"+t}},o.getErrorCorrectPolynomial=function(t){for(var r=k([1],0),e=0;e<t;e+=1)r=r.multiply(k([1,C.gexp(e)],0));return r},o.getLengthInBits=function(t,r){if(1<=r&&r<10)switch(t){case a:return 10;case u:return 9;case f:case c:return 8;default:throw"mode:"+t}else if(r<27)switch(t){case a:return 12;case u:return 11;case f:return 16;case c:return 10;default:throw"mode:"+t}else{if(!(r<41))throw"type:"+r;switch(t){case a:return 14;case u:return 13;case f:return 16;case c:return 12;default:throw"mode:"+t}}},o.getLostPoint=function(t){for(var r=t.getModuleCount(),e=0,n=0;n<r;n+=1)for(var o=0;o<r;o+=1){for(var i=0,a=t.isDark(n,o),u=-1;u<=1;u+=1)if(!(n+u<0||r<=n+u))for(var f=-1;f<=1;f+=1)o+f<0||r<=o+f||0==u&&0==f||a==t.isDark(n+u,o+f)&&(i+=1);i>5&&(e+=3+i-5)}for(n=0;n<r-1;n+=1)for(o=0;o<r-1;o+=1){var c=0;t.isDark(n,o)&&(c+=1),t.isDark(n+1,o)&&(c+=1),t.isDark(n,o+1)&&(c+=1),t.isDark(n+1,o+1)&&(c+=1),0!=c&&4!=c||(e+=3)}for(n=0;n<r;n+=1)for(o=0;o<r-6;o+=1)t.isDark(n,o)&&!t.isDark(n,o+1)&&t.isDark(n,o+2)&&t.isDark(n,o+3)&&t.isDark(n,o+4)&&!t.isDark(n,o+5)&&t.isDark(n,o+6)&&(e+=40);for(o=0;o<r;o+=1)for(n=0;n<r-6;n+=1)t.isDark(n,o)&&!t.isDark(n+1,o)&&t.isDark(n+2,o)&&t.isDark(n+3,o)&&t.isDark(n+4,o)&&!t.isDark(n+5,o)&&t.isDark(n+6,o)&&(e+=40);var g=0;for(o=0;o<r;o+=1)for(n=0;n<r;n+=1)t.isDark(n,o)&&(g+=1);return e+=Math.abs(100*g/r/r-50)/5*10},o),C=function(){for(var t=new Array(256),r=new Array(256),e=0;e<8;e+=1)t[e]=1<<e;for(e=8;e<256;e+=1)t[e]=t[e-4]^t[e-5]^t[e-6]^t[e-8];for(e=0;e<255;e+=1)r[t[e]]=e;var n={glog:function(t){if(t<1)throw"glog("+t+")";return r[t]},gexp:function(r){for(;r<0;)r+=255;for(;r>=256;)r-=255;return t[r]}};return n}();function k(t,r){if(void 0===t.length)throw t.length+"/"+r;var e=function(){for(var e=0;e<t.length&&0==t[e];)e+=1;for(var n=new Array(t.length-e+r),o=0;o<t.length-e;o+=1)n[o]=t[o+e];return n}(),n={getAt:function(t){return e[t]},getLength:function(){return e.length},multiply:function(t){for(var r=new Array(n.getLength()+t.getLength()-1),e=0;e<n.getLength();e+=1)for(var o=0;o<t.getLength();o+=1)r[e+o]^=C.gexp(C.glog(n.getAt(e))+C.glog(t.getAt(o)));return k(r,0)},mod:function(t){if(n.getLength()-t.getLength()<0)return n;for(var r=C.glog(n.getAt(0))-C.glog(t.getAt(0)),e=new Array(n.getLength()),o=0;o<n.getLength();o+=1)e[o]=n.getAt(o);for(o=0;o<t.getLength();o+=1)e[o]^=C.gexp(C.glog(t.getAt(o))+r);return k(e,0).mod(t)}};return n}var A=function(){var t=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],r=function(t,r){var e={};return e.totalCount=t,e.dataCount=r,e},e={};return e.getRSBlocks=function(e,n){var o=function(r,e){switch(e){case g.L:return t[4*(r-1)+0];case g.M:return t[4*(r-1)+1];case g.Q:return t[4*(r-1)+2];case g.H:return t[4*(r-1)+3];default:return}}(e,n);if(void 0===o)throw"bad rs block @ typeNumber:"+e+"/errorCorrectionLevel:"+n;for(var i=o.length/3,a=[],u=0;u<i;u+=1)for(var f=o[3*u+0],c=o[3*u+1],l=o[3*u+2],h=0;h<f;h+=1)a.push(r(c,l));return a},e}(),b=function(){var t=[],r=0,e={getBuffer:function(){return t},getAt:function(r){var e=Math.floor(r/8);return 1==(t[e]>>>7-r%8&1)},put:function(t,r){for(var n=0;n<r;n+=1)e.putBit(1==(t>>>r-n-1&1))},getLengthInBits:function(){return r},putBit:function(e){var n=Math.floor(r/8);t.length<=n&&t.push(0),e&&(t[n]|=128>>>r%8),r+=1}};return e},M=function(t){var r=a,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+2<r.length;)t.put(o(r.substring(n,n+3)),10),n+=3;n<r.length&&(r.length-n==1?t.put(o(r.substring(n,n+1)),4):r.length-n==2&&t.put(o(r.substring(n,n+2)),7))}},o=function(t){for(var r=0,e=0;e<t.length;e+=1)r=10*r+i(t.charAt(e));return r},i=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);throw"illegal char :"+t};return n},x=function(t){var r=u,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+1<r.length;)t.put(45*o(r.charAt(n))+o(r.charAt(n+1)),11),n+=2;n<r.length&&t.put(o(r.charAt(n)),6)}},o=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);if("A"<=t&&t<="Z")return t.charCodeAt(0)-"A".charCodeAt(0)+10;switch(t){case" ":return 36;case"$":return 37;case"%":return 38;case"*":return 39;case"+":return 40;case"-":return 41;case".":return 42;case"/":return 43;case":":return 44;default:throw"illegal char :"+t}};return n},m=function(r){var e=f,n=t.stringToBytes(r),o={getMode:function(){return e},getLength:function(t){return n.length},write:function(t){for(var r=0;r<n.length;r+=1)t.put(n[r],8)}};return o},L=function(r){var e=c,n=t.stringToBytesFuncs.SJIS;if(!n)throw"sjis not supported.";!function(){var t=n("友");if(2!=t.length||38726!=(t[0]<<8|t[1]))throw"sjis not supported."}();var o=n(r),i={getMode:function(){return e},getLength:function(t){return~~(o.length/2)},write:function(t){for(var r=o,e=0;e+1<r.length;){var n=(255&r[e])<<8|255&r[e+1];if(33088<=n&&n<=40956)n-=33088;else{if(!(57408<=n&&n<=60351))throw"illegal char at "+(e+1)+"/"+n;n-=49472}n=192*(n>>>8&255)+(255&n),t.put(n,13),e+=2}if(e<r.length)throw"illegal char at "+(e+1)}};return i},D=function(){var t=[],r={writeByte:function(r){t.push(255&r)},writeShort:function(t){r.writeByte(t),r.writeByte(t>>>8)},writeBytes:function(t,e,n){e=e||0,n=n||t.length;for(var o=0;o<n;o+=1)r.writeByte(t[o+e])},writeString:function(t){for(var e=0;e<t.length;e+=1)r.writeByte(t.charCodeAt(e))},toByteArray:function(){return t},toString:function(){var r="";r+="[";for(var e=0;e<t.length;e+=1)e>0&&(r+=","),r+=t[e];return r+="]"}};return r},S=function(t){var r=t,e=0,n=0,o=0,i={read:function(){for(;o<8;){if(e>=r.length){if(0==o)return-1;throw"unexpected end of file./"+o}var t=r.charAt(e);if(e+=1,"="==t)return o=0,-1;t.match(/^\s$/)||(n=n<<6|a(t.charCodeAt(0)),o+=6)}var i=n>>>o-8&255;return o-=8,i}},a=function(t){if(65<=t&&t<=90)return t-65;if(97<=t&&t<=122)return t-97+26;if(48<=t&&t<=57)return t-48+52;if(43==t)return 62;if(47==t)return 63;throw"c:"+t};return i},I=function(t,r,e){for(var n=function(t,r){var e=t,n=r,o=new Array(t*r),i={setPixel:function(t,r,n){o[r*e+t]=n},write:function(t){t.writeString("GIF87a"),t.writeShort(e),t.writeShort(n),t.writeByte(128),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(255),t.writeByte(255),t.writeByte(255),t.writeString(","),t.writeShort(0),t.writeShort(0),t.writeShort(e),t.writeShort(n),t.writeByte(0);var r=a(2);t.writeByte(2);for(var o=0;r.length-o>255;)t.writeByte(255),t.writeBytes(r,o,255),o+=255;t.writeByte(r.length-o),t.writeBytes(r,o,r.length-o),t.writeByte(0),t.writeString(";")}},a=function(t){for(var r=1<<t,e=1+(1<<t),n=t+1,i=u(),a=0;a<r;a+=1)i.add(String.fromCharCode(a));i.add(String.fromCharCode(r)),i.add(String.fromCharCode(e));var f,c,g,l=D(),h=(f=l,c=0,g=0,{write:function(t,r){if(t>>>r!=0)throw"length over";for(;c+r>=8;)f.writeByte(255&(t<<c|g)),r-=8-c,t>>>=8-c,g=0,c=0;g|=t<<c,c+=r},flush:function(){c>0&&f.writeByte(g)}});h.write(r,n);var s=0,v=String.fromCharCode(o[s]);for(s+=1;s<o.length;){var d=String.fromCharCode(o[s]);s+=1,i.contains(v+d)?v+=d:(h.write(i.indexOf(v),n),i.size()<4095&&(i.size()==1<<n&&(n+=1),i.add(v+d)),v=d)}return h.write(i.indexOf(v),n),h.write(e,n),h.flush(),l.toByteArray()},u=function(){var t={},r=0,e={add:function(n){if(e.contains(n))throw"dup key:"+n;t[n]=r,r+=1},size:function(){return r},indexOf:function(r){return t[r]},contains:function(r){return void 0!==t[r]}};return e};return i}(t,r),o=0;o<r;o+=1)for(var i=0;i<t;i+=1)n.setPixel(i,o,e(i,o));var a=D();n.write(a);for(var u=function(){var t=0,r=0,e=0,n="",o={},i=function(t){n+=String.fromCharCode(a(63&t))},a=function(t){if(t<0);else{if(t<26)return 65+t;if(t<52)return t-26+97;if(t<62)return t-52+48;if(62==t)return 43;if(63==t)return 47}throw"n:"+t};return o.writeByte=function(n){for(t=t<<8|255&n,r+=8,e+=1;r>=6;)i(t>>>r-6),r-=6},o.flush=function(){if(r>0&&(i(t<<6-r),t=0,r=0),e%3!=0)for(var o=3-e%3,a=0;a<o;a+=1)n+="="},o.toString=function(){return n},o}(),f=a.toByteArray(),c=0;c<f.length;c+=1)u.writeByte(f[c]);return u.flush(),"data:image/gif;base64,"+u};return t}();qrcode.stringToBytesFuncs["UTF-8"]=function(t){return function(t){for(var r=[],e=0;e<t.length;e++){var n=t.charCodeAt(e);n<128?r.push(n):n<2048?r.push(192|n>>6,128|63&n):n<55296||n>=57344?r.push(224|n>>12,128|n>>6&63,128|63&n):(e++,n=65536+((1023&n)<<10|1023&t.charCodeAt(e)),r.push(240|n>>18,128|n>>12&63,128|n>>6&63,128|63&n))}return r}(t)},function(t){"function"==typeof define&&define.amd?define([],t):"object"==typeof exports&&(module.exports=t())}(function(){return qrcode});
+</script>
+<script>
+(function () {
+  "use strict";
+
+  var KF_HOST = "https://www.karafun.com/";
+  var WEBKCS_SRC = "https://cdnaws.recis.io/i/kf/common/js/external/webkcs.min.js";
+  var STORE_KEY = "kqv.code";
+  var BLANK_KEY = "kqv.blank";
+  
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  // localStorage can throw or come back empty on some browsers; never let it break the page.
+  function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function save(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} }
+
+  // ---------------------------------------------------------------- state
+  var params = new URLSearchParams(location.search);
+  var code = (params.get("code") || load(STORE_KEY) || "").replace(/\D/g, "");
+  var DEMO = params.has("demo");     // ?demo: a fake queue that runs by itself (nothing saved)
+
+  // Held upright on a phone, the screen is drawn the way it looks on a TV (16:9, inside a frame)
+  // with a note to turn the phone sideways. Turning it reloads the full screen.
+  // portrait=on: you really mean an upright screen (e.g. a vertical TV), so skip this.
+  if (window.self === window.top && !/^(on|yes|1|true)$/i.test(params.get("portrait") || "") &&
+      (DEMO || /^\d{6}$/.test(code)) && window.innerHeight > window.innerWidth * 1.1) {
+    document.body.innerHTML = "";
+    document.body.className = "portraitwrap";
+    var st = document.createElement("style");
+    st.textContent = "html,body{height:100%;margin:0;overflow:hidden}body.portraitwrap{background:#0b0b12;display:flex;flex-direction:column;" +
+      "align-items:center;justify-content:center;gap:7vw;font-family:Inter,system-ui,sans-serif;color:#fff}" +
+      ".pwframe{width:100vw;height:56.25vw;border:0;display:block;box-shadow:0 0 0 1px rgba(255,255,255,.12)}" +
+      ".pwhint{display:flex;align-items:center;gap:3vw;font-size:4.4vw;font-weight:700;opacity:.8;padding:0 6vw;text-align:left}" +
+      ".pwhint svg{width:11vw;height:11vw;flex:none;animation:pwturn 2.4s ease-in-out infinite}" +
+      "@keyframes pwturn{0%,30%{transform:rotate(0)}55%,85%{transform:rotate(-90deg)}100%{transform:rotate(0)}}";
+    document.head.appendChild(st);
+    var fr = document.createElement("iframe");
+    fr.className = "pwframe"; fr.src = location.href; fr.title = "KJQV screen";
+    var hint = document.createElement("div");
+    hint.className = "pwhint";
+    hint.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">' +
+      '<rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg>' +
+      "<span>Turn your phone sideways to see it full screen</span>";
+    document.body.appendChild(fr);
+    document.body.appendChild(hint);
+    window.addEventListener("resize", function () { if (window.innerWidth >= window.innerHeight) location.reload(); });
+    return;
+  }
+  // And the other way: turned back upright while showing full screen, go back to the framed view.
+  if (window.self === window.top && !/^(on|yes|1|true)$/i.test(params.get("portrait") || "")) {
+    var uprightTimer = null;
+    window.addEventListener("resize", function () {
+      clearTimeout(uprightTimer);
+      uprightTimer = setTimeout(function () {
+        if ((DEMO || /^\d{6}$/.test(code)) && $("setup").classList.contains("hidden") &&
+            window.innerHeight > window.innerWidth * 1.1) location.reload();
+      }, 300);
+    });
+  }
+  // Singer names to treat as "no singer" (e.g. the default name KaraFun fills in when
+  // nobody types one). Set with ?blank=Name1,Name2 ; saved on this device.
+  if (params.has("blank")) save(BLANK_KEY, params.get("blank"));
+  var blankNames = (load(BLANK_KEY) || "").split(",").map(function (n) { return n.trim().toLowerCase(); }).filter(Boolean);
+
+  // ---------------------------------------------------------------- look & feel (from the link)
+  // Any venue can brand the display through the link. Anything left out uses the defaults (no logo, purple fade).
+  //   logo=<https URL of an image>  (logo=none hides it)
+  //   bg1=<hex>&bg2=<hex>           background fade, top-left to bottom-right
+  //   up1=<hex>&up2=<hex>           Coming Up names, first to last in line
+  // Colors are hex without the "#", e.g. bg1=1c0870. Settings are remembered on this device.
+  var CFG_KEY = "kqv.cfg";
+  var cfg = {};
+  try { cfg = JSON.parse(load(CFG_KEY) || "{}") || {}; } catch (e) { cfg = {}; }
+  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight"];
+  // A link with any look options replaces the saved look; a bare link (just code=) keeps it.
+  // The preview never uses what this device saved.
+  if (DEMO || OPTS.some(function (k) { return params.has(k); })) cfg = {};
+  OPTS.forEach(function (k) { if (params.has(k)) cfg[k] = params.get(k); });
+  // The plain preview (?demo with no options) shows off a bit: no clock, the rule under COMING UP,
+  // and a neon-blue sample logo that coin-flips with a matching QR card.
+  if (DEMO && !OPTS.some(function (k) { return params.has(k); }))
+    cfg = { clock: "off", line: "on", qr: "split", qrbg: "5ee7ff", logo: "https://kjqv.github.io/sample-logo-blue.png", spotlight: "loop" };
+  // Themes fill in any setting you didn't set yourself.
+  var THEMES = {
+    xmas: { bg1: "0b3d1f", bg2: "5a0b12", now: "3dff7a", next: "ff4d4d", up1: "9dffbe", up2: "ff6b6b",
+            pattern: "trees", scroll: "on", line: "on", clock: "off" },
+    goth: { bg1: "3a0000", bg2: "000000", now: "ff1a1a", next: "f2f2f2", up1: "ff4d4d", up2: "b30000",
+                font: "Pirata One", pattern: "tinycrosses", line: "on", mic: "flicker",
+            eta: "off", time: "bar", clock: "off", mics: "2", qrbg: "ff1a1a", flourish: "on", scroll: "down" }
+  };
+  function applyTheme() {
+    var tn = String(cfg.theme || "").toLowerCase().replace(/[^a-z]/g, "");
+    var t = THEMES[tn === "gothclub" ? "goth" : /^(christmas|holiday|holidays)$/.test(tn) ? "xmas" : tn];   // old name still works
+    if (t) for (var k in t) if (cfg[k] === undefined || cfg[k] === "") cfg[k] = t[k];
+  }
+  function off(k) { return /^(0|off|no|false|hide)$/i.test(String(cfg[k] || "")); }
+  var comingCount = Math.max(0, Math.min(12, parseInt(cfg.count, 10)));
+  if (isNaN(comingCount)) comingCount = 8;
+  if (params.has("reset")) cfg = {};
+  if (!DEMO) save(CFG_KEY, JSON.stringify(cfg));
+  applyTheme();
+  function hex(v) {
+    v = String(v || "").replace(/^#/, "").trim();
+    if (!/^([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v)) return null;
+    if (v.length === 3) v = v.replace(/(.)/g, "$1$1");
+    return v.toLowerCase();
+  }
+  function rgb(h) { return [0, 2, 4].map(function (i) { return parseInt(h.substr(i, 2), 16); }); }
+  var comingFrom = rgb(hex(cfg.up1) || "ff9f1c");
+  var comingTo = rgb(hex(cfg.up2) || "ff3030");
+  function applyLook() {
+    var b1 = hex(cfg.bg1), b2 = hex(cfg.bg2);
+    var layers = [];
+    // pattern=: a faint tiled pattern over the background.
+    //   crosses · petrine (black upside-down crosses) · mics · notes · houndstooth
+    var pat = String(cfg.pattern || "").toLowerCase();
+    if (pat === "inverted") pat = "petrine";                       // old name
+    var W = "fill='%23ffffff' fill-opacity='.07'", PATS = {
+      crosses: [120, "<g " + W + "><rect x='27' y='14' width='6' height='38'/><rect x='17' y='24' width='26' height='6'/>" +
+        "<rect x='87' y='74' width='6' height='38'/><rect x='77' y='84' width='26' height='6'/></g>"],
+      petrine: [120, "<g fill='%23000000' fill-opacity='.55'><rect x='27' y='14' width='6' height='38'/><rect x='17' y='38' width='26' height='6'/>" +
+        "<rect x='87' y='74' width='6' height='38'/><rect x='77' y='98' width='26' height='6'/></g>"],
+      mics: [140, "<g " + W + "><rect x='24' y='14' width='16' height='26' rx='8'/><path d='M18 32a14 14 0 0 0 28 0' fill='none' stroke='%23ffffff' stroke-opacity='.07' stroke-width='4'/>" +
+        "<rect x='30' y='46' width='4' height='10'/><rect x='24' y='55' width='16' height='4'/></g>" +
+        "<g " + W + " transform='translate(70 70) rotate(-20 32 36)'><rect x='24' y='14' width='16' height='26' rx='8'/><path d='M18 32a14 14 0 0 0 28 0' fill='none' stroke='%23ffffff' stroke-opacity='.07' stroke-width='4'/>" +
+        "<rect x='30' y='46' width='4' height='10'/><rect x='24' y='55' width='16' height='4'/></g>"],
+      notes: [140, "<g " + W + "><ellipse cx='26' cy='52' rx='9' ry='7' transform='rotate(-20 26 52)'/><rect x='32' y='14' width='4' height='38'/>" +
+        "<path d='M36 14q14 6 10 22q-2-10-10-12z'/>" +
+        "<ellipse cx='86' cy='118' rx='9' ry='7' transform='rotate(-20 86 118)'/><ellipse cx='116' cy='112' rx='9' ry='7' transform='rotate(-20 116 112)'/>" +
+        "<rect x='92' y='80' width='4' height='38'/><rect x='122' y='74' width='4' height='38'/><path d='M92 80l34-6v8l-34 6z'/></g>"],
+      // tinycrosses: small faint white upside-down crosses (goth)
+      tinycrosses: [56, "<g fill='%23ffffff' fill-opacity='.11'><rect x='12' y='6' width='3' height='17'/><rect x='7' y='16' width='13' height='3'/>" +
+        "<rect x='40' y='34' width='3' height='17'/><rect x='35' y='44' width='13' height='3'/></g>"],
+      trees: [140, "<g fill='none' stroke='%23ffffff' stroke-opacity='.13' stroke-width='3' stroke-linejoin='round'>" +
+        "<path d='M34 8 L48 28 H41 L54 46 H44 L58 64 H10 L24 46 H14 L27 28 H20 Z'/><path d='M30 64 V74 H38 V64'/></g>" +
+        "<g fill='none' stroke='%23ffffff' stroke-opacity='.13' stroke-width='3' stroke-linejoin='round'>" +
+        "<path d='M104 78 L118 98 H111 L124 116 H114 L128 134 H80 L94 116 H84 L97 98 H90 Z'/></g>" +
+        "<g fill='%23ffffff' fill-opacity='.18'><circle cx='96' cy='22' r='2.5'/><circle cx='14' cy='104' r='2'/><circle cx='70' cy='92' r='1.6'/></g>"],
+      houndstooth: [48, "<g " + W + " shape-rendering='crispEdges'><rect x='0' y='0' width='6' height='6'/><rect x='6' y='0' width='6' height='6'/><rect x='12' y='0' width='6' height='6'/><rect x='18' y='0' width='6' height='6'/><rect x='36' y='0' width='6' height='6'/><rect x='42' y='0' width='6' height='6'/><rect x='0' y='6' width='6' height='6'/><rect x='6' y='6' width='6' height='6'/><rect x='12' y='6' width='6' height='6'/><rect x='18' y='6' width='6' height='6'/><rect x='30' y='6' width='6' height='6'/><rect x='36' y='6' width='6' height='6'/><rect x='0' y='12' width='6' height='6'/><rect x='6' y='12' width='6' height='6'/><rect x='12' y='12' width='6' height='6'/><rect x='18' y='12' width='6' height='6'/><rect x='24' y='12' width='6' height='6'/><rect x='30' y='12' width='6' height='6'/><rect x='0' y='18' width='6' height='6'/><rect x='6' y='18' width='6' height='6'/><rect x='12' y='18' width='6' height='6'/><rect x='18' y='18' width='6' height='6'/><rect x='24' y='18' width='6' height='6'/><rect x='42' y='18' width='6' height='6'/><rect x='0' y='24' width='6' height='6'/><rect x='6' y='24' width='6' height='6'/><rect x='0' y='30' width='6' height='6'/><rect x='18' y='30' width='6' height='6'/><rect x='12' y='36' width='6' height='6'/><rect x='18' y='36' width='6' height='6'/><rect x='6' y='42' width='6' height='6'/><rect x='12' y='42' width='6' height='6'/></g>"]
+    };
+    var scrollDir = String(cfg.scroll || "").toLowerCase();
+    var scrolling = /^(on|up|down|yes|1|true)$/.test(scrollDir);
+    var patLayer = $("patLayer");
+    if (PATS[pat]) {
+      var svg = "<svg xmlns='http://www.w3.org/2000/svg' width='" + PATS[pat][0] + "' height='" + PATS[pat][0] + "'>" + PATS[pat][1] + "</svg>";
+      var tile = 'url("data:image/svg+xml;utf8,' + svg + '") repeat';
+      if (scrolling) {
+        // scroll=on (or up / down): the pattern drifts endlessly. It's its own layer that slides one tile
+        // and loops, so only that layer moves (cheap enough for a Fire Stick).
+        patLayer.style.background = tile;
+        var tpx = PATS[pat][0];
+        patLayer.style.top = -tpx + "px"; patLayer.style.height = "calc(100% + " + (2 * tpx) + "px)";
+        // Keyframes written out in pixels (some browsers ignore var() inside keyframes)
+        var ks = $("patKeys") || document.head.appendChild(Object.assign(document.createElement("style"), { id: "patKeys" }));
+        var from = scrollDir === "down" ? -tpx : 0, to = scrollDir === "down" ? 0 : -tpx;
+        ks.textContent = "@keyframes patmove{from{-webkit-transform:translate3d(0," + from + "px,0);transform:translate3d(0," + from + "px,0)}" +
+          "to{-webkit-transform:translate3d(0," + to + "px,0);transform:translate3d(0," + to + "px,0)}}";
+        patLayer.className = "";
+      } else layers.push(tile);
+    }
+    if (!(PATS[pat] && scrolling)) patLayer.className = "hidden";
+    // bgimg=<link to a PNG/JPG>: wallpaper, darkened a bit so names stay readable
+    var bgimg = String(cfg.bgimg || "").trim();
+    if (/^https?:\/\//i.test(bgimg)) {
+      layers.push("linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.45))");
+      layers.push('url("' + bgimg.replace(/["\\]/g, "") + '") center / cover no-repeat');
+    }
+    if (b1 || b2 || layers.length) {
+      var c1 = b1 || "1c0870", c2 = b2 || b1 || "5e1c95";
+      layers.push("linear-gradient(135deg, #" + c1 + " 0%, #" + c2 + " 100%)");
+      var bg = layers.join(", ");
+      [document.documentElement, document.body].forEach(function (el) {
+        el.style.background = bg; el.style.backgroundColor = "#" + c1; el.style.backgroundAttachment = "fixed";
+      });
+      // With a moving pattern, only the page itself gets the background, so the pattern layer can sit between
+      // it and the screen (iPhones otherwise paint the body's background over it).
+      if (PATS[pat] && scrolling) document.body.style.background = "transparent";
+    }
+    // font=rounded | retro | marker, or the name of any Google Font (e.g. font=Lobster)
+    var FONTS = { rounded: "Nunito", retro: "Bungee", marker: "Permanent Marker", pixel: "Press Start 2P", space: "Press Start 2P" };
+    document.body.classList.toggle("rgbfont", /^(pixel|space)$/i.test(String(cfg.font || "")));
+    var fontName = String(cfg.font || "").trim();
+    fontName = FONTS[fontName.toLowerCase()] || fontName.replace(/[^A-Za-z0-9 ]/g, "");
+    if (fontName && fontName.toLowerCase() !== "default") {
+      var link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "https://fonts.googleapis.com/css2?family=" + encodeURIComponent(fontName).replace(/%20/g, "+") +
+        (fontName === "Nunito" ? ":wght@600;800;900" : "") + "&display=swap";
+      document.head.appendChild(link);
+      document.body.style.fontFamily = "'" + fontName + "', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+      // Re-measure once the font arrives so big names still fit.
+      var refit = function () { fitCache = {}; fitName(); renderList(); };
+      link.onload = function () { if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit); setTimeout(refit, 800); };
+    }
+    var nowC = hex(cfg.now), nextC = hex(cfg.next);
+    if (nowC) document.documentElement.style.setProperty("--now", rgb(nowC).join(","));
+    if (nextC) document.documentElement.style.setProperty("--next", rgb(nextC).join(","));
+    document.body.classList.toggle("noicons", off("icons"));
+    document.body.classList.toggle("nopulse", off("pulse"));
+    document.body.classList.toggle("nonumbers", off("numbers"));
+    // excited=on: "NOW SINGING!"   dots=on: "UP NEXT…"
+    document.body.classList.toggle("alignright", /^(right|r)$/i.test(String(cfg.align || "")));
+    var vu = String(cfg.vu || "").toLowerCase();
+    document.body.classList.toggle("vuswap", /^(swap|mic|label)$/.test(vu));
+    document.body.classList.toggle("vuoff", /^(0|off|no|false|hide)$/.test(vu));
+    document.body.classList.toggle("alignleft", /^(left|l)$/i.test(String(cfg.align || "")));
+    $("nowLabelText").innerHTML = "NOW<br>SINGING" + (/^(on|yes|true|1)$/i.test(String(cfg.excited || "")) ? "!" : "");
+    nextLabelBase = "UP<br>NEXT" + (/^(on|yes|true|1)$/i.test(String(cfg.dots || "")) ? "\u2026" : "");
+    $("nextLabelText").innerHTML = nextLabelBase;
+    document.body.classList.toggle("twomics", String(cfg.mics || "") === "2");
+    document.body.classList.toggle("micflicker", String(cfg.mic || "").toLowerCase() === "flicker");
+    document.body.classList.toggle("nextflicker", /^(on|yes|true|1)$/i.test(String(cfg.nextflicker || "")));
+    document.body.classList.toggle("flourish", /^(on|yes|true|1)$/i.test(String(cfg.flourish || "")));
+    document.body.classList.toggle("caps", !off("caps"));
+    document.body.classList.toggle("gothspot", /goth/i.test(String(cfg.theme || "")));   // caps=off for names as typed
+    document.body.classList.toggle("rule", /^(on|yes|true|1)$/i.test(String(cfg.line || "")));
+    document.body.classList.toggle("nosongs", off("songs") || (off("title") && off("artist")));
+    // No logo unless one is passed in the link; without one, the boxes use the full width.
+    var img = $("brand");
+    var logo = String(cfg.logo || "").trim();
+    function noLogo() { img.classList.add("hidden"); $("view").classList.add("nologo"); fitCache = {}; placeBrandFx(); }
+    var qrSvg = makeQr();
+    clearInterval(splitTimer);
+    var bq = $("brandQr"), qrMode = String(cfg.qr || "").toLowerCase();
+    document.body.classList.remove("qrboth"); bq.classList.add("hidden");
+    var swapSec = parseFloat(cfg.qrswap); if (isNaN(swapSec)) swapSec = 5; swapSec = Math.max(3, Math.min(120, swapSec));
+    // qr=both: your logo small on top and the QR code under it, both showing all the time
+    if (qrSvg && qrMode === "both" && /^https?:\/\//i.test(logo)) {
+      document.body.classList.add("qrboth");
+      bq.onload = function () { bq.classList.remove("hidden"); $("view").classList.remove("nologo"); clearLogo(); };
+      bq.src = qrSvg;
+      img.onerror = function () { document.body.classList.remove("qrboth"); bq.classList.add("hidden"); img.onerror = noLogo; img.src = qrSvg; };
+      img.onload = function () { img.classList.remove("hidden"); $("view").classList.remove("nologo"); fitCache = {}; fitName(); };
+      img.src = logo;
+    } else
+    // qr=split: take turns between your logo and the QR code (a coin flip every 5 seconds; qrswap=10 for 10)
+    if (qrSvg && /^split$/i.test(String(cfg.qr || "")) && /^https?:\/\//i.test(logo)) {
+      var showingQr = false, firstLoad = true;
+      img.onerror = function () { if (!showingQr) { showingQr = true; img.src = qrSvg; } };   // logo broken: just the QR
+      img.onload = function () {
+        img.classList.remove("hidden"); $("view").classList.remove("nologo"); placeBrandFx();
+        document.body.classList.remove("flipping-brand");
+        if (firstLoad) { firstLoad = false; fitCache = {}; fitName(); }
+      };
+      img.src = logo;
+      // Coin flip: turn edge-on, swap the picture, turn back.
+      splitTimer = setInterval(function () {
+        img.classList.add("flipping"); document.body.classList.add("flipping-brand");
+        setTimeout(function () {
+          showingQr = !showingQr; img.src = showingQr ? qrSvg : logo;
+          setTimeout(function () { img.classList.remove("flipping"); }, 60);
+        }, 380);
+      }, swapSec * 1000);
+    } else if (qrSvg) {
+      img.onerror = noLogo;
+      img.onload = function () { img.classList.remove("hidden"); $("view").classList.remove("nologo"); fitCache = {}; fitName(); placeBrandFx(); };
+      img.src = qrSvg;
+    } else if (/^https?:\/\//i.test(logo)) {
+      img.onerror = noLogo;
+      img.onload = function () { img.classList.remove("hidden"); $("view").classList.remove("nologo"); fitCache = {}; fitName(); placeBrandFx(); };
+      img.src = logo;
+    } else {
+      noLogo();
+    }
+  }
+  // qr=on: a QR code where the logo goes, so guests can scan it to join your KaraFun session and add songs
+  // (the same link KaraFun's own QR code opens). qr=https://... encodes your own link instead (a sign-up form).
+  // qrtext= changes the caption under it (default SCAN TO SING). qr=split takes turns with your logo (a coin flip every 5 seconds, qrswap= to change); qr=both shows both, small.
+  var splitTimer = null;
+  function dripOn() { return /^(on|yes|true|1)$/i.test(String(cfg.drip || "")); }
+  // A band of blood along the top edge with a few drips that slowly run and fall.
+  function edgeDripsSvg() {
+    var out = '<svg viewBox="0 0 100 26" preserveAspectRatio="xMidYMin meet"><g fill="#8a0000">' +
+      '<path d="M0 0H100V1.6Q96 3.4 92 1.8T84 2.2Q80 3.6 76 1.7T67 2.4Q63 3.2 59 1.6T50 2.1Q46 3.5 42 1.8T33 2.3Q29 3.1 25 1.6T16 2.2Q12 3.4 8 1.7T0 2Z"/>';
+    var xs = [7, 19, 31, 44, 56, 68, 81, 93], L = [8, 5, 10, 6, 9, 4, 7, 9], D = [6.4, 7.8, 5.6, 8.6, 6.9, 9.2, 7.1, 5.9];
+    for (var i = 0; i < xs.length; i++) {
+      var dd = D[i] + "s", b = (-i * 1.7).toFixed(1) + "s";
+      out += '<rect x="' + (xs[i] - 0.9) + '" y="1.5" width="1.8" rx=".9" height="0"><animate attributeName="height" values="0;' + L[i] + ';' + L[i] + ';0" keyTimes="0;.6;.82;1" dur="' + dd + '" begin="' + b + '" repeatCount="indefinite"/></rect>' +
+        '<circle cx="' + xs[i] + '" cy="' + (1.5 + L[i]) + '" r="1.2" opacity="0"><animate attributeName="cy" values="' + (1.5 + L[i]) + ';' + (1.5 + L[i]) + ';' + (L[i] + 14) + '" keyTimes="0;.6;.85" dur="' + dd + '" begin="' + b + '" repeatCount="indefinite"/>' +
+        '<animate attributeName="opacity" values="0;0;1;0" keyTimes="0;.59;.61;.85" dur="' + dd + '" begin="' + b + '" repeatCount="indefinite"/></circle>';
+    }
+    return out + "</g></svg>";
+  }
+  // Put the drip layer exactly over the top edge of the picture as it's drawn (it's scaled to fit its box).
+  function placeBrandFx() {
+    var fx = $("brandFx"), img = $("brand");
+    // QR card only: on a logo with a see-through background the drips would hang in mid-air.
+    if (!dripOn() || img.classList.contains("hidden") || !img.naturalWidth || img.src.indexOf("data:image/svg") !== 0) { fx.classList.add("hidden"); return; }
+    if (!fx.firstChild) fx.innerHTML = edgeDripsSvg();
+    var bw = img.offsetWidth, bh = img.offsetHeight, r = img.naturalWidth / img.naturalHeight, dw, dh, x, y;
+    var centered = document.body.classList.contains("intermission");
+    if (bw / bh > r) { dh = bh; dw = bh * r; x = centered ? (bw - dw) / 2 : bw - dw; y = 0; }
+    else { dw = bw; dh = bw / r; x = 0; y = centered ? (bh - dh) / 2 : 0; }
+    fx.style.left = (img.offsetLeft + x) + "px"; fx.style.top = (img.offsetTop + y) + "px"; fx.style.width = dw + "px";
+    fx.classList.remove("hidden");
+  }
+  window.addEventListener("resize", function () { setTimeout(placeBrandFx, 50); });
+  // Blood drips under the QR caption: thin streaks that slowly grow, drop a bead, and start again.
+  function dripsSvg(w, top) {
+    var out = '<g shape-rendering="auto" fill="#2a0000">', xs = [0.18, 0.29, 0.43, 0.52, 0.66, 0.74, 0.86];
+    var lens = [2.6, 1.6, 3.4, 2.1, 2.9, 1.4, 2.4], durs = [5.2, 6.1, 4.6, 7.0, 5.6, 6.6, 4.9];
+    for (var i = 0; i < xs.length; i++) {
+      var x = (w * xs[i]).toFixed(2), L = lens[i], D = durs[i] + "s", B = (-i * 1.3).toFixed(1) + "s";
+      out += '<rect x="' + (x - 0.3).toFixed(2) + '" y="' + top + '" width=".6" rx=".3" height="0">' +
+        '<animate attributeName="height" values="0;' + L + ';' + L + ';0" keyTimes="0;.55;.8;1" dur="' + D + '" begin="' + B + '" repeatCount="indefinite"/></rect>' +
+        '<circle cx="' + x + '" cy="' + (top + L) + '" r=".45" opacity="0">' +
+        '<animate attributeName="cy" values="' + (top + L) + ';' + (top + L) + ';' + (top + L + 3.5) + '" keyTimes="0;.55;.8" dur="' + D + '" begin="' + B + '" repeatCount="indefinite"/>' +
+        '<animate attributeName="opacity" values="0;0;1;0" keyTimes="0;.54;.56;.8" dur="' + D + '" begin="' + B + '" repeatCount="indefinite"/></circle>';
+    }
+    return out + "</g>";
+  }
+  function makeQr() {
+    var q = String(cfg.qr || "").trim();
+    if (!q || /^(0|off|no|false)$/i.test(q) || typeof qrcode !== "function") return "";
+    var url = /^https?:\/\//i.test(q) ? q
+      : (!DEMO && /^\d{6}$/.test(code) ? "https://www.karafun.com/" + code + "/" : "https://www.karafun.com/");
+    try {
+      var qr = qrcode(0, "M"); qr.addData(url); qr.make();
+      // qrbg= card color behind the code (default white; keep it light so phones can still scan it)
+      var qrBg = /^[0-9a-f]{6}$/i.test(String(cfg.qrbg || "")) ? String(cfg.qrbg) : "ffffff";
+      var n = qr.getModuleCount(), pad = 4, cap = String(cfg.qrtext || "SCAN TO SING").slice(0, 24);
+      var drip = cap && dripOn();   // drip=on (goth): the caption bleeds too
+      var w = n + pad * 2, h = w + (cap ? 7 : 0) + (drip ? 4 : 0), d = "";
+      for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) if (qr.isDark(r, c)) d += "M" + (c + pad) + " " + (r + pad) + "h1v1h-1z";
+      var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + w + " " + h + '" shape-rendering="crispEdges">' +
+        '<rect width="' + w + '" height="' + h + '" rx="2" fill="#' + qrBg + '"/><path d="' + d + '" fill="#000"/>' +
+        (cap ? '<text x="' + (w / 2) + '" y="' + (w + 3.2) + '" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-weight="900" ' +
+          'font-size="' + Math.min(4.6, (w - 4) / (cap.length * 0.68)).toFixed(2) + '" fill="' + (drip ? "#2a0000" : "#000") + '">' + esc(cap) + "</text>" : "") +
+        (drip ? dripsSvg(w, w + 3.3) : "") + "</svg>";
+      return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    } catch (e) { return ""; }
+  }
+  var client = null;
+  var session = null;           // { kcsUrl, hash }
+  var queue = [];               // raw KaraFun queue items
+  var current = null;           // raw KaraFun current item (from status)
+  var playerState = 0;          // KaraFun status.state: 4 = playing, 5 = paused
+  var retryTimer = null;
+  // Intermission: after `idle` minutes without playback (off by default), show just the logo and Up Next.
+  var idleMin = off("idle") ? 0 : parseFloat(cfg.idle);
+  // Off unless turned on: idle=5 (minutes), or idle=on for 5.
+  if (isNaN(idleMin) || idleMin < 0) idleMin = /^(on|yes|true|1)$/i.test(String(cfg.idle || "")) ? 5 : 0;
+  var lastPlay = Date.now();
+  var onBreak = false;
+  // applause=on (experimental): when a singer finishes, a "make some noise for NAME!!!" splash for 10 seconds
+  // (applause=15 for 15), then the logo + Up Next screen until the next song starts playing.
+  var applauseSec = /^(on|yes|true)$/i.test(String(cfg.applause || "")) ? 10 : parseFloat(cfg.applause);
+  if (isNaN(applauseSec) || applauseSec <= 0) applauseSec = 0; else applauseSec = Math.max(3, Math.min(60, applauseSec));
+  var sung = null, afterApplause = null, applauseTimer = null;
+  function applauseCheck() {
+    if (!applauseSec) return;
+    var cur = current || null, active = playerState === 4 || playerState === 5;
+    if (sung && (!cur || cur.id !== sung.id)) {
+      // The song we were watching is gone: it finished (or was skipped after a real try).
+      if (Date.now() - sung.since >= 30000) showApplause(sung.name);
+      sung = null;
+    } else if (sung && !active) {
+      // Same song still loaded but stopped: count it as finished only if it got to the end.
+      var d = durOf(cur);
+      if (d && Math.max(tPlayedMs, tBeforeReset) >= (d - 15) * 1000) { showApplause(sung.name); sung = null; }
+    }
+    if (cur && active && !isBreakItem(cur) && (!sung || sung.id !== cur.id)) {
+      var x = info(cur);
+      if (x.singer) sung = { id: cur.id, name: x.singer, since: Date.now() };
+    }
+    // The next song started: back to the normal screen (once the splash is done).
+    if (playerState === 4 && afterApplause && !$("applause").classList.contains("on")) afterApplause = null;
+  }
+  function showApplause(name) {
+    $("applauseName").textContent = name + "!!!";
+    $("applause").classList.add("on");
+    afterApplause = { name: name };
+    clearTimeout(applauseTimer);
+    applauseTimer = setTimeout(function () {
+      $("applause").classList.remove("on");
+      if (playerState === 4) afterApplause = null;
+      checkBreak(); render();
+    }, applauseSec * 1000);
+  }
+  // spotlight=on: between songs (after any applause), Up Next fills the screen for 10 seconds, then the
+  // normal screen for 10, back and forth until the next song starts. spotlight=loop does that all night,
+  // during songs too (10 seconds of Up Next, then 10 of the normal screen).
+  var spotMode = String(cfg.spotlight || "").toLowerCase();
+  if (/^(on|yes|true|1)$/.test(spotMode)) spotMode = "on"; else if (spotMode !== "loop") spotMode = "";
+  var spotSince = 0, spotShown = false;
+  function spotTick() {
+    if (!spotMode) return;
+    var cur = current || queue[0] || null;
+    var between = playerState !== 4 && playerState !== 5;
+    // During a song with more than 30 seconds left, the card shows who's singing now; after that, who's next.
+    var left = songLeft(), nowCard = spotMode === "loop" && !between && left !== null && left > 30 &&
+      !$("nowBar").classList.contains("hidden");
+    var name = nowCard ? $("nowBarName").textContent : ($("heroWrap").classList.contains("hidden") ? "" : $("heroName").textContent);
+    var ok = !!name && !$("applause").classList.contains("on") && !isBreakItem(cur) &&
+      !(onBreak && !afterApplause) && (spotMode === "loop" || between);
+    if (!ok) { spotSince = 0; setSpot(false); return; }
+    if (!spotSince) spotSince = Date.now();
+    var t = (Date.now() - spotSince) / 1000, cycle = 20;   // 10 seconds of the card, 10 of the normal screen
+    var want = (t % cycle) < 10;
+    if (want && !spotShown) {
+      $("spotLabel").textContent = nowCard ? $("nowLabelText").innerHTML.replace(/<br\s*\/?>/gi, " ").replace(/<[^>]*>/g, "").trim()
+        : ($("nextLabelText").innerHTML.replace(/<br\s*\/?>/gi, " ").replace(/<[^>]*>/g, "") || "UP NEXT").replace(/\u2026$/, "").trim();
+      $("spotName").textContent = name;
+      $("spot").classList.toggle("nowcard", nowCard);
+      var song = nowCard ? $("nowBarSong") : $("heroSong"), full = song.getAttribute("data-full") || song.textContent, parts = full.split(/\s*\u00b7\s*/);
+      // same look as the song line in the boxes: title, then the artist styled separately
+      $("spotSong").innerHTML = esc(parts[0]) + (parts.length > 1 ? '<span class="art">' + esc(SEP + parts.slice(1).join(" \u00b7 ")) + "</span>" : "");
+      fitSpot(); spotBackground();
+    }
+    setSpot(want);
+  }
+  // Same background as the main screen (colors, wallpaper, pattern), with a soft glow behind the name.
+  function spotBackground() {
+    var cs = getComputedStyle(document.body);
+    if (!cs.backgroundImage || cs.backgroundImage === "none") cs = getComputedStyle(document.documentElement);
+    var sp = $("spot"), pl = $("patLayer"), imgs = [], sizes = [], reps = [], pos = [];
+    var glowRgb = $("spot").classList.contains("nowcard") ? (getComputedStyle(document.documentElement).getPropertyValue("--now") || "255,255,255").trim() : nextRgb();
+    imgs.push("radial-gradient(ellipse at center, rgba(" + glowRgb + ",.18), rgba(0,0,0,0) 65%)"); sizes.push("auto"); reps.push("no-repeat"); pos.push("center");
+    var spp = $("spotPat");
+    if (!pl.classList.contains("hidden")) {   // the moving pattern gets its own layer on the card, at double speed
+      spp.style.background = pl.style.background; spp.style.top = pl.style.top; spp.style.height = pl.style.height; spp.style.display = "block";
+    } else spp.style.display = "none";
+    if (cs.backgroundImage && cs.backgroundImage !== "none") { imgs.push(cs.backgroundImage); sizes.push(cs.backgroundSize); reps.push(cs.backgroundRepeat); pos.push(cs.backgroundPosition); }
+    sp.style.backgroundColor = cs.backgroundColor;
+    sp.style.backgroundImage = imgs.join(", "); sp.style.backgroundSize = sizes.join(", ");
+    sp.style.backgroundRepeat = reps.join(", "); sp.style.backgroundPosition = pos.join(", ");
+  }
+  function nextRgb() { return (getComputedStyle(document.documentElement).getPropertyValue("--next") || "255,255,255").trim(); }
+  function setSpot(on) { if (on !== spotShown) { spotShown = on; $("spot").classList.toggle("on", on); } }
+  function fitSpot() {
+    var el = $("spotName"), size = 24; el.style.fontSize = size + "vh";
+    while (size > 6 && el.scrollWidth > el.clientWidth + 1) { size -= 0.5; el.style.fontSize = size + "vh"; }
+  }
+  setInterval(spotTick, 500);
+  function checkBreak() {
+    if (playerState === 4) lastPlay = Date.now();
+    var cur = current || queue[0] || null;
+    var b = isBreakItem(cur) || (!!afterApplause && !spotMode) || (idleMin > 0 && playerState !== 4 && Date.now() - lastPlay >= idleMin * 60000);
+    if (b !== onBreak) { onBreak = b; document.body.classList.toggle("intermission", b); render(); setTimeout(placeBrandFx, 30); }
+  }
+
+  // ---------------------------------------------------------------- KaraFun session
+  // The public remote page embeds a short-lived websocket URL (kcs_url) and a hash
+  // that can be exchanged for a fresh URL. KaraFun serves these with
+  // Access-Control-Allow-Origin: *, so no server is needed.
+  function fetchSession(c) {
+    return fetch(KF_HOST + c + "/", { cache: "no-store" }).then(function (r) { return r.text(); })
+      .then(function (html) {
+        var kcs = (html.match(/"kcs_url"\s*:\s*"([^"]+)"/) || [])[1];
+        var hash = (html.match(/"hash"\s*:\s*"([a-f0-9]+)"/) || [])[1];
+        if (!kcs) throw new Error("no-session");
+        return { kcsUrl: kcs.replace(/\\\//g, "/"), hash: hash };
+      });
+  }
+
+  function freshUrl() {
+    // Used by WebKCS when it reconnects. Try the cheap endpoint first, then the full page.
+    var viaHash = session && session.hash
+      ? fetch(KF_HOST + code + "/?type=session_info&hash=" + session.hash, { cache: "no-store" })
+          .then(function (r) { return r.json(); })
+          .then(function (j) { if (!j.kcs_url) throw 0; return j.kcs_url; })
+      : Promise.reject();
+    return viaHash.catch(function () {
+      return fetchSession(code).then(function (s) { session = s; return s.kcsUrl; });
+    });
+  }
+
+  function loadScript(src) {
+    return new Promise(function (res, rej) {
+      if (window.WebKCS) return res();
+      var s = document.createElement("script");
+      s.src = src; s.onload = res; s.onerror = function () { rej(new Error("script")); };
+      document.head.appendChild(s);
+    });
+  }
+
+  function connect() {
+    clearTimeout(retryTimer);
+    setPill("Connecting…", false);
+    Promise.all([loadScript(WEBKCS_SRC), fetchSession(code)]).then(function (r) {
+      session = r[1];
+      startClient(session.kcsUrl);
+    }).catch(function (err) {
+      if (err && err.message === "no-session") {
+        setPill("KaraFun session not found. Is remote control on? Retrying…", true);
+      } else {
+        setPill("Can't reach KaraFun. Retrying…", true);
+      }
+      retryLater(8000);
+    });
+  }
+
+  function retryLater(ms) {
+    clearTimeout(retryTimer);
+    retryTimer = setTimeout(connect, ms);
+  }
+
+  // Show up in KaraFun's connected list as "KJQV" (then "KJQV 2"… if another screen has it).
+  function nameSelf(c, n) {
+    if (client !== c || n > 9) return;
+    try {
+      var p = c.send("remote.UpdateUsernameRequest", { username: n === 1 ? "KJQV" : "KJQV " + n });
+      if (p && p.catch) p.catch(function () { nameSelf(c, n + 1); });
+    } catch (e) {}
+  }
+
+  function startClient(url) {
+    try { if (client && client.close) client.close(); } catch (e) {}
+    var c = WebKCS.Client.fromAddress(url);
+    client = c;
+    c.setUrlProvider(freshUrl);
+    c.setErrorHandler(function (e) { if (window.console) console.log("kcs error", e); });
+    c.addReadyHandler(function () { setPill("Live", false); nameSelf(c, 1); });
+    c.setReconnectHandler(function () { setPill("Live", false); nameSelf(c, 1); });
+    c.setLostConnectionHandler(function () { setPill("Connection lost. Reconnecting…", true); });
+    c.addCloseHandler(function (e) {
+      if (client !== c) return;
+      var codeNum = e && e.code;
+      // 4220 KaraFun app left, 4210 remote disabled, 4221/4403 invalid session
+      if (codeNum === 4220) { setPill("KaraFun app closed. Waiting…", true); setTimeout(function () { try { c.reconnect(); } catch (x) { retryLater(3000); } }, 3000); }
+      else if (codeNum === 4210) { setPill("Remote control is off in KaraFun. Waiting…", true); retryLater(10000); }
+      else { setPill("Reconnecting…", true); retryLater(4000); }
+    });
+    c.addEventHandler("remote.AppLeftEvent", function () { setPill("KaraFun app closed. Waiting…", true); });
+    c.addEventHandler("remote.AppJoinEvent", function () { setPill("Live", false); nameSelf(c, 1); });
+    c.addEventHandler("remote.StatusEvent", function (e) {
+      var st = e && e.data && e.data.status;
+      if (!st) return;
+      current = st.current || null;
+      playerState = st.state || 0;
+      tempo = st.tempo || 0;
+      equityNoteSinger(current);
+      trackTime(current, playerState, firstStatus);
+      firstStatus = false;
+      applauseCheck();
+      checkBreak();
+      render();
+      equitySoon();
+    });
+    c.addEventHandler("remote.QueueEvent", function (e) {
+      var q = e && e.data && e.data.queue;
+      queue = (q && q.items) || [];
+      equityQueueChanged();
+      fetchDurations(queue);
+      checkBreak();
+      render();
+      equitySoon();
+    });
+  }
+
+  // ---------------------------------------------------------------- rendering
+  // Special queue entries, typed as the singer name on any song (the song itself isn't sung):
+  //   BRB <name> [mins]       -> "<name> will be back in 15 min" ("BRB KJ 15")
+  //   Last Call               -> LAST CALL flashing in red
+  //   Dance Party [mins]      -> DANCE PARTY in rainbow letters ("DANCEPARTY 10" or "DANCE! 10")
+  // (John Cage's 4'33" -- the silent piece -- counts as a BRB too.)
+  function specialOf(item) {
+    if (!item || item.quiz) return null;
+    var s = item.song || {}, t = String(s.title || ""), a = String(s.artist || "");
+    var singer = String((s.options && s.options.singer) || "").trim(), m;
+    // BRB anywhere in the name: "BRB KJ 15", "brb15", "Bowser BRB 5 min"
+    var BRB = /(^|[\s\-:])brb(?![a-z])/i;
+    if (BRB.test(singer)) {
+      var rest = singer.replace(BRB, " "), bm = rest.match(/(\d{1,3})/);
+      var nm = rest.replace(/\d{1,3}\s*(minutes|mins|min|m)?\b/i, " ").replace(/\s+/g, " ").trim();
+      return { kind: "brb", name: nm, mins: bm ? parseInt(bm[1], 10) : 0 };
+    }
+    if ((m = singer.match(/^last\s*call\b\s*(\d{1,3})?/i)))
+      return { kind: "lastcall", mins: m[1] ? parseInt(m[1], 10) : 0 };
+    if ((m = singer.match(/^dance\s*(?:party\b|!+)(.*)$/i))) {
+      var restTxt = m[1], dm = restTxt.match(/(\d{1,3})/);
+      return { kind: "dance", mins: dm ? parseInt(dm[1], 10) : 0, rainbow: /\b(r|rainbow)\b/i.test(restTxt) };
+    }
+    if (/\bcage\b/i.test(a) && /4\s*['\u2019\u2032:.\s]\s*33/.test(t)) return { kind: "brb", name: "", mins: 0 };
+    return null;
+  }
+  // DANCE PARTY flashes rainbow colors unless dance= sets one color
+  var danceRainbowDefault = !hex(cfg.dance);
+  var danceColor = "#" + (hex(cfg.dance) || "ff2ad4");
+  function danceClass(sp) { return sp && sp.kind === "dance" && (sp.rainbow || danceRainbowDefault) ? "rainbow" : ""; }
+  function danceStyle(sp) { return sp && sp.kind === "dance" && !danceClass(sp) ? "color:" + danceColor + ";text-shadow:0 0 1.2vh " + danceColor + "88" : ""; }
+  function isBreakItem(item) { return !!specialOf(item); }
+  function breakMins(item) { var sp = specialOf(item); return sp ? sp.mins : 0; }
+
+  // Community tracks often carry uploader junk: "(username)", "(BJK!)", "[Karaoke]", "(SC)", "- - -".
+  // Strip it so the screen shows just the song and artist. (Catalog tracks are left alone.)
+  var JUNK = /\b(karaoke|instrumental|lyrics?|version|vocals?|backing|bgv|no ?vocal|minus ?one|sound ?choice|sunfly|zoom|chartbuster|cb|sc|dk|kv|mr|hd|hq|4k|official|cover|key|remaster(ed)?|uploaded|by)\b/i;
+  function cleanCommunity(t) {
+    t = String(t || "");
+    t = t.replace(/\[[^\]]*\]|\{[^}]*\}/g, " ");                       // [anything] {anything}
+    t = t.replace(/\(([^()]*)\)/g, function (m, inner) {                // (tags)
+      inner = inner.trim();
+      if (!inner || JUNK.test(inner) || /[@!#_]/.test(inner) || !/\s/.test(inner) || /style of|made famous|as performed/i.test(inner)) return " ";
+      return m;
+    });
+    t = t.replace(/\s*[-–—_|·~]+(\s*[-–—_|·~]+)+\s*/g, " - ");          // "- - -" runs
+    t = t.replace(/\s+-\s+([^-]*)$/, function (m, tail) { return JUNK.test(tail) || /style of/i.test(tail) ? "" : m; });   // "- Karaoke Version"
+    t = t.replace(/\s+/g, " ").replace(/^[\s\-–—_|·~:]+|[\s\-–—_|·~:]+$/g, "");
+    return t;
+  }
+
+  function info(item) {
+    if (!item) return null;
+    var sp = specialOf(item);
+    if (sp) {
+      var mins = sp.mins ? sp.mins + " min" : "";
+      if (sp.kind === "brb") return { singer: sp.mins ? sp.mins + " min break" : "Short break", title: sp.name ? sp.name + " will be back" : "We'll be right back", artist: "", special: "brb" };
+      if (sp.kind === "lastcall") return { singer: "LAST CALL", title: "Get your drink orders in!", artist: "", special: "lastcall" };
+      if (sp.kind === "dance") return { singer: "DANCE PARTY", title: sp.mins ? sp.mins + " min" : "", artist: "", special: "dance" };
+      return { singer: "DJ Break", title: sp.mins ? sp.mins + " minute break" : "Back in a few", artist: "", special: "break" };
+    }
+    if (item.quiz) return { singer: "", title: item.quiz.title || "Music quiz", artist: "Quiz" };
+    var s = item.song || {};
+    var singer = String((s.options && s.options.singer) || "").trim();
+    if (blankNames.indexOf(singer.toLowerCase()) !== -1) singer = "";
+    var community = !(s.id && s.id.type === 1);
+    return { singer: singer,
+             title: community ? cleanCommunity(s.title) || s.title || "" : s.title || "",
+             artist: community ? cleanCommunity(s.artist) || s.artist || "" : s.artist || "" };
+  }
+
+  function line(x) {
+    // Big text: singer, or the artist when no singer was entered. Small text: the song.
+    return {
+      big: x.singer || x.artist || x.title,
+      small: x.singer ? (x.title + "  ·  " + x.artist) : x.title
+    };
+  }
+
+  function render() {
+    // The current song is also the first queue item. Use status.current when we have it.
+    var cur = current || queue[0] || null;
+    var rest = queue.filter(function (it) { return !cur || it.id !== cur.id; });
+
+    // Once the song is actually playing, the singer drops to the small green bar and the
+    // next person takes the big spot. Before play is pressed, the loaded song's singer
+    // is the one shown big as "UP NEXT".
+    var breakCur = isBreakItem(cur);
+    var singing = !onBreak && !!cur && (playerState === 4 || playerState === 5);
+    // During a queued DJ break, Up Next is whoever comes after the break.
+    var heroItem = (singing || breakCur) ? rest[0] : cur;
+    var listItems = singing ? rest.slice(1) : rest;
+
+    $("nowBar").classList.toggle("hidden", !singing);
+    document.body.classList.toggle("prestart", !singing && !onBreak);   // Up Next has the top to itself
+    if (singing) {
+      var n = line(info(cur));
+      // Singer on the big line (with the mic and VU bars), song underneath.
+      $("nowBarName").textContent = n.big;
+      songLine($("nowBarSong"), info(cur));
+    }
+    setTimeout(function () { fitName(); marquee(); }, 0);
+
+    $("heroWrap").classList.toggle("hidden", !heroItem);
+    if (heroItem) {
+      var h = line(info(heroItem));
+      $("heroName").textContent = h.big;
+      var hsp = specialOf(heroItem);
+      $("heroName").classList.toggle("rainbow", !!danceClass(hsp));
+      var plain = hsp && hsp.kind === "dance" && !danceClass(hsp);
+      $("heroName").style.color = plain ? danceColor : "";
+      $("heroName").style.textShadow = plain ? "0 0 3vh " + danceColor + "88" : "";
+      $("heroName").classList.toggle("lastcall", info(heroItem).special === "lastcall");
+      songLine($("heroSong"), info(heroItem));
+      fitName();
+    }
+    $("empty").classList.toggle("hidden", !!cur || onBreak);
+
+    listState = { items: listItems, perCol: singing ? 3 : 6, heroSpecial: !heroItem || isBreakItem(heroItem) };
+    $("nextWrap").classList.toggle("hidden", onBreak || listItems.length === 0 || comingCount === 0);
+    renderList();
+  }
+
+  // ---------------------------------------------------------------- time left
+  // KaraFun doesn't send the playback position, only each song's length. So the timer starts
+  // when we see the song switch to playing, pauses with KaraFun, and allows for tempo changes.
+  // If the page loads mid-song we don't know how far in it is, so no timer until the next song.
+  var firstStatus = true, tempo = 0;
+  var tSong = null, tKnown = false, tPlayedMs = 0, tSince = 0, tDur = 0;
+  var durCache = {};
+  function songIdOf(it) { return it && it.song && it.song.id && it.song.id.type === 1 ? it.song.id.id : null; }
+  function fetchDuration(id) {
+    if (!id || durCache[id] !== undefined) return;
+    durCache[id] = 0;
+    var fd = new FormData();
+    fd.append("songIds", String(id)); fd.append("quizIds", ""); fd.append("communityIds", "");
+    fetch(KF_HOST + code + "/?type=queueData", { method: "POST", body: fd })
+      .then(function (r) { return r.json(); })
+      .then(function (list) { (list || []).forEach(function (x) { if (x.songId) durCache[x.songId] = x.duration || 0; }); tick(); })
+      .catch(function () { delete durCache[id]; });
+  }
+  // Lengths for everything in the queue (one request), used for the estimated start times.
+  function durKey(it) {
+    var id = it && it.song && it.song.id;
+    if (!id) return null;
+    return id.type === 1 ? id.id : "c" + id.id;
+  }
+  function durOf(it) { var k = durKey(it); return k !== null && durCache[k] ? durCache[k] : 0; }
+  function fetchDurations(items) {
+    var songs = [], comm = [];
+    items.forEach(function (it) {
+      var k = durKey(it);
+      if (k === null || durCache[k] !== undefined) return;
+      durCache[k] = 0;
+      if (typeof k === "number") songs.push(k); else comm.push(k.slice(1));
+    });
+    if (!songs.length && !comm.length) return;
+    var fd = new FormData();
+    fd.append("songIds", songs.join(",")); fd.append("quizIds", ""); fd.append("communityIds", comm.join(","));
+    fetch(KF_HOST + code + "/?type=queueData", { method: "POST", body: fd })
+      .then(function (r) { return r.json(); })
+      .then(function (list) {
+        (list || []).forEach(function (x) {
+          if (!x.songId) return;
+          var k = (x.isCommunity || comm.indexOf(String(x.songId)) !== -1 && songs.indexOf(x.songId) === -1) ? "c" + x.songId : x.songId;
+          durCache[k] = x.duration || 0;
+        });
+        updateTimes(); tick();
+      })
+      .catch(function () {});
+  }
+
+  // Clock + "about when you'll sing". Song lengths come from KaraFun; between singers we allow
+  // gap= seconds (default 60) for the changeover, and 4 minutes for anything we don't know.
+  // eta: shown for Coming Up by default; eta=on (or time) also shows it next to UP NEXT; eta=off hides all.
+  var etaHero = /^(on|yes|1|time|all)$/i.test(String(cfg.eta || ""));
+  var etaOn = !off("eta"), etaClock = String(cfg.eta || "").toLowerCase() === "time", clockOn = !off("clock"), clock24 = String(cfg.clock || "") === "24";
+  // No clock= setting: follow the device's region (24-hour in most of Europe, 12-hour in the US).
+  if (!/^(12|24)$/.test(String(cfg.clock || ""))) {
+    try { clock24 = /h2[34]/.test(new Intl.DateTimeFormat(undefined, { hour: "numeric" }).resolvedOptions().hourCycle || ""); } catch (e) {}
+  }
+  var gapSec = parseFloat(cfg.gap); if (isNaN(gapSec) || gapSec < 0) gapSec = 60;
+  function hhmm(ms, ampm) {
+    var d = new Date(ms), h = d.getHours(), m = ("0" + d.getMinutes()).slice(-2);
+    if (clock24) return ("0" + h).slice(-2) + ":" + m;
+    var s = (h % 12 || 12) + ":" + m;
+    return ampm ? s + (h < 12 ? " AM" : " PM") : s;
+  }
+  function until(ms, now) {
+    if (etaClock) return "~" + hhmm(ms);
+    var m = Math.round((ms - now) / 60000);
+    return m < 1 ? "soon" : "~" + m + " min";
+  }
+  var breakAt = null, lastMsg = "";
+  // upin=on: the UP NEXT label becomes a countdown, "UP IN 3 MIN", while a song is playing
+  var nextLabelBase = "UP<br>NEXT", upinOn = /^(on|yes|true|1)$/i.test(String(cfg.upin || ""));
+  function setBreakMsg(html, custom) {
+    document.body.classList.toggle("custombreak", custom);
+    if (html !== lastMsg) { $("breakMsg").innerHTML = html; lastMsg = html; }
+  }
+  function updateTimes() {
+    var now = Date.now();
+    var c = clockOn ? hhmm(now, true) : "";
+    $("clock").textContent = c;
+    $("clockFloat").textContent = c;
+    $("clockFloat").classList.toggle("on", !!c);
+    var cur = current || queue[0] || null;
+    var rest = queue.filter(function (it) { return !cur || it.id !== cur.id; });
+    var playing = !!cur && (playerState === 4 || playerState === 5) && !isBreakItem(cur);
+    var t = now, curDur = durOf(cur) / (1 + (tempo || 0) / 100);
+    if (isBreakItem(cur)) {
+      if (!breakAt || breakAt.id !== cur.id) breakAt = { id: cur.id, at: now };
+      var bm = breakMins(cur);
+      var spc = specialOf(cur);
+      t += bm ? Math.max(60000, bm * 60000 - (now - breakAt.at)) : (spc.kind === "lastcall" ? 0 : (curDur || 240) * 1000);
+      var left = bm ? Math.max(1, Math.round((bm * 60000 - (now - breakAt.at)) / 60000)) : 0;
+      var sp = specialOf(cur), msg;
+      if (sp.kind === "brb") msg = esc(sp.name ? sp.name + " will be back" : "We'll be back") + "<span>" + (left ? "in about " + left + " min" : "in a few") + "</span>";
+      else if (sp.kind === "lastcall") msg = '<div class="lastcall" style="font-size:1.4em">LAST CALL</div><span>Get your drink orders in!</span>';
+      else if (sp.kind === "dance") msg = '<div class="' + danceClass(sp) + '" style="' + danceStyle(sp) + '">DANCE PARTY</div><span>' + (left ? "Karaoke's back in about " + left + " min" : "Karaoke's back soon") + "</span>";
+      else msg = "Short break<span>" + (left ? "Back in about " + left + " min" : "Back in a few") + "</span>";
+      setBreakMsg(msg, sp.kind !== "break");
+    } else if (afterApplause) {
+      setBreakMsg("Thank you, " + esc(afterApplause.name) + "!<span>Next singer coming right up</span>", false);
+    } else {
+      setBreakMsg("Short break<span>Back in a few</span>", false);
+    }
+    if (cur && !isBreakItem(cur)) {
+      if (playing && curDur && tKnown) t += Math.max(0, curDur - (tPlayedMs + (tSince ? now - tSince : 0)) / 1000) * 1000;
+      else if (playing && curDur) t += curDur * 500;          // joined mid-song: guess halfway
+      else t += (curDur || 240) * 1000;                       // not started yet
+    }
+    var eta = {};
+    rest.forEach(function (it) {
+      var bm = breakMins(it), sp = specialOf(it);
+      if (bm || (sp && sp.kind === "lastcall")) { t += bm * 60000; return; }          // a break: no changeover, no time shown for it
+      t += gapSec * 1000; eta[it.id] = t; t += (durOf(it) || 240) * 1000;
+    });
+    var breakCur = isBreakItem(cur);
+    var show = etaOn && (!onBreak || breakCur);     // during a queued break, still show when the next person's up
+    var hero = (playing || breakCur) ? rest[0] : null;
+    var heShow = !!(etaHero && !upinOn && show && hero && eta[hero.id]);   // upin already says it
+    if (upinOn) {
+      var lbl = nextLabelBase;
+      if (playing && hero && eta[hero.id] && !onBreak) {
+        var um = Math.round((eta[hero.id] - now) / 60000);
+        if (um >= 1) lbl = "UP IN<br>" + um + " MIN";
+      }
+      if ($("nextLabelText").innerHTML !== lbl) { $("nextLabelText").innerHTML = lbl; fitName(); }
+    }
+    $("heroEta").classList.toggle("hidden", !heShow);
+    if (document.body.classList.contains("haseta") !== heShow) { document.body.classList.toggle("haseta", heShow); fitName(); }
+    if (show && hero && eta[hero.id]) $("heroEta").textContent = until(eta[hero.id], now);
+    var els = document.querySelectorAll("#list .eta");
+    for (var i = 0; i < els.length; i++) {
+      var v = eta[els[i].getAttribute("data-id")];
+      els[i].textContent = show && v ? until(v, now) : "";
+    }
+  }
+
+  // The timer is saved on this device, so reloading the page mid-song keeps the countdown.
+  var T_KEY = "kqv.timer";
+  function saveTimer() { if (DEMO) return; save(T_KEY, JSON.stringify({ song: tSong, known: tKnown, played: tPlayedMs, since: tSince, code: code })); }
+  var tBeforeReset = 0;   // how far the song got before KaraFun went back to its start (for applause)
+  function trackTime(cur, state, first) {
+    var key = cur ? cur.id : null;
+    var playing = state === 4;
+    if (key !== tSong) {
+      tSong = key; tPlayedMs = 0; tSince = 0; tBeforeReset = 0;
+      tKnown = !(first && (state === 4 || state === 5));   // joined mid-song: unknown...
+      if (first) {                                         // ...unless this device was already timing it
+        try {
+          var t = JSON.parse(load(T_KEY) || "null");
+          if (t && t.song === key && t.code === code && t.known) {
+            tKnown = true; tPlayedMs = t.played || 0; tSince = t.since || 0;
+          }
+        } catch (e) {}
+      }
+      fetchDuration(songIdOf(cur));
+    } else if (state === 0 || state === 1 || state === 2) {
+      // Same song, but KaraFun went back to idle / intro screen / loading: it was restarted.
+      tBeforeReset = tPlayedMs + (tSince ? Date.now() - tSince : 0);
+      tPlayedMs = 0; tSince = 0; tKnown = true;
+    }
+    var now = Date.now();
+    if (tSince) { tPlayedMs += now - tSince; tSince = 0; }
+    if (playing) { tSince = now; tBeforeReset = 0; }
+    saveTimer();
+  }
+  function fmt(sec) { sec = Math.max(0, Math.round(sec)); return Math.floor(sec / 60) + ":" + ("0" + (sec % 60)).slice(-2); }
+  function songLeft() {
+    var id = songIdOf(current), dur = id ? durCache[id] : 0;
+    if (!dur || !tKnown || playerState !== 4 && playerState !== 5) return null;
+    return dur / (1 + (tempo || 0) / 100) - (tPlayedMs + (tSince ? Date.now() - tSince : 0)) / 1000;
+  }
+  function tick() {
+    // time=bar (default) | both | text | off
+    var el = $("nowTime"), bar = $("nowProg"), track = $("nowTrack");
+    var mode = String(cfg.time || "bar").toLowerCase();
+    if (off("time")) mode = "off";
+    var id = songIdOf(current), dur = id ? durCache[id] : 0;
+    var inBox = mode !== "off" && dur > 0 && !$("nowBar").classList.contains("hidden");
+    var show = inBox && tKnown;
+    // Opened mid-song on a new device: show the song's length until the next song starts.
+    if (inBox && !tKnown && mode !== "bar") {
+      if (!document.body.classList.contains("hastimetext")) { document.body.classList.add("hastimetext"); fitName(); }
+      el.classList.remove("hidden"); el.textContent = fmt(dur / (1 + (tempo || 0) / 100)) + " song";
+      $("nowTrack").classList.add("hidden"); document.body.classList.remove("timebar");
+      return;
+    }
+    var eff = dur / (1 + (tempo || 0) / 100);
+    var played = (tPlayedMs + (tSince ? Date.now() - tSince : 0)) / 1000;
+    var ending = show && playerState === 4 && eff - played <= 20;
+    var showText = show && mode !== "bar", showBar = show && mode !== "text";
+    if (document.body.classList.contains("hastimetext") !== showText) { document.body.classList.toggle("hastimetext", showText); fitName(); }
+    el.classList.toggle("hidden", !showText);
+    track.classList.toggle("hidden", !showBar);
+    if (document.body.classList.contains("timebar") !== showBar) { document.body.classList.toggle("timebar", showBar); fitName(); }   // the bar takes room: refit the name
+    document.body.classList.toggle("ending", ending);
+    if (!show) return;
+    el.textContent = (playerState === 5 ? "Paused · " : "") + fmt(eff - played) + " left";
+    bar.style.width = Math.min(100, played / eff * 100).toFixed(2) + "%";
+  }
+  // Reserve room for the top-right labels based on their real width (refit names if it changes a lot).
+  var lastTw = 0, lastEw = 0;
+  // Keep Coming Up (and its clock) from running into the logo: if they'd overlap, push it down.
+  var logoPush = 0;
+  function clearLogo() {
+    var img = $("brand"), nw = $("nextWrap"), push = 0;
+    if (img && !img.classList.contains("hidden") && img.offsetHeight && nw.offsetHeight && !document.body.classList.contains("intermission")) {
+      var natural = nw.getBoundingClientRect().top - logoPush;
+      var bqi = $("brandQr"), bottom = img.getBoundingClientRect().bottom;
+      if (!bqi.classList.contains("hidden")) bottom = Math.max(bottom, bqi.getBoundingClientRect().bottom);
+      var logoBottom = bottom + window.innerHeight * 0.01;
+      push = Math.max(0, Math.round(logoBottom - natural));
+    }
+    if (Math.abs(push - logoPush) > 2) {
+      logoPush = push; document.documentElement.style.setProperty("--logopush", push + "px");
+      renderList();
+    }
+  }
+  function reserveLabels() {
+    var tw = $("nowTime").offsetWidth, ew = $("heroEta").offsetWidth, changed = false;
+    if (Math.abs(tw - lastTw) > 8) { lastTw = tw; document.body.style.setProperty("--tw", tw + "px"); changed = true; }
+    if (Math.abs(ew - lastEw) > 8) { lastEw = ew; document.body.style.setProperty("--ew", ew + "px"); changed = true; }
+    if (changed) { fitCache = {}; fitName(); }
+  }
+  setInterval(function () { checkBreak(); tick(); updateTimes(); reserveLabels(); clearLogo(); }, 1000);
+
+  // Coming Up: everyone waiting is shown at once. It splits into two columns past
+  // a handful of people, and the text shrinks as needed so the whole list fits.
+  var listState = { items: [], perCol: 5 };
+  function renderList() {
+    var all = listState.items;
+    var items = all.slice(0, comingCount);   // how many show (count= in the link, default 8)
+    var list = $("list");
+    var perCol = Math.ceil(comingCount / 2) || 1;
+    var two = items.length > perCol;
+    var rows = two ? perCol : Math.max(items.length, 1);
+    list.classList.toggle("two", two);
+    list.style.gridTemplateRows = "repeat(" + rows + ", auto)";
+    var html = "";
+    // Names fade from orange (next in line) to red (last in line).
+    function shade(i) {
+      var t = all.length > 1 ? i / (all.length - 1) : 0;
+      var from = comingFrom, to = comingTo;
+      return "rgb(" + from.map(function (c, k) { return Math.round(c + (to[k] - c) * t); }).join(",") + ")";
+    }
+    // Place numbers count singers only: breaks, dance parties and last call get no number.
+    // Up Next is #1 (unless it's a break itself), so the list starts at 2.
+    var place = listState.heroSpecial ? 1 : 2;
+    items.forEach(function (it, i) {
+      var x = info(it), l = line(x);
+      var num = isBreakItem(it) ? "" : String(place++);
+      // Coming Up detail line: title and/or artist, each can be turned off in the link.
+      var bits = [];
+      if (!off("title") && !off("songs")) bits.push(x.title);
+      if (!off("artist") && !off("songs") && x.singer && x.artist) bits.push(x.artist);
+      l.small = bits.join(SEP);
+      html += '<div class="row"><span class="num">' + num +
+        '</span><div class="cell"><div class="who' + (danceClass(specialOf(it)) ? " rainbow" : x.special === "lastcall" ? " lastcall" : (specialOf(it) && specialOf(it).kind === "brb") ? " brb" : "") + '" style="color:' + shade(i) + ";" + danceStyle(specialOf(it)) + '">' + esc(l.big) + '</div><div class="what mq">' + esc(l.small) + '</div></div><span class="eta" data-id="' + esc(String(it.id)) + '"></span></div>';
+    });
+    list.innerHTML = html;
+    updateTimes();
+    $("more").textContent = "";
+    // Shrink until it fits (floor at 40% of normal size).
+    var sc = 1;
+    list.style.setProperty("--s", sc);
+    function cut() {
+      var w = list.querySelectorAll(".who");
+      for (var i = 0; i < w.length; i++) if (w[i].scrollWidth > w[i].clientWidth + 1) return true;
+      return false;
+    }
+    var cutFloor = document.body.classList.contains("rgbfont") ? 0.5 : 0.7;   // wide pixel font: shrink more before cutting names
+    while (sc > 0.4 && (list.scrollHeight > list.clientHeight + 1 || (sc > cutFloor && cut()))) {
+      sc -= 0.02;
+      list.style.setProperty("--s", sc.toFixed(2));
+    }
+    setTimeout(marquee, 0);
+  }
+
+  // Start each big name at full size and step it down until it fits on one line.
+  var fitCache = {}, fitSize = {};
+  // Big names fill their box: as large as fits the width, and tall enough that the name and
+  // song line take up about 90% of the box's height. Both boxes are the same fixed height.
+  function fitOne(id, max, min, boxId) {
+    var el = $(id), box = $(boxId), body = box.querySelector(".boxBody");
+    var key = el.textContent + "|" + window.innerWidth + "x" + window.innerHeight + "|" + document.body.className;
+    if (fitCache[id] === key) { el.style.fontSize = fitSize[id] + "vh"; return; }   // restore its own fit (fitName may have matched it to the other box)
+    fitCache[id] = key;
+    var cs = getComputedStyle(box);
+    // With the progress bar, leave a clear gap between the song line and the bar.
+    var room = (box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)) *
+      (boxId === "nowBar" && document.body.classList.contains("timebar") ? 1.04 : 0.98);
+    var size = max;
+    el.style.fontSize = size + "vh";
+    while (size > min && (el.scrollWidth > el.clientWidth + 1 || body.scrollHeight > room)) {
+      size -= 0.25;
+      el.style.fontSize = size + "vh";
+    }
+    // If it had to shrink, back off a little more so sub-pixel rounding can't add a "..."
+    if (size < max) { size = Math.max(min, size - 0.5); el.style.fontSize = size + "vh"; }
+    fitSize[id] = size;
+  }
+  function fitName() {
+    if (!$("heroWrap").classList.contains("hidden")) fitOne("heroName", 20, 5, "hero");
+    if (!$("nowBar").classList.contains("hidden")) fitOne("nowBarName", document.body.classList.contains("timebar") ? 18 : 20, 5, "nowBar");
+    // Box labels: sized for the screen's shape (wider screens get bigger labels), and UP NEXT goes
+    // bigger when nothing is playing yet. Each shrinks if it would overflow its column or box.
+    var rgbf = document.body.classList.contains("rgbfont");
+    var wide = Math.max(1, Math.min(1.6, (window.innerWidth / window.innerHeight) / (16 / 9)));
+    function fitLabel(l, box, max) {
+      if (!l || !l.offsetWidth) return 0;
+      var size = max; l.style.fontSize = size + "vh";
+      while (size > 3 && (l.scrollWidth > l.clientWidth + 1 || l.scrollHeight > box.clientHeight * 0.92)) {
+        size -= 0.25; l.style.fontSize = size + "vh";
+      }
+      return size;
+    }
+    var nowOn = !$("nowBar").classList.contains("hidden");
+    var heroOn = !$("heroWrap").classList.contains("hidden");
+    if (nowOn && heroOn) {
+      // While a song plays, both boxes match: same label size and same name size (the smaller of the two fits).
+      var a = fitLabel($("nowBarLabel"), $("nowBar"), (rgbf ? 6 : 10) * wide);
+      var b = fitLabel($("heroLabel"), $("hero"), (rgbf ? 6 : 10) * wide);
+      var m = Math.min(a, b);
+      if (m) { $("nowBarLabel").style.fontSize = m + "vh"; $("heroLabel").style.fontSize = m + "vh"; }
+      var na = parseFloat($("nowBarName").style.fontSize), nb = parseFloat($("heroName").style.fontSize);
+      if (na && nb) { $("nowBarName").style.fontSize = $("heroName").style.fontSize = Math.min(na, nb) + "vh"; }
+    } else {
+      if (nowOn) fitLabel($("nowBarLabel"), $("nowBar"), (rgbf ? 6 : 10) * wide);
+      fitLabel($("heroLabel"), $("hero"), (rgbf ? 6.5 : 11) * wide);
+    }
+  }
+
+  // For each song line: if "Title · Artist" fits, show it. If not, alternate between
+  // the title and the artist every few seconds with a quick fade.
+  var SEP = "  \u00b7  ";
+  var flip = false;
+  function partsOf(el) {
+    if (el.textContent !== el.getAttribute("data-shown")) el.setAttribute("data-full", el.textContent);
+    return (el.getAttribute("data-full") || "").split(SEP);
+  }
+  // which: "both" | 0 (title) | 1 (artist). The artist part is wrapped so it can be styled (faded).
+  function show(el, parts, which) {
+    var h;
+    if (which === "both") h = esc(parts[0]) + (parts.length > 1 ? '<span class="art">' + esc(SEP + parts.slice(1).join(SEP)) + "</span>" : "");
+    else if (which === 1 && parts.length > 1) h = '<span class="art">' + esc(parts[1]) + "</span>";
+    else h = esc(parts[0]);
+    el.innerHTML = h;
+    el.setAttribute("data-shown", el.textContent);
+  }
+  var scrollMode = String(cfg.long || "").toLowerCase() === "scroll";
+  // Wrap an element's content in a seamless sideways-scrolling loop.
+  function makeScroll(el) {
+    var inner = el.innerHTML, gapHtml = '<span style="display:inline-block;width:4em"></span>';
+    el.innerHTML = '<span class="scr">' + inner + gapHtml + inner + gapHtml + "</span>";
+    el.classList.add("scrolling");
+    var w = el.firstChild.scrollWidth / 2;
+    el.firstChild.style.setProperty("--dur", Math.max(6, w / (window.innerHeight * 0.09)).toFixed(1) + "s");
+    el.setAttribute("data-shown", el.textContent);
+  }
+  function marquee() {
+    var els = document.querySelectorAll(".mq");
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i], parts = partsOf(el);
+      show(el, parts, "both");
+      el.classList.remove("scrolling");
+      if (scrollMode && el.scrollWidth > el.clientWidth + 1) { makeScroll(el); el.removeAttribute("data-alt"); continue; }
+      if (parts.length > 1 && el.scrollWidth > el.clientWidth + 1) {
+        el.setAttribute("data-alt", "1");
+        show(el, parts, flip ? 1 : 0);
+      } else {
+        el.removeAttribute("data-alt");
+      }
+    }
+  }
+  setInterval(function () {
+    flip = !flip;
+    var els = document.querySelectorAll('.mq[data-alt="1"]');
+    for (var i = 0; i < els.length; i++) els[i].classList.add("fade");
+    setTimeout(function () {
+      for (var i = 0; i < els.length; i++) {
+        var parts = partsOf(els[i]);
+        show(els[i], parts, flip && parts.length > 1 ? 1 : 0);
+        els[i].classList.remove("fade");
+      }
+    }, 350);
+  }, 4000);
+
+  // Song line for Now Singing / Up Next: "Title · Artist" (or just the title when the artist
+  // is already the big name). Starts at full size and shrinks a little before cutting the artist.
+  function songLine(el, x) {
+    var title = x.title || "", artist = x.singer ? (x.artist || "") : "";
+    el.innerHTML = '<span class="ttl">' + esc(title) + "</span>" +
+      (artist ? '<span class="art">' + esc("\u00a0\u00b7\u00a0" + artist) + "</span>" : "");
+    el.style.fontSize = "";
+    var base = parseFloat(getComputedStyle(el).fontSize) || 40, size = base;
+    var need = function () { var w = 0; for (var i = 0; i < el.children.length; i++) w += el.children[i].scrollWidth; return w; };
+    while (size > base * 0.7 && need() > el.clientWidth + 1) { size -= base * 0.05; el.style.fontSize = size + "px"; }
+    el.classList.remove("scrolling");
+    if (scrollMode && need() > el.clientWidth + 1) {
+      el.style.fontSize = "";
+      el.innerHTML = '<span class="ttl" style="flex:none;max-width:none">' + el.firstChild.innerHTML + "</span>" +
+        (el.children[1] ? '<span class="art" style="flex:none">' + el.children[1].innerHTML + "</span>" : "");
+      makeScroll(el);
+    }
+  }
+
+  window.addEventListener("resize", function () { fitCache = {}; fitName(); renderList(); });
+
+  var pillTimer = null;
+  function setPill(text, bad) {
+    var p = $("pill");
+    p.textContent = text;
+    p.classList.toggle("bad", !!bad);
+    p.classList.remove("hidden");
+    clearTimeout(pillTimer);
+    // Hide the "Live" pill after a few seconds so it doesn't sit on screen all night.
+    if (!bad) pillTimer = setTimeout(function () { p.classList.add("hidden"); }, 4000);
+  }
+
+  // ---------------------------------------------------------------- code entry (D-pad friendly)
+  var entry = "";
+  function buildPad() {
+    var keys = ["1","2","3","4","5","6","7","8","9","⌫","0","Go"];
+    var pad = $("pad");
+    pad.innerHTML = "";
+    keys.forEach(function (k) {
+      var b = document.createElement("button");
+      b.textContent = k;
+      if (k === "⌫" || k === "Go") b.className = "wide";
+      b.addEventListener("click", function () { pressKey(k); });
+      pad.appendChild(b);
+    });
+  }
+  // Phones: handle taps on the code screen ourselves so quick taps never turn into a double-tap zoom.
+  // (Cancelling the touch also cancels the click that would follow, so a key only counts once.)
+  $("setup").addEventListener("touchend", function (e) {
+    var t = e.target;
+    if (t.closest && t.closest("a")) return;            // links still work normally
+    e.preventDefault();
+    var b = t.closest && t.closest("#pad button");
+    if (b) pressKey(b.textContent);
+  }, { passive: false });
+  function drawCode() {
+    var s = "";
+    for (var i = 0; i < 6; i++) s += entry[i] ? esc(entry[i]) : '<span class="ph">•</span>';
+    $("codeBox").innerHTML = s;
+  }
+  function pressKey(k) {
+    $("setupMsg").textContent = "";
+    if (k === "⌫") entry = entry.slice(0, -1);
+    else if (k === "Go") return submitCode();
+    else if (entry.length < 6) entry += k;
+    drawCode();
+  }
+  function submitCode() {
+    if (entry.length !== 6) { $("setupMsg").textContent = "The code has 6 digits."; return; }
+    $("setupMsg").textContent = "Checking…";
+    fetchSession(entry).then(function () {
+      code = entry;
+      save(STORE_KEY, code);
+      if (cfg.qr) applyLook();   // the QR code carries the new code
+      showView();
+    }).catch(function () {
+      $("setupMsg").textContent = "No KaraFun session with that code. Is remote control on?";
+    });
+  }
+  function showSetup() {
+    clearTimeout(retryTimer);
+    try { if (client && client.close) client.close(); } catch (e) {}
+    client = null;
+    entry = "";
+    $("view").classList.add("hidden");
+    $("setup").classList.remove("hidden");
+    buildPad();
+    drawCode();
+    var first = $("pad").querySelector("button");
+    if (first) first.focus();
+  }
+  // ---------------------------------------------------------------- equity mode (experimental)
+  // equity=5: keep at least 5 other singers between two songs by the same singer, by moving songs
+  // later in KaraFun's queue. Same name = same singer (use "Susan B" / "Susan K" for two Susans).
+  // Never moves the song that's on now or Up Next, and leaves alone anything the KJ moves by hand.
+  // Off by default. equity=on: at least 3 singers between repeats. equity=N: at least N.
+  // equity=scale: the gap scales with the crowd, about a third of the singers in line (5 -> 1, 15 -> 5).
+  var equityAuto = false;
+  var equityGap = (function () {
+    var v = String(cfg.equity || "").toLowerCase();
+    if (!v || off("equity")) return 0;
+    var n = parseInt(v, 10);
+    if (isNaN(n)) { if (/^(scale|auto)$/.test(v)) { equityAuto = true; return 1; } return 3; }
+    return Math.max(1, Math.min(20, n));
+  })();
+  function equityGapNow(q) {
+    if (!equityAuto) return equityGap;
+    var seen = {}, count = 0;
+    q.forEach(function (it) { var k = singerKey(it); if (k && !seen[k]) { seen[k] = true; count++; } });
+    return Math.max(1, Math.min(20, Math.floor(count / 3)));
+  }
+  var eqPinned = {}, eqPrev = [], eqPending = null, eqTimer = null, eqHistory = [], eqLastCur = null;
+  var eqFails = 0, eqPausedUntil = 0;
+  function singerKey(it) {
+    if (!it || it.quiz || isBreakItem(it)) return null;
+    var x = info(it);
+    return x && x.singer ? x.singer.toLowerCase().replace(/\s+/g, " ").trim() : null;
+  }
+  function equityNoteSinger(cur) {
+    // remember who sang recently, so their next song isn't placed right after their last one
+    if (!equityGap || !cur || cur.id === eqLastCur) return;
+    eqLastCur = cur.id;
+    var key = singerKey(cur);
+    eqHistory.push(key);
+    if (eqHistory.length > 30) eqHistory.shift();
+  }
+  // Items whose order changed without us moving them were moved by the KJ: pin them where they are.
+  function equityQueueChanged() {
+    if (!equityGap) return;
+    var ids = queue.map(function (it) { return String(it.id); });
+    if (eqPending) { eqPending = null; eqPrev = ids; return; }
+    var common = ids.filter(function (id) { return eqPrev.indexOf(id) !== -1; });
+    var prevPos = common.map(function (id) { return eqPrev.indexOf(id); });
+    // longest increasing run of old positions = items that kept their order; the rest were moved
+    var n = prevPos.length, len = [], from = [], best = -1;
+    for (var i = 0; i < n; i++) {
+      len[i] = 1; from[i] = -1;
+      for (var j = 0; j < i; j++) if (prevPos[j] < prevPos[i] && len[j] + 1 > len[i]) { len[i] = len[j] + 1; from[i] = j; }
+      if (best < 0 || len[i] > len[best]) best = i;
+    }
+    var keep = {};
+    for (var b = best; b >= 0; b = from[b]) keep[common[b]] = true;
+    common.forEach(function (id) { if (!keep[id]) eqPinned[id] = true; });
+    for (var pid in eqPinned) if (ids.indexOf(pid) === -1) delete eqPinned[pid];
+    eqPrev = ids;
+  }
+  function equityDesired(q) {
+    var freeze = (playerState === 4 || playerState === 5) ? 2 : 1;
+    var last = {}, hist = eqHistory.slice(0, -1);              // the current song is queue[0], not history
+    for (var h = 0; h < hist.length; h++) if (hist[h]) last[hist[h]] = h - hist.length;
+    // stays put: the current song, Up Next, anything moved by hand, and BRB / DANCE! / LAST CALL entries
+    var fixed = q.map(function (it, i) { return i < freeze || !!eqPinned[String(it.id)] || isBreakItem(it); });
+    var pool = q.filter(function (it, i) { return !fixed[i]; }), out = [], gap = equityGapNow(q);
+    for (var pos = 0; pos < q.length; pos++) {
+      var it;
+      if (fixed[pos]) it = q[pos];
+      else {
+        var pick = -1, bestGap = -1;
+        for (var j = 0; j < pool.length; j++) {
+          var k = singerKey(pool[j]);
+          var g = (!k || last[k] === undefined) ? Infinity : pos - last[k] - 1;
+          if (g >= gap) { pick = j; break; }
+          if (g > bestGap) { bestGap = g; pick = j; }           // nobody fits: take the most spread-out
+        }
+        it = pool.splice(pick, 1)[0];
+      }
+      var key = singerKey(it);
+      if (key) last[key] = pos;
+      out.push(it);
+    }
+    return out;
+  }
+  function equitySoon() {
+    if (!equityGap) return;
+    clearTimeout(eqTimer);
+    eqTimer = setTimeout(equityStep, DEMO ? 300 : 1200);
+  }
+  function equityStep() {
+    if (!equityGap || eqPending || Date.now() < eqPausedUntil || queue.length < 3) return;
+    var want = equityDesired(queue);
+    for (var i = 0; i < queue.length; i++) {
+      if (String(queue[i].id) === String(want[i].id)) continue;
+      var mover = want[i], from = queue.indexOf(mover);
+      if (DEMO) {                                              // preview: reorder locally
+        queue.splice(from, 1); queue.splice(i, 0, mover);
+        eqPrev = queue.map(function (it) { return String(it.id); });
+        render(); equitySoon(); return;
+      }
+      if (!client) return;
+      eqPending = { id: String(mover.id), to: i, at: Date.now() };
+      var p;
+      try { p = client.send("remote.MoveInQueueRequest", { queueItemId: String(mover.id), to: i }); } catch (e) { p = null; }
+      if (p && p.then) p.then(function () { eqFails = 0; }, function () {
+        eqPending = null; eqFails++;
+        if (eqFails >= 3) { eqPausedUntil = Date.now() + 10 * 60000; setPill("Equity mode: KaraFun won't let this screen reorder the queue", true); }
+      });
+      setTimeout(function () { if (eqPending && Date.now() - eqPending.at > 8000) eqPending = null; }, 9000);
+      return;
+    }
+  }
+
+  // ---------------------------------------------------------------- demo mode
+  var DEMO_SONGS = [
+    ["Jessica", "Don't Stop Believin'", "Journey"], ["Marcus", "I Wanna Dance with Somebody", "Whitney Houston"],
+    ["Dana & Mike", "Islands in the Stream", "Kenny Rogers & Dolly Parton"], ["Priya", "Before He Cheats", "Carrie Underwood"],
+    ["Tyler", "Mr. Brightside", "The Killers"], ["BRB KJ 5", "", ""], ["Grace", "Total Eclipse of the Heart", "Bonnie Tyler"],
+    ["Luis", "Sweet Caroline", "Neil Diamond"], ["Becca", "Dancing Queen", "ABBA"],
+    ["Sam", "Friends in Low Places", "Garth Brooks"], ["Olivia", "Livin' on a Prayer", "Bon Jovi"],
+    ["Raven", "Bela Lugosi's Dead", "Bauhaus"], ["Big Steve", "Bohemian Rhapsody", "Queen"]];
+  // Goth preview: a darker crowd
+  var DEMO_GOTH = [
+    ["Raven", "Bela Lugosi's Dead", "Bauhaus"], ["Lilith", "Cities in Dust", "Siouxsie and the Banshees"],
+    ["Damien & Salem", "This Corrosion", "The Sisters of Mercy"], ["Morticia", "Lullaby", "The Cure"],
+    ["Vlad", "Personal Jesus", "Depeche Mode"], ["BRB KJ 5", "", ""], ["Ophelia", "Bring Me to Life", "Evanescence"],
+    ["Lenore", "Love Will Tear Us Apart", "Joy Division"], ["Jess", "Zombified", "Falling in Reverse"], ["Count Steve", "Spellbound", "Siouxsie and the Banshees"], ["Wednesday", "Goo Goo Muck", "The Cramps"],
+    ["Crow", "A Forest", "The Cure"], ["Nyx", "Marian", "The Sisters of Mercy"], ["Mortimer", "Bat Country", "Avenged Sevenfold"],
+    ["Elvira", "Zombie", "The Cranberries"], ["Vex", "Head Like a Hole", "Nine Inch Nails"]];
+  // With equity on, the preview has Susan sign up for four songs in a row so you can watch them spread out.
+  var DEMO_EQ = [
+    ["Jessica", "Don't Stop Believin'", "Journey"], ["Marcus", "I Wanna Dance with Somebody", "Whitney Houston"],
+    ["Susan", "Jolene", "Dolly Parton"], ["Susan", "9 to 5", "Dolly Parton"], ["Susan", "Islands in the Stream", "Dolly Parton"],
+    ["Susan", "Here You Come Again", "Dolly Parton"], ["Priya", "Before He Cheats", "Carrie Underwood"],
+    ["Tyler", "Mr. Brightside", "The Killers"], ["Grace", "Total Eclipse of the Heart", "Bonnie Tyler"],
+    ["Luis", "Sweet Caroline", "Neil Diamond"], ["Becca", "Dancing Queen", "ABBA"], ["Sam", "Friends in Low Places", "Garth Brooks"],
+    ["Olivia", "Livin' on a Prayer", "Bon Jovi"], ["Big Steve", "Bohemian Rhapsody", "Queen"]];
+  var demoN = 0;
+  function demoItem() {
+    var list = equityGap ? DEMO_EQ : /goth/i.test(String(cfg.theme || "")) ? DEMO_GOTH : DEMO_SONGS;
+    var d = list[demoN % list.length], id = 9000 + demoN++;
+    durCache[id] = 55 + (id * 7) % 30;          // short songs so the demo moves along
+    return { id: "demo" + id, song: { id: { type: 1, id: id }, title: d[1], artist: d[2], options: { singer: d[0] } } };
+  }
+  function demoApply(state) {
+    current = queue[0] || null; playerState = state; tempo = 0;
+    equityNoteSinger(current);
+    trackTime(current, playerState, false); applauseCheck(); checkBreak(); render(); equitySoon();
+  }
+  function demoStep() {
+    // advance: drop the current item, keep the line full
+    // new songs go in just before the DANCE PARTY / LAST CALL that close out the line
+    queue.shift();
+    var k = queue.length; while (k > 0 && queue[k - 1].tail) k--;
+    queue.splice(k, 0, demoItem());
+    var cur = queue[0];
+    if (isBreakItem(cur)) { demoApply(3); setTimeout(demoStep, 8000); return; }   // show the break, then skip it
+    demoApply(3);                                                                 // loaded, not playing yet
+    setTimeout(function () {
+      demoApply(4);
+      setTimeout(demoStep, (durCache[cur.song.id.id] || 60) * 1000);
+    }, (applauseSec ? applauseSec * 1000 + 6000 : 4000) + (spotMode ? 26000 : 0));
+  }
+  function startDemo() {
+    document.body.classList.add("demo");
+    var gothDemo = /goth/i.test(String(cfg.theme || ""));
+    // goth: the line runs through Jess (Zombified) and ends on LAST CALL; elsewhere DANCE PARTY then LAST CALL
+    queue = []; for (var i = 0; i < (equityGap ? 12 : gothDemo ? 9 : 8); i++) queue.push(demoItem());
+    if (!equityGap) (gothDemo ? [["LAST CALL", "", ""]] : [["DANCE! 5", "", ""], ["LAST CALL", "", ""]]).forEach(function (d, j) {   // the night ends with these
+      var id = 8800 + j; durCache[id] = 60;
+      queue.push({ id: "demoend" + j, tail: true, song: { id: { type: 1, id: id }, title: d[1], artist: d[2], options: { singer: d[0] } } });
+    });
+    eqPrev = queue.map(function (it) { return String(it.id); });
+    setPill("Demo", false);
+    demoApply(4);
+    setTimeout(demoStep, (durCache[queue[0].song.id.id] || 60) * 1000);
+  }
+
+  function showView() {
+    $("setup").classList.add("hidden");
+    $("view").classList.remove("hidden");
+    render();
+    if (DEMO) startDemo(); else connect();
+    keepAwake();
+  }
+
+  // ---------------------------------------------------------------- remote control keys
+  // Arrow keys move focus between buttons (Silk usually does this itself; this is a fallback).
+  function moveFocus(dir) {
+    var scope = $("setup").classList.contains("hidden") ? $("menu") : $("pad");
+    var btns = Array.prototype.slice.call(scope.querySelectorAll("button"));
+    var i = btns.indexOf(document.activeElement);
+    if (i < 0) { btns[0] && btns[0].focus(); return; }
+    var cols = scope === $("pad") ? 3 : btns.length;
+    var j = i;
+    if (dir === "ArrowRight") j = i + 1;
+    if (dir === "ArrowLeft") j = i - 1;
+    if (dir === "ArrowDown") j = i + cols;
+    if (dir === "ArrowUp") j = i - cols;
+    if (btns[j]) btns[j].focus();
+  }
+
+  var menuTimer = null;
+  function openMenu() {
+    $("menu").classList.remove("hidden");
+    $("btnFull").focus();
+    armMenuTimer();
+  }
+  function closeMenu() { $("menu").classList.add("hidden"); if (document.activeElement) document.activeElement.blur(); }
+  function armMenuTimer() { clearTimeout(menuTimer); menuTimer = setTimeout(closeMenu, 10000); }
+
+  document.addEventListener("keydown", function (e) {
+    var k = e.key;
+    var inSetup = !$("setup").classList.contains("hidden");
+    if (inSetup) {
+      if (/^[0-9]$/.test(k)) { pressKey(k); e.preventDefault(); return; }
+      if (k === "Backspace") { pressKey("⌫"); e.preventDefault(); return; }
+      if (k.indexOf("Arrow") === 0) { moveFocus(k); e.preventDefault(); }
+      return;
+    }
+    var menuOpen = !$("menu").classList.contains("hidden");
+    if (!menuOpen && (k.indexOf("Arrow") === 0 || k === "Enter" || k === "ContextMenu")) {
+      openMenu(); e.preventDefault(); return;
+    }
+    if (menuOpen) {
+      armMenuTimer();
+      if (k.indexOf("Arrow") === 0) { moveFocus(k); e.preventDefault(); }
+    }
+  });
+
+  $("btnFull").addEventListener("click", function () {
+    var el = document.documentElement;
+    var fn = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (fn) { try { fn.call(el); } catch (e) {} }
+    closeMenu();
+  });
+  $("btnCode").addEventListener("click", function () { closeMenu(); showSetup(); });
+  $("btnClose").addEventListener("click", closeMenu);
+
+  // ---------------------------------------------------------------- keep the screen on
+  var wakeLock = null;
+  function keepAwake() {
+    if (!("wakeLock" in navigator)) return;
+    navigator.wakeLock.request("screen").then(function (l) { wakeLock = l; }).catch(function () {});
+  }
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible" && !$("view").classList.contains("hidden")) {
+      keepAwake();
+      // Coming back from the background: make sure we're still connected.
+      if (!client && !DEMO) connect();
+    }
+  });
+
+  // ---------------------------------------------------------------- Silk address bar
+  function hideSilkBar() {
+    document.documentElement.classList.add("silkfix");
+    window.scrollTo(0, 300);
+  }
+  window.addEventListener("load", function () { setTimeout(hideSilkBar, 300); });
+  setInterval(function () { if (window.scrollY < 290) hideSilkBar(); }, 5000);
+
+  // ---------------------------------------------------------------- start
+  applyLook();
+  if (params.has("code")) save(STORE_KEY, code);
+  if (params.has("reset") && !params.has("code")) { save(STORE_KEY, null); code = ""; }
+  if (DEMO || /^\d{6}$/.test(code)) showView(); else showSetup();
+})();
+</script>
+</body>
+</html>
