@@ -843,13 +843,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var spotMode = String(cfg.spotlight || "").toLowerCase();
   if (/^(on|yes|true|1)$/.test(spotMode)) spotMode = "on"; else if (spotMode !== "loop") spotMode = "";
   var spotSince = 0, spotShown = false;
+  var heroOpen = false;
   function spotTick() {
     if (!spotMode) return;
     var cur = current || queue[0] || null;
     var between = playerState !== 4 && playerState !== 5;
     // During a song with more than 30 seconds left, the card shows who's singing now; after that, who's next.
     // (also when the song length isn't known yet, or there's nobody up next)
-    var left = songLeft(), noNext = $("heroWrap").classList.contains("hidden") || !$("heroName").textContent;
+    var left = songLeft(), noNext = heroOpen || $("heroWrap").classList.contains("hidden") || !$("heroName").textContent;
     var nowCard = spotMode === "loop" && !between && !$("nowBar").classList.contains("hidden") &&
       (left === null || left > 30 || noNext);
     var name = nowCard ? $("nowBarName").textContent : ($("heroWrap").classList.contains("hidden") ? "" : $("heroName").textContent);
@@ -1113,7 +1114,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     }
     setTimeout(function () { fitName(); marquee(); }, 0);
 
-    $("heroWrap").classList.toggle("hidden", !heroItem);
+    // Someone's singing but nobody's signed up after them: an open Up Next slot inviting people up.
+    heroOpen = singing && !heroItem;
+    $("heroWrap").classList.toggle("hidden", !heroItem && !heroOpen);
+    if (heroOpen) {
+      $("heroName").textContent = "You?"; $("heroName").className = ""; $("heroName").style.color = ""; $("heroName").style.textShadow = "";
+      $("heroSong").textContent = "Come sign up!";
+      fitName();
+    }
     if (heroItem) {
       var h = line(info(heroItem));
       $("heroName").textContent = h.big;
