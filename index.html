@@ -839,8 +839,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var cur = current || queue[0] || null;
     var between = playerState !== 4 && playerState !== 5;
     // During a song with more than 30 seconds left, the card shows who's singing now; after that, who's next.
-    var left = songLeft(), nowCard = spotMode === "loop" && !between && left !== null && left > 30 &&
-      !$("nowBar").classList.contains("hidden");
+    // (also when the song length isn't known yet, or there's nobody up next)
+    var left = songLeft(), noNext = $("heroWrap").classList.contains("hidden") || !$("heroName").textContent;
+    var nowCard = spotMode === "loop" && !between && !$("nowBar").classList.contains("hidden") &&
+      (left === null || left > 30 || noNext);
     var name = nowCard ? $("nowBarName").textContent : ($("heroWrap").classList.contains("hidden") ? "" : $("heroName").textContent);
     var ok = !!name && !$("applause").classList.contains("on") && !isBreakItem(cur) &&
       !(onBreak && !afterApplause) && (spotMode === "loop" || between);
