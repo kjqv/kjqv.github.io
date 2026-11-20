@@ -56,6 +56,9 @@
   body.prestart:not(.intermission) #nextWrap { margin-top: calc(2.2vh + 13.4vh + var(--logopush, 0px)); }
   body.intermission #brand { transform-origin: 50% 50%; }
   #brand.flipping { transform: perspective(120vh) rotateY(90deg); }
+  /* spin=on: the logo does a full coin spin every few seconds */
+  @keyframes coinspin { from { transform: perspective(120vh) rotateY(0deg); } to { transform: perspective(120vh) rotateY(360deg); } }
+  #brand.spinning { transition: none; animation: coinspin .9s ease-in-out; }
   /* drip=on: blood running down from the top edge of the logo / QR card */
   #patLayer { position: fixed; left: 0; right: 0; top: -120px; height: calc(100% + 240px);
     z-index: -1; pointer-events: none; -webkit-animation: patmove 8s linear infinite; animation: patmove 8s linear infinite; will-change: transform; }
@@ -522,7 +525,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var CFG_KEY = "kqv.cfg";
   var cfg = {};
   try { cfg = JSON.parse(load(CFG_KEY) || "{}") || {}; } catch (e) { cfg = {}; }
-  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight"];
+  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin"];
   // A link with any look options replaces the saved look; a bare link (just code=) keeps it.
   // The preview never uses what this device saved.
   if (DEMO || OPTS.some(function (k) { return params.has(k); })) cfg = {};
@@ -672,6 +675,12 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     function noLogo() { img.classList.add("hidden"); $("view").classList.add("nologo"); fitCache = {}; placeBrandFx(); }
     var qrSvg = makeQr();
     clearInterval(splitTimer);
+    var spinSec = parseFloat(cfg.qrswap); if (isNaN(spinSec)) spinSec = 5; spinSec = Math.max(3, Math.min(120, spinSec));
+    if (/^(on|yes|true|1)$/i.test(String(cfg.spin || "")) && !/^split$/i.test(String(cfg.qr || ""))) {
+      splitTimer = setInterval(function () {
+        img.classList.remove("spinning"); void img.offsetWidth; img.classList.add("spinning");
+      }, spinSec * 1000);
+    }
     var bq = $("brandQr"), qrMode = String(cfg.qr || "").toLowerCase();
     document.body.classList.remove("qrboth"); bq.classList.add("hidden");
     var swapSec = parseFloat(cfg.qrswap); if (isNaN(swapSec)) swapSec = 5; swapSec = Math.max(3, Math.min(120, swapSec));
