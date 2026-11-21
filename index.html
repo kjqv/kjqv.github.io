@@ -50,6 +50,9 @@
   body.qrboth.intermission #brand { height: calc((100% - 30vh) * .36); }
   body.qrboth.intermission #brandQr { top: calc((100% - 30vh) * .4); left: 0; right: 0; width: 100%; height: calc((100% - 30vh) * .58); object-position: center; }
   #brand { transform-origin: calc(100% - 22vh) 50%; }
+  /* logosize=<percent>: smaller logo, centered in its corner, so there's more room between it and the boxes */
+  body.logosized:not(.qrboth):not(.intermission) #brand { height: calc(51.8vh * var(--ls)); width: calc(44vh * var(--ls));
+    top: calc(51.8vh * (1 - var(--ls)) / 2); right: calc(44vh * (1 - var(--ls)) / 2); transform-origin: calc(100% - 22vh * var(--ls)) 50%; }
   /* Before play (just the Up Next box up top): Coming Up stays where it sits during a song */
   /* and the Up Next box sits centered in the space the two boxes normally take */
   body.prestart:not(.intermission) #heroWrap { margin-top: 13.4vh; }
@@ -526,7 +529,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var CFG_KEY = "kqv.cfg";
   var cfg = {};
   try { cfg = JSON.parse(load(CFG_KEY) || "{}") || {}; } catch (e) { cfg = {}; }
-  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin"];
+  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize"];
   // A link with any look options replaces the saved look; a bare link (just code=) keeps it.
   // The preview never uses what this device saved.
   if (DEMO || OPTS.some(function (k) { return params.has(k); })) cfg = {};
@@ -676,6 +679,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     function noLogo() { img.classList.add("hidden"); $("view").classList.add("nologo"); fitCache = {}; placeBrandFx(); }
     var qrSvg = makeQr();
     clearInterval(splitTimer);
+    var ls = parseFloat(cfg.logosize);
+    document.body.classList.toggle("logosized", ls > 0 && ls < 100);
+    if (ls > 0 && ls < 100) document.documentElement.style.setProperty("--ls", Math.max(40, ls) / 100);
     var spinSec = parseFloat(cfg.qrswap); if (isNaN(spinSec)) spinSec = 5; spinSec = Math.max(3, Math.min(120, spinSec));
     if (/^(on|yes|true|1)$/i.test(String(cfg.spin || "")) && !/^split$/i.test(String(cfg.qr || ""))) {
       splitTimer = setInterval(function () {
