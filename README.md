@@ -71,7 +71,7 @@ On a TV remote or keyboard, press any arrow or select/Enter to open a small menu
 
 Tip: add any of these to the preview link to see how they look on the sample queue, like `https://kjqv.github.io/?demo&theme=goth`. The preview doesn't save anything.
 
-Add your logo and colors right in the link, separated by `&`. Anything you leave out uses the defaults: no logo, a purple fade, and orange-to-red names.
+Add your logo and colors right in the link, separated by `&`. Anything you leave out uses the defaults: no logo, a deep purple-to-blue fade with a soft vignette, cyan Now Singing, violet Up Next, and yellow-to-red Coming Up names.
 
 <details>
 <summary><b>All options (tap to open)</b></summary>
@@ -81,12 +81,12 @@ Add your logo and colors right in the link, separated by `&`. Anything you leave
 | `code` | Your KaraFun remote control code | `code=123456` |
 | `logo` | A direct link to your logo image. A transparent PNG looks best | `logo=https://i.imgur.com/abc123.png` |
 | `spin` | `on` makes your logo spin like a coin every 5 seconds (`qrswap=10` for every 10) | `spin=on` |
-| `logosize` | Shrinks your logo (percent, 40 to 99) for more room between it and the boxes | `logosize=80` |
-| `vignette` | Darkens the edges of the screen. `on`, or 1 to 100 for strength (`on` is 60) | `vignette=on` |
+| `logosize` | Logo size in percent, 40 to 100 (default 80, which leaves room between it and the boxes) | `logosize=100` |
+| `vignette` | How much the edges of the background darken, 1 to 100 (default 30; `on` is 60, `off` removes it) | `vignette=off` |
 | `bg1`, `bg2` | Background fade colors, top-left to bottom-right | `bg1=0b3d2e&bg2=1f7a5a` |
 | `up1`, `up2` | Coming Up name colors, from next in line to last | `up1=00e5ff&up2=0055ff` |
-| `now` | Now Singing color (default green) | `now=39ff88` |
-| `next` | Up Next color (default yellow) | `next=fcff00` |
+| `now` | Now Singing color (default cyan) | `now=39ff88` |
+| `next` | Up Next color (default violet) | `next=fcff00` |
 | `count` | How many people show in Coming Up, 0 to 12 (default 8). `0` hides Coming Up | `count=6` |
 | `icons` | `icons=off` hides the mic and sound bars next to the current singer | `icons=off` |
 | `pulse` | `pulse=off` stops the Now Singing box from pulsing | `pulse=off` |
