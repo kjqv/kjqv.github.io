@@ -175,6 +175,10 @@
   /* nextflicker=on: the UP NEXT label flickers like a failing neon sign (on by default in goth) */
   @keyframes nameflicker { 0%, 31%, 35%, 61%, 63%, 100% { opacity: 1; } 32%, 34% { opacity: .2; } 62% { opacity: .45; } 80% { opacity: .9; } 81% { opacity: .35; } 82% { opacity: 1; } }
   body.nextflicker #nextLabelText { animation: nameflicker 7.4s linear infinite; }
+  /* The Now Singing name flickers a little, like an old neon sign (flicker=off for steady) */
+  @keyframes mildflicker { 0%, 40%, 43%, 74%, 77%, 100% { opacity: 1; } 41% { opacity: .62; } 42% { opacity: .9; } 75% { opacity: .75; } 76% { opacity: .95; } }
+  body:not(.noflicker) #nowBarName { animation: mildflicker 6.6s linear infinite; }
+  body:not(.noflicker) #spot.nowcard .sname { animation: spotglownow 2.4s ease-in-out infinite, mildflicker 6.6s linear infinite; }
   /* goth: UP NEXT softly glows (nextflicker=on swaps this for the flicker) */
   @keyframes labelglow { 0%, 100% { text-shadow: 0 0 .6vh rgba(var(--next),.25); } 50% { text-shadow: 0 0 2.2vh rgba(var(--next),.7); } }
   body.gothspot:not(.nextflicker) #nextLabelText { animation: labelglow 3.4s ease-in-out infinite; }
@@ -566,7 +570,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var CFG_KEY = "kqv.cfg";
   var cfg = {};
   try { cfg = JSON.parse(load(CFG_KEY) || "{}") || {}; } catch (e) { cfg = {}; }
-  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette"];
+  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette", "flicker"];
   // A link with any look options replaces the saved look; a bare link (just code=) keeps it.
   // The preview never uses what this device saved.
   if (DEMO || OPTS.some(function (k) { return params.has(k); })) cfg = {};
@@ -721,6 +725,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     function noLogo() { img.classList.add("hidden"); $("view").classList.add("nologo"); fitCache = {}; placeBrandFx(); }
     var qrSvg = makeQr();
     clearInterval(splitTimer);
+    document.body.classList.toggle("noflicker", off("flicker"));
     var ls = parseFloat(cfg.logosize); if (isNaN(ls)) ls = 80;   // logos sit at 80% by default; logosize=100 for full size
     document.body.classList.toggle("logosized", ls > 0 && ls < 100);
     if (ls > 0 && ls < 100) document.documentElement.style.setProperty("--ls", Math.max(40, ls) / 100);
@@ -1948,6 +1953,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["spin", "Logo spin", [["", "Off"], ["on", "Every 5 sec"]]],
     ["qr", "QR code", [["", "Off"], ["on", "Instead of logo"], ["split", "Flips with logo"], ["both", "Both"]]],
     ["vignette", "Vignette", [["", "Soft"], ["60", "Strong"], ["off", "Off"]]],
+    ["flicker", "Singer flicker", [["", "On"], ["off", "Off"]]],
     ["logo", "Logo link", "input"]
   ];
   var ed = {};
