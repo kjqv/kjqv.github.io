@@ -1450,7 +1450,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       html += '<div class="row"><span class="num">' + num +
         '</span><div class="cell"><div class="who' + (danceClass(specialOf(it)) ? " rainbow" : x.special === "lastcall" ? " lastcall" : (specialOf(it) && specialOf(it).kind === "brb") ? " brb" : "") + '" style="color:' + shade(i) + ";" + danceStyle(specialOf(it)) + '">' + esc(l.big) + '</div><div class="what mq">' + esc(l.small) + '</div></div><span class="eta" data-id="' + esc(String(it.id)) + '"></span></div>';
     });
-    if (!items.length) html = '<div class="row openrow"><span class="num"></span><span class="who">Your name here</span><span class="what">Nobody else signed up yet · come pick a song!</span></div>';
+    if (!items.length) html = '<div class="row openrow"><span class="num"></span><span class="who">Queue is empty</span><span class="what">Come sign up!</span></div>';
     list.innerHTML = html;
     updateTimes();
     $("more").textContent = "";
