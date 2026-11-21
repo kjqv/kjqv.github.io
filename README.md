@@ -82,6 +82,7 @@ Add your logo and colors right in the link, separated by `&`. Anything you leave
 | `logo` | A direct link to your logo image. A transparent PNG looks best | `logo=https://i.imgur.com/abc123.png` |
 | `spin` | `on` makes your logo spin like a coin every 5 seconds (`qrswap=10` for every 10) | `spin=on` |
 | `logosize` | Shrinks your logo (percent, 40 to 99) for more room between it and the boxes | `logosize=80` |
+| `vignette` | Darkens the edges of the screen. `on`, or 1 to 100 for strength (`on` is 60) | `vignette=on` |
 | `bg1`, `bg2` | Background fade colors, top-left to bottom-right | `bg1=0b3d2e&bg2=1f7a5a` |
 | `up1`, `up2` | Coming Up name colors, from next in line to last | `up1=00e5ff&up2=0055ff` |
 | `now` | Now Singing color (default green) | `now=39ff88` |

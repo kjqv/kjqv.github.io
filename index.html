@@ -529,7 +529,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var CFG_KEY = "kqv.cfg";
   var cfg = {};
   try { cfg = JSON.parse(load(CFG_KEY) || "{}") || {}; } catch (e) { cfg = {}; }
-  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize"];
+  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette"];
   // A link with any look options replaces the saved look; a bare link (just code=) keeps it.
   // The preview never uses what this device saved.
   if (DEMO || OPTS.some(function (k) { return params.has(k); })) cfg = {};
@@ -623,6 +623,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       layers.push("linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.45))");
       layers.push('url("' + bgimg.replace(/["\\]/g, "") + '") center / cover no-repeat');
     }
+    // vignette=on (or 1-100 for strength): the background darkens toward the edges, behind the boxes and names
+    var vg = String(cfg.vignette || "").trim(), vn = parseFloat(vg);
+    if (/^(on|yes|true)$/i.test(vg) || vn > 0)
+      layers.unshift("radial-gradient(ellipse at center, rgba(0,0,0,0) 40%, rgba(0,0,0," + (vn > 0 ? Math.min(100, vn) / 100 : 0.6) + ") 100%)");
     if (b1 || b2 || layers.length) {
       var c1 = b1 || "1c0870", c2 = b2 || b1 || "5e1c95";
       layers.push("linear-gradient(135deg, #" + c1 + " 0%, #" + c2 + " 100%)");
@@ -1865,10 +1869,32 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 
   // ---------------------------------------------------------------- keep the screen on
   var wakeLock = null;
+  // Many TV browsers (Fire TV Silk, Samsung, LG) don't support the wake lock and drop back to the TV's home
+  // screen after a few minutes with no remote presses. A tiny silent, muted video playing on a loop counts as
+  // "watching something", which keeps them on. It's 5 KB, comes from this site, and is practically invisible.
+  var awakeVid = null;
+  function keepAwakeVideo() {
+    if (!awakeVid) {
+      awakeVid = document.createElement("video");
+      awakeVid.src = "keepawake.mp4";
+      awakeVid.muted = true; awakeVid.loop = true; awakeVid.playsInline = true;
+      awakeVid.setAttribute("muted", ""); awakeVid.setAttribute("playsinline", ""); awakeVid.setAttribute("aria-hidden", "true");
+      awakeVid.style.cssText = "position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:.01;pointer-events:none;z-index:-2";
+      document.body.appendChild(awakeVid);
+    }
+    var pr = awakeVid.play(); if (pr && pr.catch) pr.catch(function () {});
+  }
   function keepAwake() {
+    keepAwakeVideo();
     if (!("wakeLock" in navigator)) return;
     navigator.wakeLock.request("screen").then(function (l) { wakeLock = l; }).catch(function () {});
   }
+  // If the browser blocked the video from starting by itself, the first remote / screen press starts it.
+  ["keydown", "pointerdown", "touchstart", "click"].forEach(function (ev) {
+    document.addEventListener(ev, function () { if (!$("view").classList.contains("hidden")) keepAwake(); }, { passive: true });
+  });
+  // Keep nudging it in case the browser pauses it.
+  setInterval(function () { if (awakeVid && awakeVid.paused && !$("view").classList.contains("hidden")) keepAwakeVideo(); }, 30000);
   document.addEventListener("visibilitychange", function () {
     if (document.visibilityState === "visible" && !$("view").classList.contains("hidden")) {
       keepAwake();
