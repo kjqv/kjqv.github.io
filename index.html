@@ -63,6 +63,8 @@
   @keyframes coinspin { from { transform: perspective(120vh) rotateY(0deg); } to { transform: perspective(120vh) rotateY(360deg); } }
   #brand.spinning { transition: none; animation: coinspin .9s ease-in-out; }
   /* drip=on: blood running down from the top edge of the logo / QR card */
+  /* mouse pointer hides after a minute without moving */
+  body.nocursor, body.nocursor * { cursor: none !important; }
   #patLayer { position: fixed; left: 0; right: 0; top: -120px; height: calc(100% + 240px);
     z-index: -1; pointer-events: none; -webkit-animation: patmove 8s linear infinite; animation: patmove 8s linear infinite; will-change: transform; }
   #brandFx { position: absolute; pointer-events: none; transition: opacity .2s; }
@@ -1893,6 +1895,15 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   ["keydown", "pointerdown", "touchstart", "click"].forEach(function (ev) {
     document.addEventListener(ev, function () { if (!$("view").classList.contains("hidden")) keepAwake(); }, { passive: true });
   });
+  // Hide the mouse pointer after a minute without moving; any movement brings it back.
+  var cursorTimer = null;
+  function wakeCursor() {
+    document.body.classList.remove("nocursor");
+    clearTimeout(cursorTimer);
+    cursorTimer = setTimeout(function () { document.body.classList.add("nocursor"); }, 60000);
+  }
+  ["mousemove", "mousedown", "pointermove"].forEach(function (ev) { document.addEventListener(ev, wakeCursor, { passive: true }); });
+  wakeCursor();
   // Keep nudging it in case the browser pauses it.
   setInterval(function () { if (awakeVid && awakeVid.paused && !$("view").classList.contains("hidden")) keepAwakeVideo(); }, 30000);
   document.addEventListener("visibilitychange", function () {
