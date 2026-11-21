@@ -1895,6 +1895,33 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   ["keydown", "pointerdown", "touchstart", "click"].forEach(function (ev) {
     document.addEventListener(ev, function () { if (!$("view").classList.contains("hidden")) keepAwake(); }, { passive: true });
   });
+  // Auto-update: every 5 minutes, check whether a newer version of this page has been published. If so,
+  // reload it (same link, same settings) at the next gap between songs, so the progress bar isn't lost mid-song.
+  function pageFingerprint(doc) {
+    var st = doc.querySelector("style"), out = st ? st.textContent : "";
+    Array.prototype.forEach.call(doc.querySelectorAll("script:not([src])"), function (sc) { out += "\n" + sc.textContent; });
+    var h = 0; for (var i = 0; i < out.length; i++) h = (h * 31 + out.charCodeAt(i)) | 0;
+    return out.length + ":" + h;
+  }
+  var myPrint = pageFingerprint(document), updateWaiting = 0;
+  function checkForUpdate() {
+    if (location.protocol === "file:") return;
+    fetch(location.pathname + "?_=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : ""; }).then(function (html) {
+      if (!html || html.indexOf("kqv.cfg") < 0) return;
+      var doc = new DOMParser().parseFromString(html, "text/html");
+      if (pageFingerprint(doc) !== myPrint && !updateWaiting) updateWaiting = Date.now();
+    }).catch(function () {});
+  }
+  setInterval(checkForUpdate, 5 * 60000);
+  setInterval(function () {
+    if (!updateWaiting || $("view").classList.contains("hidden") || !$("setup").classList.contains("hidden")) return;
+    var between = playerState !== 4 && playerState !== 5;
+    if (between || DEMO || Date.now() - updateWaiting > 30 * 60000) {
+      var u = new URL(location.href); u.searchParams.set("v", String(Date.now()).slice(-6));
+      location.replace(u.toString());
+    }
+  }, 5000);
+
   // Hide the mouse pointer after a minute without moving; any movement brings it back.
   var cursorTimer = null;
   function wakeCursor() {
