@@ -83,7 +83,7 @@ Add your logo and colors right in the link, separated by `&`. Anything you leave
 | `code` | Your KaraFun remote control code | `code=123456` |
 | `logo` | A direct link to your logo image. A transparent PNG looks best | `logo=https://i.imgur.com/abc123.png` |
 | `spin` | `on` makes your logo spin like a coin every 5 seconds (`qrswap=10` for every 10) | `spin=on` |
-| `logosize` | Logo size in percent, 40 to 100 (default 80, which leaves room between it and the boxes) | `logosize=100` |
+| `logosize` | Logo size in percent, 40 to 100 (default 70, which leaves room between it and the boxes) | `logosize=100` |
 | `vignette` | How much the edges of the background darken, 1 to 100 (default 30; `on` is 60, `off` removes it) | `vignette=off` |
 | `flicker` | The Now Singing name flickers a little, like old neon (on by default); `off` keeps it steady | `flicker=off` |
 | `bg1`, `bg2` | Background fade colors, top-left to bottom-right | `bg1=0b3d2e&bg2=1f7a5a` |
