@@ -853,7 +853,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   // spotlight=on: between songs (after any applause), Up Next fills the screen for 10 seconds, then the
   // normal screen for 10, back and forth until the next song starts. spotlight=loop does that all night,
   // during songs too (10 seconds of Up Next, then 10 of the normal screen).
-  var spotMode = String(cfg.spotlight || "").toLowerCase();
+  // On by default (loop); spotlight=off turns it off.
+  var spotMode = String(cfg.spotlight || "loop").toLowerCase();
   if (/^(on|yes|true|1)$/.test(spotMode)) spotMode = "on"; else if (spotMode !== "loop") spotMode = "";
   var spotSince = 0, spotShown = false;
   var heroOpen = false;
