@@ -273,7 +273,18 @@
     text-shadow: 0 0 1.4vh rgba(var(--next),.2); }
   #heroSong { font-size: 4.6vh; font-weight: 800; color: #fff; margin-top: .6vh;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  #empty { font-size: 8vh; color: var(--dim); margin: 2vh 0 4vh; }
+  /* Nobody singing and nobody in line: one big inviting card where the two boxes usually sit */
+  #empty { position: relative; box-sizing: border-box; height: 51.8vh; border-radius: 2.4vh; border: .4vh solid rgba(var(--next),.55);
+    background: linear-gradient(135deg, rgba(var(--next),.18), rgba(var(--now),.06));
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 2vh; padding: 0 3vw; }
+  #empty::after { content: ""; position: absolute; inset: -.4vh; border-radius: 2.6vh; pointer-events: none;
+    border: .4vh solid rgba(var(--next),.8); box-shadow: 0 0 3vh rgba(var(--next),.18); animation: pulse 5.2s ease-in-out infinite; }
+  #empty .emic { height: 9vh; width: auto; color: rgb(var(--now)); }
+  #empty .ebig { font-size: 11vh; font-weight: 900; line-height: 1; color: rgb(var(--next)); text-transform: uppercase;
+    text-shadow: 0 0 1.4vh rgba(var(--next),.2); }
+  body:not(.noflicker) #empty .ebig { animation: mildflicker 6.6s linear infinite; }
+  #empty .esub { font-size: 5vh; font-weight: 800; color: #fff; }
+  body.emptyq:not(.intermission) #empty, body.emptyq:not(.intermission) #brand { margin-top: 19vh; }   /* centered on the screen */
   #nextLabel { font-size: 4.4vh; font-weight: 800; letter-spacing: .24em; color: #ffc27a; }
   /* Coming up: fills the first column, then a second column, side by side */
   /* Gap and divider between the two big boxes and Coming Up */
@@ -475,7 +486,7 @@
         </div>
       </div>
     </div>
-    <div id="empty" class="hidden">The queue is empty. Sign up to sing!</div>
+    <div id="empty" class="hidden"><svg class="emic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="2" width="7" height="12" rx="3.5"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/><path d="M8.5 22h7"/></svg><div class="ebig">Queue is empty</div><div class="esub">Come sign up to sing!</div></div>
   </div>
   <div id="nextWrap">
     <div id="nextLabel"><span>COMING UP</span><span id="clock"></span></div>
@@ -1190,6 +1201,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       fitName();
     }
     $("empty").classList.toggle("hidden", !!cur || onBreak);
+    document.body.classList.toggle("emptyq", !cur && !onBreak);
 
     listState = { items: listItems, perCol: singing ? 3 : 6, heroSpecial: !heroItem || isBreakItem(heroItem) };
     $("nextWrap").classList.toggle("hidden", onBreak || comingCount === 0 || (listItems.length === 0 && !singing && !heroItem));
