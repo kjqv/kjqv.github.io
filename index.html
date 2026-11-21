@@ -381,6 +381,28 @@
   #pad button.wide { font-size: 2.6vh; }
   #menu button { font-size: 2.8vh; padding: 1.6vh 2.4vw; }
   button:focus { outline: none; border-color: var(--yellow); background: rgba(var(--next),.16); }
+  /* ---------- options panel (Customize on the code screen, or Options in the menu) ---------- */
+  #btnOpts { margin-top: 2.2vh; font-size: 2.4vh; padding: 1.2vh 2.4vw; }
+  #opts { position: fixed; inset: 0; z-index: 9500; background: rgba(8,6,24,.97); color: #fff; overflow-y: auto;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-transform: none; letter-spacing: 0; }
+  #opts .in { max-width: 150vh; margin: 0 auto; padding: 4vh 5vw; }
+  #opts h2 { font-size: 3.6vh; margin: 0 0 .6vh; letter-spacing: .08em; text-transform: uppercase; }
+  #opts .sub { font-size: 2vh; color: rgba(255,255,255,.6); margin-bottom: 2.4vh; }
+  #opts .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2vh 3vw; }
+  #opts .row { display: flex; align-items: center; justify-content: space-between; gap: 1.5vw; }
+  #opts .row > span { font-size: 2.4vh; color: rgba(255,255,255,.85); white-space: nowrap; }
+  #opts .row button.ch { min-width: 24vh; font-size: 2.4vh; padding: 1vh 1.4vw; font-weight: 700; }
+  #opts .row button.ch::before { content: "\2039  "; opacity: .45; } #opts .row button.ch::after { content: "  \203A"; opacity: .45; }
+  #opts .row.wide { grid-column: 1 / -1; }
+  #opts input { flex: 1; min-width: 0; font: inherit; font-size: 2.2vh; padding: 1vh 1vw; border-radius: 1.2vh;
+    border: .3vh solid rgba(255,255,255,.2); background: rgba(255,255,255,.08); color: #fff; }
+  #opts input:focus { outline: none; border-color: var(--yellow); }
+  #opts .acts { display: flex; gap: 1.5vw; margin-top: 3vh; justify-content: center; }
+  #opts .acts button { font-size: 2.6vh; padding: 1.4vh 3vw; font-weight: 700; }
+  #opts .note { font-size: 1.8vh; color: rgba(255,255,255,.5); margin-top: 2vh; text-align: center; }
+  @media (max-width: 700px), (orientation: portrait) {
+    #opts .grid { grid-template-columns: 1fr; } #opts .row button.ch { min-width: 40vw; }
+  }
 </style>
 </head>
 <body>
@@ -401,9 +423,19 @@
   <div id="codeBox"></div>
   <div id="pad"></div>
   <div id="setupMsg"></div>
+  <button id="btnOpts">Customize the look</button>
   <div id="about">KJQV: a free live queue display · Not affiliated with KaraFun ·
     <a href="?demo">Preview a sample screen</a> · <a href="https://github.com/kjqv/kjqv.github.io#readme">What is this?</a></div>
 </div>
+
+<!-- Options (only shown when someone opens it) -->
+<div id="opts" class="hidden" role="dialog" aria-label="Options"><div class="in">
+  <h2>Options</h2>
+  <div class="sub">Press a setting (or ‹ ›) to change it. Saved on this device and in the link.</div>
+  <div class="grid" id="optRows"></div>
+  <div class="acts"><button id="optSave">Save</button><button id="optCancel">Cancel</button><button id="optReset">Reset all</button></div>
+  <div class="note">More settings: kjqv.github.io → "What is this?"</div>
+</div></div>
 
 <!-- Queue display -->
 <div id="view" class="safe hidden">
@@ -447,6 +479,7 @@
   <div id="pill">Connecting…</div>
   <div id="menu" class="hidden">
     <button id="btnFull">Full screen</button>
+    <button id="btnOptions">Options</button>
     <button id="btnCode">Change code</button>
     <button id="btnClose">Close</button>
   </div>
@@ -557,6 +590,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var comingCount = Math.max(0, Math.min(12, parseInt(cfg.count, 10)));
   if (isNaN(comingCount)) comingCount = 8;
   if (params.has("reset")) cfg = {};
+  var rawCfg = JSON.parse(JSON.stringify(cfg));   // what was actually chosen, before a theme fills the rest (for the options panel)
   if (!DEMO) save(CFG_KEY, JSON.stringify(cfg));
   applyTheme();
   function hex(v) {
@@ -1594,6 +1628,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   $("setup").addEventListener("touchend", function (e) {
     var t = e.target;
     if (t.closest && t.closest("a")) return;            // links still work normally
+    if (t.closest && t.closest("#btnOpts")) { e.preventDefault(); openOpts(); return; }
     e.preventDefault();
     var b = t.closest && t.closest("#pad button");
     if (b) pressKey(b.textContent);
@@ -1822,6 +1857,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function moveFocus(dir) {
     var scope = $("setup").classList.contains("hidden") ? $("menu") : $("pad");
     var btns = Array.prototype.slice.call(scope.querySelectorAll("button"));
+    if (scope === $("pad")) {   // the Customize button sits under the keypad
+      if (document.activeElement === $("btnOpts")) { if (dir === "ArrowUp") btns[btns.length - 1].focus(); return; }
+      if (dir === "ArrowDown" && btns.indexOf(document.activeElement) >= btns.length - 3) { $("btnOpts").focus(); return; }
+    }
     var i = btns.indexOf(document.activeElement);
     if (i < 0) { btns[0] && btns[0].focus(); return; }
     var cols = scope === $("pad") ? 3 : btns.length;
@@ -1844,6 +1883,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 
   document.addEventListener("keydown", function (e) {
     var k = e.key;
+    if (!$("opts").classList.contains("hidden")) { optsKey(e); return; }
     var inSetup = !$("setup").classList.contains("hidden");
     if (inSetup) {
       if (/^[0-9]$/.test(k)) { pressKey(k); e.preventDefault(); return; }
@@ -1868,6 +1908,144 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     closeMenu();
   });
   $("btnCode").addEventListener("click", function () { closeMenu(); showSetup(); });
+  $("btnOptions").addEventListener("click", function () { closeMenu(); openOpts(); });
+  // A tap or click on the live screen brings up the same small menu (it closes itself after 10 seconds).
+  $("view").addEventListener("click", function (e) {
+    if (e.target.closest && e.target.closest("#menu")) return;
+    if ($("menu").classList.contains("hidden")) openMenu(); else armMenuTimer();
+  });
+
+  // ---------------------------------------------------------------- options panel
+  // The common settings, changeable with a TV remote. Saving reloads with the choices in the link (and saved
+  // on this device), so the link in the address bar is always the one to bookmark.
+  var COLOR_PRESETS = [
+    ["Default", null],
+    ["Classic", "1c0870,5e1c95,39ff88,fcff00,ff9f1c,ff3030"],
+    ["Synthwave", "1a0533,4b0e5e,00f0ff,ff2ad4,ffb347,ff5fb0"],
+    ["Miami", "0b1e3f,2a1b5c,36f1cd,ff77e9,ffd3f5,ff4fae"],
+    ["Blacklight", "0d001a,24004d,c6ff00,ff00e6,b388ff,7c4dff"],
+    ["Arcade", "000000,101010,39ff14,ffe600,00e5ff,ff00aa"],
+    ["VHS", "050508,14141f,00ff66,ff2a2a,3a8bff,b04dff"],
+    ["Ice", "071a2b,0e3a5a,7df9ff,ffffff,bde8ff,4fa8ff"],
+    ["Tiki", "00332e,00594f,ffd23f,ff6b6b,7cf5d1,2ec4b6"],
+    ["Whiskey", "1a0f07,3d2412,ffcc66,fff1d6,e8a85f,b5652b"],
+    ["Creamsicle", "7a2e05,d9600f,ffd8a8,ffffff,ffb366,fff0dc"],
+    ["Black & white", "111111,2e2e2e,ffffff,ffffff,f0f0f0,8a8a8a"]
+  ];
+  var COLOR_KEYS = ["bg1", "bg2", "now", "next", "up1", "up2"];
+  var OPT_ROWS = [
+    ["theme", "Theme", [["", "Default"], ["goth", "Goth"], ["xmas", "Christmas"]]],
+    ["colors", "Colors", null],
+    ["spotlight", "Spotlight", [["", "All night"], ["on", "Between songs"], ["off", "Off"]]],
+    ["applause", "Applause", [["", "Off"], ["on", "On"]]],
+    ["eta", "Wait times", [["", "On"], ["off", "Off"]]],
+    ["time", "Song progress", [["", "Bar"], ["both", "Bar + countdown"], ["off", "Off"]]],
+    ["clock", "Clock", [["", "On"], ["off", "Off"]]],
+    ["caps", "Names", [["", "ALL CAPS"], ["off", "As typed"]]],
+    ["logosize", "Logo size", [["", "80%"], ["60", "60%"], ["70", "70%"], ["90", "90%"], ["100", "100%"]]],
+    ["spin", "Logo spin", [["", "Off"], ["on", "Every 5 sec"]]],
+    ["qr", "QR code", [["", "Off"], ["on", "Instead of logo"], ["split", "Flips with logo"], ["both", "Both"]]],
+    ["vignette", "Vignette", [["", "Soft"], ["60", "Strong"], ["off", "Off"]]],
+    ["logo", "Logo link", "input"]
+  ];
+  var ed = {};
+  function themeKey(v) { var tn = String(v || "").toLowerCase().replace(/[^a-z]/g, ""); return tn === "gothclub" ? "goth" : /^(christmas|holiday|holidays)$/.test(tn) ? "xmas" : tn; }
+  function curColors() { return COLOR_KEYS.map(function (k) { return String(ed[k] || "").toLowerCase(); }).join(","); }
+  function choicesFor(row) {
+    var key = row[0], list;
+    if (key === "colors") {
+      list = COLOR_PRESETS.map(function (p) { return [p[1] || "", p[0]]; });
+      var cur = curColors();
+      if (cur.replace(/,/g, "") && !COLOR_PRESETS.some(function (p) { return p[1] === cur; })) list.unshift([cur, "Custom"]);
+      return list;
+    }
+    list = row[2].slice();
+    var t = THEMES[themeKey(ed.theme)];
+    if (t && t[key] !== undefined && key !== "theme") list[0] = ["", "Theme's choice"];
+    var v = String(ed[key] || "");
+    if (v && !list.some(function (c) { return c[0].toLowerCase() === v.toLowerCase(); })) list.unshift([v, v + " (custom)"]);
+    return list;
+  }
+  function curVal(key) {
+    if (key === "colors") { var c = curColors(); return c.replace(/,/g, "") ? c : ""; }
+    return String(ed[key] || "");
+  }
+  function setVal(key, v) {
+    if (key === "colors") {
+      var parts = v ? v.split(",") : [];
+      COLOR_KEYS.forEach(function (k, i) { if (parts[i]) ed[k] = parts[i]; else delete ed[k]; });
+    } else if (v) ed[key] = v; else delete ed[key];
+  }
+  function drawOpts() {
+    var focusKey = document.activeElement && document.activeElement.getAttribute && document.activeElement.getAttribute("data-k");
+    var html = "";
+    OPT_ROWS.forEach(function (row) {
+      if (row[2] === "input") {
+        html += '<label class="row wide"><span>' + row[1] + '</span><input id="optLogo" data-k="logo" type="url" placeholder="https://…/your-logo.png (blank for none)" value="' +
+          esc(ed.logo || "") + '"></label>';
+        return;
+      }
+      var list = choicesFor(row), v = curVal(row[0]).toLowerCase(), label = list[0][1];
+      list.forEach(function (c) { if (c[0].toLowerCase() === v) label = c[1]; });
+      html += '<div class="row"><span>' + row[1] + '</span><button class="ch" data-k="' + row[0] + '">' + esc(label) + '</button></div>';
+    });
+    $("optRows").innerHTML = html;
+    if (focusKey) { var f = $("optRows").querySelector('[data-k="' + focusKey + '"]'); if (f) f.focus(); }
+  }
+  function cycleOpt(key, step) {
+    var row = OPT_ROWS.filter(function (r) { return r[0] === key; })[0]; if (!row) return;
+    var list = choicesFor(row), v = curVal(key).toLowerCase(), i = 0;
+    list.forEach(function (c, j) { if (c[0].toLowerCase() === v) i = j; });
+    setVal(key, list[(i + step + list.length) % list.length][0]);
+    drawOpts();
+  }
+  function openOpts() {
+    ed = JSON.parse(JSON.stringify(rawCfg));
+    closeMenu();
+    $("opts").classList.remove("hidden");
+    document.body.classList.remove("nocursor");
+    drawOpts();
+    var first = $("optRows").querySelector("button"); if (first) first.focus();
+  }
+  function closeOpts() { $("opts").classList.add("hidden"); if (document.activeElement) document.activeElement.blur(); }
+  function saveOpts() {
+    var lg = $("optLogo"); if (lg) { var u = lg.value.trim(); if (u) ed.logo = u; else delete ed.logo; }
+    var q = new URLSearchParams(location.search);
+    OPTS.forEach(function (k) { q.delete(k); });
+    q.delete("v"); q.delete("reset");
+    OPTS.forEach(function (k) { if (ed[k] !== undefined && ed[k] !== "") q.set(k, ed[k]); });
+    if (!DEMO) save(CFG_KEY, JSON.stringify(ed));
+    var qs = q.toString().replace(/^demo=(&|$)/, "demo$1").replace(/&demo=(&|$)/, "&demo$1");
+    location.replace(location.pathname + (qs ? "?" + qs : ""));
+  }
+  $("optRows").addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("button.ch"); if (b) cycleOpt(b.getAttribute("data-k"), 1);
+  });
+  $("optSave").addEventListener("click", saveOpts);
+  $("optCancel").addEventListener("click", closeOpts);
+  $("optReset").addEventListener("click", function () { ed = {}; drawOpts(); });
+  $("btnOpts").addEventListener("click", openOpts);
+  function optsKey(e) {
+    var k = e.key, a = document.activeElement;
+    if (k === "Escape" || k === "Back" || k === "GoBack") { closeOpts(); e.preventDefault(); return; }
+    var typing = a && a.tagName === "INPUT";
+    if (typing && k !== "ArrowUp" && k !== "ArrowDown") return;   // let the logo box type normally
+    var all = Array.prototype.slice.call($("opts").querySelectorAll("button, input"));
+    var i = all.indexOf(a);
+    if (k === "ArrowDown" || k === "ArrowUp") {
+      e.preventDefault();
+      if (i < 0) { all[0].focus(); return; }
+      var j = i + (k === "ArrowDown" ? 1 : -1);
+      if (all[j]) all[j].focus();
+      return;
+    }
+    if ((k === "ArrowRight" || k === "ArrowLeft") && a && a.classList.contains("ch")) {
+      e.preventDefault(); cycleOpt(a.getAttribute("data-k"), k === "ArrowRight" ? 1 : -1); return;
+    }
+    if (k === "ArrowRight" || k === "ArrowLeft") {
+      e.preventDefault(); if (i >= 0 && all[i + (k === "ArrowRight" ? 1 : -1)]) all[i + (k === "ArrowRight" ? 1 : -1)].focus();
+    }
+  }
   $("btnClose").addEventListener("click", closeMenu);
 
   // ---------------------------------------------------------------- keep the screen on
