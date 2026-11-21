@@ -50,9 +50,9 @@
   body.qrboth.intermission #brand { height: calc((100% - 30vh) * .36); }
   body.qrboth.intermission #brandQr { top: calc((100% - 30vh) * .4); left: 0; right: 0; width: 100%; height: calc((100% - 30vh) * .58); object-position: center; }
   #brand { transform-origin: calc(100% - 22vh) 50%; }
-  /* logosize=<percent>: smaller logo, centered in its corner, so there's more room between it and the boxes */
+  /* logosize=<percent>: smaller logo, flush with the right edge, so there is more room between it and the boxes */
   body.logosized:not(.qrboth):not(.intermission) #brand { height: calc(51.8vh * var(--ls)); width: calc(44vh * var(--ls));
-    top: calc(51.8vh * (1 - var(--ls)) / 2); right: calc(44vh * (1 - var(--ls)) / 2); transform-origin: calc(100% - 22vh * var(--ls)) 50%; }
+    top: calc(51.8vh * (1 - var(--ls)) / 2); right: 0; transform-origin: calc(100% - 22vh * var(--ls)) 50%; }
   /* Before play (just the Up Next box up top): Coming Up stays where it sits during a song */
   /* and the Up Next box sits centered in the space the two boxes normally take */
   body.prestart:not(.intermission) #heroWrap { margin-top: 13.4vh; }
