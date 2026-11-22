@@ -56,6 +56,9 @@
   body.prestart:not(.intermission) #nextWrap { margin-top: calc(2.2vh + 13.4vh + var(--logopush, 0px)); }
   body.intermission #brand { transform-origin: 50% 50%; }
   #brand.flipping { transform: perspective(120vh) rotateY(90deg); }
+  /* spin=on: the logo does a full coin spin every few seconds */
+  @keyframes coinspin { from { transform: perspective(120vh) rotateY(0deg); } to { transform: perspective(120vh) rotateY(360deg); } }
+  #brand.spinning { transition: none; animation: coinspin .9s ease-in-out; }
   /* drip=on: blood running down from the top edge of the logo / QR card */
   #patLayer { position: fixed; left: 0; right: 0; top: -120px; height: calc(100% + 240px);
     z-index: -1; pointer-events: none; -webkit-animation: patmove 8s linear infinite; animation: patmove 8s linear infinite; will-change: transform; }
@@ -318,6 +321,7 @@
   .songline .ttl { flex: 0 0 auto; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
   .songline .art { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
   .what { min-width: 0; flex: 1; font-size: calc(var(--s) * 3.2vh); font-weight: 600; color: rgba(255,255,255,.42); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #list .openrow .who { opacity: .55; font-style: italic; }
   #more { flex: none; font-size: 2.4vh; color: rgba(255,255,255,.5); margin-top: .8vh; text-align: right;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
@@ -522,7 +526,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var CFG_KEY = "kqv.cfg";
   var cfg = {};
   try { cfg = JSON.parse(load(CFG_KEY) || "{}") || {}; } catch (e) { cfg = {}; }
-  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight"];
+  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin"];
   // A link with any look options replaces the saved look; a bare link (just code=) keeps it.
   // The preview never uses what this device saved.
   if (DEMO || OPTS.some(function (k) { return params.has(k); })) cfg = {};
@@ -672,6 +676,12 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     function noLogo() { img.classList.add("hidden"); $("view").classList.add("nologo"); fitCache = {}; placeBrandFx(); }
     var qrSvg = makeQr();
     clearInterval(splitTimer);
+    var spinSec = parseFloat(cfg.qrswap); if (isNaN(spinSec)) spinSec = 5; spinSec = Math.max(3, Math.min(120, spinSec));
+    if (/^(on|yes|true|1)$/i.test(String(cfg.spin || "")) && !/^split$/i.test(String(cfg.qr || ""))) {
+      splitTimer = setInterval(function () {
+        img.classList.remove("spinning"); void img.offsetWidth; img.classList.add("spinning");
+      }, spinSec * 1000);
+    }
     var bq = $("brandQr"), qrMode = String(cfg.qr || "").toLowerCase();
     document.body.classList.remove("qrboth"); bq.classList.add("hidden");
     var swapSec = parseFloat(cfg.qrswap); if (isNaN(swapSec)) swapSec = 5; swapSec = Math.max(3, Math.min(120, swapSec));
@@ -834,13 +844,16 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var spotMode = String(cfg.spotlight || "").toLowerCase();
   if (/^(on|yes|true|1)$/.test(spotMode)) spotMode = "on"; else if (spotMode !== "loop") spotMode = "";
   var spotSince = 0, spotShown = false;
+  var heroOpen = false;
   function spotTick() {
     if (!spotMode) return;
     var cur = current || queue[0] || null;
     var between = playerState !== 4 && playerState !== 5;
     // During a song with more than 30 seconds left, the card shows who's singing now; after that, who's next.
-    var left = songLeft(), nowCard = spotMode === "loop" && !between && left !== null && left > 30 &&
-      !$("nowBar").classList.contains("hidden");
+    // (also when the song length isn't known yet, or there's nobody up next)
+    var left = songLeft(), noNext = heroOpen || $("heroWrap").classList.contains("hidden") || !$("heroName").textContent;
+    var nowCard = spotMode === "loop" && !between && !$("nowBar").classList.contains("hidden") &&
+      (left === null || left > 30 || noNext);
     var name = nowCard ? $("nowBarName").textContent : ($("heroWrap").classList.contains("hidden") ? "" : $("heroName").textContent);
     var ok = !!name && !$("applause").classList.contains("on") && !isBreakItem(cur) &&
       !(onBreak && !afterApplause) && (spotMode === "loop" || between);
@@ -1102,7 +1115,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     }
     setTimeout(function () { fitName(); marquee(); }, 0);
 
-    $("heroWrap").classList.toggle("hidden", !heroItem);
+    // Someone's singing but nobody's signed up after them: an open Up Next slot inviting people up.
+    heroOpen = singing && !heroItem;
+    $("heroWrap").classList.toggle("hidden", !heroItem && !heroOpen);
+    if (heroOpen) {
+      $("heroName").textContent = "You?"; $("heroName").className = ""; $("heroName").style.color = ""; $("heroName").style.textShadow = "";
+      $("heroSong").textContent = "Come sign up!";
+      fitName();
+    }
     if (heroItem) {
       var h = line(info(heroItem));
       $("heroName").textContent = h.big;
@@ -1118,7 +1138,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     $("empty").classList.toggle("hidden", !!cur || onBreak);
 
     listState = { items: listItems, perCol: singing ? 3 : 6, heroSpecial: !heroItem || isBreakItem(heroItem) };
-    $("nextWrap").classList.toggle("hidden", onBreak || listItems.length === 0 || comingCount === 0);
+    $("nextWrap").classList.toggle("hidden", onBreak || comingCount === 0 || (listItems.length === 0 && !singing && !heroItem));
     renderList();
   }
 
@@ -1381,6 +1401,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       html += '<div class="row"><span class="num">' + num +
         '</span><div class="cell"><div class="who' + (danceClass(specialOf(it)) ? " rainbow" : x.special === "lastcall" ? " lastcall" : (specialOf(it) && specialOf(it).kind === "brb") ? " brb" : "") + '" style="color:' + shade(i) + ";" + danceStyle(specialOf(it)) + '">' + esc(l.big) + '</div><div class="what mq">' + esc(l.small) + '</div></div><span class="eta" data-id="' + esc(String(it.id)) + '"></span></div>';
     });
+    if (!items.length) html = '<div class="row openrow"><span class="num"></span><span class="who">Your name here</span><span class="what">Nobody else signed up yet · come pick a song!</span></div>';
     list.innerHTML = html;
     updateTimes();
     $("more").textContent = "";
