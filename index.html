@@ -50,9 +50,9 @@
   body.qrboth.intermission #brand { height: calc((100% - 30vh) * .36); }
   body.qrboth.intermission #brandQr { top: calc((100% - 30vh) * .4); left: 0; right: 0; width: 100%; height: calc((100% - 30vh) * .58); object-position: center; }
   #brand { transform-origin: calc(100% - 22vh) 50%; }
-  /* logosize=<percent>: smaller logo, centered in its corner, so there's more room between it and the boxes */
+  /* logosize=<percent>: smaller logo, flush with the right edge, so there is more room between it and the boxes */
   body.logosized:not(.qrboth):not(.intermission) #brand { height: calc(51.8vh * var(--ls)); width: calc(44vh * var(--ls));
-    top: calc(51.8vh * (1 - var(--ls)) / 2); right: calc(44vh * (1 - var(--ls)) / 2); transform-origin: calc(100% - 22vh * var(--ls)) 50%; }
+    top: calc(51.8vh * (1 - var(--ls)) / 2); right: 0; transform-origin: calc(100% - 22vh * var(--ls)) 50%; }
   /* Before play (just the Up Next box up top): Coming Up stays where it sits during a song */
   /* and the Up Next box sits centered in the space the two boxes normally take */
   body.prestart:not(.intermission) #heroWrap { margin-top: 13.4vh; }
@@ -82,7 +82,7 @@
   #breakMsg span { font-size: 6vh; font-weight: 700; opacity: .6; }
   /* applause=on: a full-screen "make some noise" splash when a singer finishes */
   #applause { position: fixed; inset: 0; z-index: 50; display: none; flex-direction: column; align-items: center; justify-content: center;
-    text-align: center; padding: 0 6vw; background: radial-gradient(ellipse at center, rgba(var(--now),.28), rgba(0,0,0,.92) 70%), #000; }
+    text-align: center; padding: 0 6vw; background: radial-gradient(ellipse at center, rgba(var(--now),.16), rgba(0,0,0,.92) 70%), #000; }
   /* spotlight=on / loop: Up Next takes over the whole screen for a bit, wiping in and out */
   #spot { position: fixed; inset: 0; z-index: 45; display: flex; flex-direction: column; align-items: center; justify-content: center;
     text-align: center; padding: 0 6vw; box-sizing: border-box; visibility: hidden; opacity: 0;
@@ -132,7 +132,7 @@
   #applause.on { display: flex; animation: applausein .6s ease-out; }
   #applause .pre { font-size: 7vh; font-weight: 900; letter-spacing: .12em; color: #fff; opacity: .85; text-transform: uppercase; }
   #applause .aname { max-width: 100%; font-size: 22vh; line-height: 1.05; font-weight: 900; color: rgb(var(--now)); white-space: nowrap; overflow: hidden;
-    text-overflow: ellipsis; text-shadow: 0 0 6vh rgba(var(--now),.7); animation: applausebeat .9s ease-in-out infinite; padding: 0 .1em; }
+    text-overflow: ellipsis; text-shadow: 0 0 3.5vh rgba(var(--now),.3); animation: applausebeat .9s ease-in-out infinite; padding: 0 .1em; }
   #applause .claps { font-size: 7vh; margin-top: 2vh; letter-spacing: .3em; color: #fff; opacity: .7; }
   @keyframes applausein { from { opacity: 0; transform: scale(1.08); } to { opacity: 1; transform: none; } }
   @keyframes applausebeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
@@ -162,7 +162,7 @@
   body.nopulse #nowBar::after { animation: none; }
   body.nosongs #list .what { display: none; }
   /* caps=on (default): singer names in capitals */
-  body.caps #nowBarName, body.caps #heroName, body.caps #list .who { text-transform: uppercase; }
+  body.caps #nowBarName, body.caps #heroName, body.caps #list .who, body.caps #applause .aname { text-transform: uppercase; }
   body.nonumbers #list .num { display: none; }
   /* mics=2: a mic on both sides of NOW SINGING */
   .mic2 { display: none; }
@@ -175,6 +175,10 @@
   /* nextflicker=on: the UP NEXT label flickers like a failing neon sign (on by default in goth) */
   @keyframes nameflicker { 0%, 31%, 35%, 61%, 63%, 100% { opacity: 1; } 32%, 34% { opacity: .2; } 62% { opacity: .45; } 80% { opacity: .9; } 81% { opacity: .35; } 82% { opacity: 1; } }
   body.nextflicker #nextLabelText { animation: nameflicker 7.4s linear infinite; }
+  /* The Now Singing name flickers a little, like an old neon sign (flicker=off for steady) */
+  @keyframes mildflicker { 0%, 40%, 43%, 74%, 77%, 100% { opacity: 1; } 41% { opacity: .62; } 42% { opacity: .9; } 75% { opacity: .75; } 76% { opacity: .95; } }
+  body:not(.noflicker) #nowBarName { animation: mildflicker 6.6s linear infinite; }
+  body:not(.noflicker) #spot.nowcard .sname { animation: spotglownow 2.4s ease-in-out infinite, mildflicker 6.6s linear infinite; }
   /* goth: UP NEXT softly glows (nextflicker=on swaps this for the flicker) */
   @keyframes labelglow { 0%, 100% { text-shadow: 0 0 .6vh rgba(var(--next),.25); } 50% { text-shadow: 0 0 2.2vh rgba(var(--next),.7); } }
   body.gothspot:not(.nextflicker) #nextLabelText { animation: labelglow 3.4s ease-in-out infinite; }
@@ -269,7 +273,26 @@
     text-shadow: 0 0 1.4vh rgba(var(--next),.2); }
   #heroSong { font-size: 4.6vh; font-weight: 800; color: #fff; margin-top: .6vh;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  #empty { font-size: 8vh; color: var(--dim); margin: 2vh 0 4vh; }
+  /* Nobody singing and nobody in line: one big inviting card where the two boxes usually sit */
+  #empty { position: relative; box-sizing: border-box; height: 51.8vh; border-radius: 2.4vh; border: .4vh solid rgba(var(--next),.55);
+    background: linear-gradient(135deg, rgba(var(--next),.18), rgba(var(--now),.06));
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 2vh; padding: 0 3vw; }
+  #empty::after { content: ""; position: absolute; inset: -.4vh; border-radius: 2.6vh; pointer-events: none;
+    border: .4vh solid rgba(var(--next),.8); box-shadow: 0 0 3vh rgba(var(--next),.18); animation: pulse 5.2s ease-in-out infinite; }
+  #empty .emic { height: 9vh; width: auto; color: rgb(var(--now)); }
+  #empty .ebig { font-size: 11vh; font-weight: 900; line-height: 1; color: rgb(var(--next)); text-transform: uppercase;
+    text-shadow: 0 0 1.4vh rgba(var(--next),.2); }
+  body:not(.noflicker) #empty .ebig { animation: mildflicker 6.6s linear infinite; }
+  #empty .esub { font-size: 5vh; font-weight: 800; color: #fff; }
+  /* Empty queue with a logo: the logo big in the middle, the message underneath. Without a logo: the card centered. */
+  body.emptyq:not(.intermission) #view.nologo #empty { margin-top: 19vh; }
+  body.emptyq.emptyq:not(.intermission):not(.qrboth) #brand { top: 0; left: 0; right: 0; width: 100%; height: calc(100% - 30vh);
+    object-position: center; transform-origin: 50% 50%; }
+  body.emptyq:not(.intermission) #view:not(.nologo) #top { padding-right: 0; margin-top: auto; }
+  body.emptyq:not(.intermission) #view:not(.nologo) #empty { height: 26vh; gap: 1vh; }
+  body.emptyq:not(.intermission) #view:not(.nologo) #empty .emic { display: none; }
+  body.emptyq:not(.intermission) #view:not(.nologo) #empty .ebig { font-size: 10vh; }
+  body.emptyq:not(.intermission) #view:not(.nologo) #empty .esub { font-size: 4.4vh; }
   #nextLabel { font-size: 4.4vh; font-weight: 800; letter-spacing: .24em; color: #ffc27a; }
   /* Coming up: fills the first column, then a second column, side by side */
   /* Gap and divider between the two big boxes and Coming Up */
@@ -326,7 +349,9 @@
   .songline .ttl { flex: 0 0 auto; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
   .songline .art { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
   .what { min-width: 0; flex: 1; font-size: calc(var(--s) * 3.2vh); font-weight: 600; color: rgba(255,255,255,.42); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  #list .openrow .who { opacity: .55; font-style: italic; }
+  #list .openrow .who { opacity: .55; font-style: italic; font-size: calc(var(--s) * 4.2vh); font-weight: 700; }
+  #list .openrow .what { font-size: calc(var(--s) * 2.6vh); }
+  #list .openrow { grid-column: 1 / -1; }
   #more { flex: none; font-size: 2.4vh; color: rgba(255,255,255,.5); margin-top: .8vh; text-align: right;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
@@ -469,7 +494,7 @@
         </div>
       </div>
     </div>
-    <div id="empty" class="hidden">The queue is empty. Sign up to sing!</div>
+    <div id="empty" class="hidden"><svg class="emic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="2" width="7" height="12" rx="3.5"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/><path d="M8.5 22h7"/></svg><div class="ebig">Queue is empty</div><div class="esub">Come sign up to sing!</div></div>
   </div>
   <div id="nextWrap">
     <div id="nextLabel"><span>COMING UP</span><span id="clock"></span></div>
@@ -564,7 +589,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var CFG_KEY = "kqv.cfg";
   var cfg = {};
   try { cfg = JSON.parse(load(CFG_KEY) || "{}") || {}; } catch (e) { cfg = {}; }
-  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette"];
+  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette", "flicker"];
   // A link with any look options replaces the saved look; a bare link (just code=) keeps it.
   // The preview never uses what this device saved.
   if (DEMO || OPTS.some(function (k) { return params.has(k); })) cfg = {};
@@ -719,7 +744,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     function noLogo() { img.classList.add("hidden"); $("view").classList.add("nologo"); fitCache = {}; placeBrandFx(); }
     var qrSvg = makeQr();
     clearInterval(splitTimer);
-    var ls = parseFloat(cfg.logosize); if (isNaN(ls)) ls = 80;   // logos sit at 80% by default; logosize=100 for full size
+    document.body.classList.toggle("noflicker", off("flicker"));
+    var ls = parseFloat(cfg.logosize); if (isNaN(ls)) ls = 70;   // logos sit at 70% by default; logosize=100 for full size
     document.body.classList.toggle("logosized", ls > 0 && ls < 100);
     if (ls > 0 && ls < 100) document.documentElement.style.setProperty("--ls", Math.max(40, ls) / 100);
     var spinSec = parseFloat(cfg.qrswap); if (isNaN(spinSec)) spinSec = 5; spinSec = Math.max(3, Math.min(120, spinSec));
@@ -847,6 +873,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var idleMin = off("idle") ? 0 : parseFloat(cfg.idle);
   // Off unless turned on: idle=5 (minutes), or idle=on for 5.
   if (isNaN(idleMin) || idleMin < 0) idleMin = /^(on|yes|true|1)$/i.test(String(cfg.idle || "")) ? 5 : 0;
+  idleMin = 0;   // Idle screen paused for everyone for now (it hid Coming Up while people were waiting); idle= is ignored.
   var lastPlay = Date.now();
   var onBreak = false;
   // applause=on (experimental): when a singer finishes, a "make some noise for NAME!!!" splash for 10 seconds
@@ -1183,6 +1210,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       fitName();
     }
     $("empty").classList.toggle("hidden", !!cur || onBreak);
+    document.body.classList.toggle("emptyq", !cur && !onBreak);
 
     listState = { items: listItems, perCol: singing ? 3 : 6, heroSpecial: !heroItem || isBreakItem(heroItem) };
     $("nextWrap").classList.toggle("hidden", onBreak || comingCount === 0 || (listItems.length === 0 && !singing && !heroItem));
@@ -1448,7 +1476,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       html += '<div class="row"><span class="num">' + num +
         '</span><div class="cell"><div class="who' + (danceClass(specialOf(it)) ? " rainbow" : x.special === "lastcall" ? " lastcall" : (specialOf(it) && specialOf(it).kind === "brb") ? " brb" : "") + '" style="color:' + shade(i) + ";" + danceStyle(specialOf(it)) + '">' + esc(l.big) + '</div><div class="what mq">' + esc(l.small) + '</div></div><span class="eta" data-id="' + esc(String(it.id)) + '"></span></div>';
     });
-    if (!items.length) html = '<div class="row openrow"><span class="num"></span><span class="who">Your name here</span><span class="what">Nobody else signed up yet · come pick a song!</span></div>';
+    if (!items.length) html = '<div class="row openrow"><span class="num"></span><span class="who">Queue is empty</span><span class="what">Come sign up!</span></div>';
     list.innerHTML = html;
     updateTimes();
     $("more").textContent = "";
@@ -1942,10 +1970,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["time", "Song progress", [["", "Bar"], ["both", "Bar + countdown"], ["off", "Off"]]],
     ["clock", "Clock", [["", "On"], ["off", "Off"]]],
     ["caps", "Names", [["", "ALL CAPS"], ["off", "As typed"]]],
-    ["logosize", "Logo size", [["", "80%"], ["60", "60%"], ["70", "70%"], ["90", "90%"], ["100", "100%"]]],
+    ["logosize", "Logo size", [["", "70%"], ["60", "60%"], ["80", "80%"], ["90", "90%"], ["100", "100%"]]],
     ["spin", "Logo spin", [["", "Off"], ["on", "Every 5 sec"]]],
     ["qr", "QR code", [["", "Off"], ["on", "Instead of logo"], ["split", "Flips with logo"], ["both", "Both"]]],
     ["vignette", "Vignette", [["", "Soft"], ["60", "Strong"], ["off", "Off"]]],
+    ["flicker", "Singer flicker", [["", "On"], ["off", "Off"]]],
     ["logo", "Logo link", "input"]
   ];
   var ed = {};
