@@ -50,6 +50,9 @@
   body.qrboth.intermission #brand { height: calc((100% - 30vh) * .36); }
   body.qrboth.intermission #brandQr { top: calc((100% - 30vh) * .4); left: 0; right: 0; width: 100%; height: calc((100% - 30vh) * .58); object-position: center; }
   #brand { transform-origin: calc(100% - 22vh) 50%; }
+  /* logosize=<percent>: smaller logo, centered in its corner, so there's more room between it and the boxes */
+  body.logosized:not(.qrboth):not(.intermission) #brand { height: calc(51.8vh * var(--ls)); width: calc(44vh * var(--ls));
+    top: calc(51.8vh * (1 - var(--ls)) / 2); right: calc(44vh * (1 - var(--ls)) / 2); transform-origin: calc(100% - 22vh * var(--ls)) 50%; }
   /* Before play (just the Up Next box up top): Coming Up stays where it sits during a song */
   /* and the Up Next box sits centered in the space the two boxes normally take */
   body.prestart:not(.intermission) #heroWrap { margin-top: 13.4vh; }
@@ -60,6 +63,8 @@
   @keyframes coinspin { from { transform: perspective(120vh) rotateY(0deg); } to { transform: perspective(120vh) rotateY(360deg); } }
   #brand.spinning { transition: none; animation: coinspin .9s ease-in-out; }
   /* drip=on: blood running down from the top edge of the logo / QR card */
+  /* mouse pointer hides after a minute without moving */
+  body.nocursor, body.nocursor * { cursor: none !important; }
   #patLayer { position: fixed; left: 0; right: 0; top: -120px; height: calc(100% + 240px);
     z-index: -1; pointer-events: none; -webkit-animation: patmove 8s linear infinite; animation: patmove 8s linear infinite; will-change: transform; }
   #brandFx { position: absolute; pointer-events: none; transition: opacity .2s; }
@@ -526,7 +531,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var CFG_KEY = "kqv.cfg";
   var cfg = {};
   try { cfg = JSON.parse(load(CFG_KEY) || "{}") || {}; } catch (e) { cfg = {}; }
-  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin"];
+  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette"];
   // A link with any look options replaces the saved look; a bare link (just code=) keeps it.
   // The preview never uses what this device saved.
   if (DEMO || OPTS.some(function (k) { return params.has(k); })) cfg = {};
@@ -620,6 +625,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       layers.push("linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.45))");
       layers.push('url("' + bgimg.replace(/["\\]/g, "") + '") center / cover no-repeat');
     }
+    // vignette=on (or 1-100 for strength): the background darkens toward the edges, behind the boxes and names
+    var vg = String(cfg.vignette || "").trim(), vn = parseFloat(vg);
+    if (/^(on|yes|true)$/i.test(vg) || vn > 0)
+      layers.unshift("radial-gradient(ellipse at center, rgba(0,0,0,0) 40%, rgba(0,0,0," + (vn > 0 ? Math.min(100, vn) / 100 : 0.6) + ") 100%)");
     if (b1 || b2 || layers.length) {
       var c1 = b1 || "1c0870", c2 = b2 || b1 || "5e1c95";
       layers.push("linear-gradient(135deg, #" + c1 + " 0%, #" + c2 + " 100%)");
@@ -676,6 +685,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     function noLogo() { img.classList.add("hidden"); $("view").classList.add("nologo"); fitCache = {}; placeBrandFx(); }
     var qrSvg = makeQr();
     clearInterval(splitTimer);
+    var ls = parseFloat(cfg.logosize);
+    document.body.classList.toggle("logosized", ls > 0 && ls < 100);
+    if (ls > 0 && ls < 100) document.documentElement.style.setProperty("--ls", Math.max(40, ls) / 100);
     var spinSec = parseFloat(cfg.qrswap); if (isNaN(spinSec)) spinSec = 5; spinSec = Math.max(3, Math.min(120, spinSec));
     if (/^(on|yes|true|1)$/i.test(String(cfg.spin || "")) && !/^split$/i.test(String(cfg.qr || ""))) {
       splitTimer = setInterval(function () {
@@ -1859,10 +1871,68 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 
   // ---------------------------------------------------------------- keep the screen on
   var wakeLock = null;
+  // Many TV browsers (Fire TV Silk, Samsung, LG) don't support the wake lock and drop back to the TV's home
+  // screen after a few minutes with no remote presses. A tiny silent, muted video playing on a loop counts as
+  // "watching something", which keeps them on. It's 5 KB, comes from this site, and is practically invisible.
+  var awakeVid = null;
+  function keepAwakeVideo() {
+    if (!awakeVid) {
+      awakeVid = document.createElement("video");
+      awakeVid.src = "keepawake.mp4";
+      awakeVid.muted = true; awakeVid.loop = true; awakeVid.playsInline = true;
+      awakeVid.setAttribute("muted", ""); awakeVid.setAttribute("playsinline", ""); awakeVid.setAttribute("aria-hidden", "true");
+      awakeVid.style.cssText = "position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:.01;pointer-events:none;z-index:-2";
+      document.body.appendChild(awakeVid);
+    }
+    var pr = awakeVid.play(); if (pr && pr.catch) pr.catch(function () {});
+  }
   function keepAwake() {
+    keepAwakeVideo();
     if (!("wakeLock" in navigator)) return;
     navigator.wakeLock.request("screen").then(function (l) { wakeLock = l; }).catch(function () {});
   }
+  // If the browser blocked the video from starting by itself, the first remote / screen press starts it.
+  ["keydown", "pointerdown", "touchstart", "click"].forEach(function (ev) {
+    document.addEventListener(ev, function () { if (!$("view").classList.contains("hidden")) keepAwake(); }, { passive: true });
+  });
+  // Auto-update: every 5 minutes, check whether a newer version of this page has been published. If so,
+  // reload it (same link, same settings) at the next gap between songs, so the progress bar isn't lost mid-song.
+  function pageFingerprint(doc) {
+    var st = doc.querySelector("style"), out = st ? st.textContent : "";
+    Array.prototype.forEach.call(doc.querySelectorAll("script:not([src])"), function (sc) { out += "\n" + sc.textContent; });
+    var h = 0; for (var i = 0; i < out.length; i++) h = (h * 31 + out.charCodeAt(i)) | 0;
+    return out.length + ":" + h;
+  }
+  var myPrint = pageFingerprint(document), updateWaiting = 0;
+  function checkForUpdate() {
+    if (location.protocol === "file:") return;
+    fetch(location.pathname + "?_=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : ""; }).then(function (html) {
+      if (!html || html.indexOf("kqv.cfg") < 0) return;
+      var doc = new DOMParser().parseFromString(html, "text/html");
+      if (pageFingerprint(doc) !== myPrint && !updateWaiting) updateWaiting = Date.now();
+    }).catch(function () {});
+  }
+  setInterval(checkForUpdate, 5 * 60000);
+  setInterval(function () {
+    if (!updateWaiting || $("view").classList.contains("hidden") || !$("setup").classList.contains("hidden")) return;
+    var between = playerState !== 4 && playerState !== 5;
+    if (between || DEMO || Date.now() - updateWaiting > 30 * 60000) {
+      var u = new URL(location.href); u.searchParams.set("v", String(Date.now()).slice(-6));
+      location.replace(u.toString());
+    }
+  }, 5000);
+
+  // Hide the mouse pointer after a minute without moving; any movement brings it back.
+  var cursorTimer = null;
+  function wakeCursor() {
+    document.body.classList.remove("nocursor");
+    clearTimeout(cursorTimer);
+    cursorTimer = setTimeout(function () { document.body.classList.add("nocursor"); }, 60000);
+  }
+  ["mousemove", "mousedown", "pointermove"].forEach(function (ev) { document.addEventListener(ev, wakeCursor, { passive: true }); });
+  wakeCursor();
+  // Keep nudging it in case the browser pauses it.
+  setInterval(function () { if (awakeVid && awakeVid.paused && !$("view").classList.contains("hidden")) keepAwakeVideo(); }, 30000);
   document.addEventListener("visibilitychange", function () {
     if (document.visibilityState === "visible" && !$("view").classList.contains("hidden")) {
       keepAwake();
