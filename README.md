@@ -71,6 +71,8 @@ On a TV remote or keyboard, press any arrow or select/Enter to open a small menu
 
 Tip: add any of these to the preview link to see how they look on the sample queue, like `https://kjqv.github.io/?demo&theme=goth`. The preview doesn't save anything.
 
+**No link editing needed for the common settings:** press **Customize the look** on the code screen, or on the live screen tap anywhere (or press an arrow key on the remote) and choose **Options**. Nothing shows on the live screen unless you open it, and Save puts your choices in the link so you can bookmark it.
+
 Add your logo and colors right in the link, separated by `&`. Anything you leave out uses the defaults: no logo, a deep purple-to-blue fade with a soft vignette, cyan Now Singing, violet Up Next, and yellow-to-red Coming Up names.
 
 <details>
