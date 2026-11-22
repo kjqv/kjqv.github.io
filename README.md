@@ -37,7 +37,7 @@
 - **Scan-to-sing QR code** (`qr=on`) so guests can join your KaraFun session and add songs. Use it in place of your logo, flip between your logo and the QR code like a coin every 5 seconds (`qr=split`), or show both, small (`qr=both`).
 - **Applause mode** (`applause=on`): a big "MAKE SOME NOISE FOR (name)!!!" when each singer finishes.
 - **Equity mode** (`equity=on`, *experimental*): spaces out repeat singers in KaraFun's queue so everyone gets a turn.
-- **Planned breaks and announcements:** queue `BRB KJ 15`, `DANCE! 10` or `LAST CALL` as a singer name and the screen shows a countdown, a DANCE PARTY or a flashing LAST CALL. Nothing to turn on.
+- **Planned breaks and announcements:** queue `BRB KJ 15`, `DANCE 10` or `LAST CALL` as a singer name and the screen shows a countdown, a DANCE PARTY or a flashing LAST CALL. Nothing to turn on.
 - **Idle screen** (`idle=5`): *paused for now while I rework it.* The setting is ignored, so the screen always shows the full queue.
 
 **Built to run all night, hands-off:**
@@ -99,7 +99,7 @@ Anything you don't set uses the defaults: no logo, a deep purple-to-blue backgro
 | `code` | Your KaraFun remote control code | `code=123456` |
 | `logo` | A direct link to your logo image. A transparent PNG looks best | `logo=https://i.imgur.com/abc123.png` |
 | `spin` | `on` makes your logo spin like a coin every 5 seconds (`qrswap=10` for every 10) | `spin=on` |
-| `logosize` | Logo size in percent, 40 to 100 (default 70, which leaves room between it and the boxes) | `logosize=100` |
+| `logosize` | Logo size in percent, 40 to 100 (default 76, which leaves room between it and the boxes) | `logosize=100` |
 | `vignette` | How much the edges of the background darken, 1 to 100 (default 30; `on` is 60, `off` removes it) | `vignette=off` |
 | `flicker` | The Now Singing name flickers a little, like old neon (on by default); `off` keeps it steady | `flicker=off` |
 | `bg1`, `bg2` | Background fade colors, top-left to bottom-right | `bg1=0b3d2e&bg2=1f7a5a` |
@@ -153,7 +153,7 @@ Keeps the focus on who's singing and who's up next. **On by default** (as `loop`
 
 - `spotlight=on`: only between songs. When a song ends (after the applause, if that's on), the screen wipes over to a full-screen **UP NEXT** card with the next singer's name, big and glowing. After 10 seconds it wipes back to the normal screen, then back to the card 10 seconds later, back and forth until the next song starts.
 - `spotlight=loop` (the default): the card all night, during songs too: 10 seconds of the card, then 10 seconds of the normal screen. While a song has more than 30 seconds left, the card shows **NOW SINGING** and the current singer (in the Now Singing color); in the last 30 seconds and between songs it switches to **UP NEXT** (with `upin=on` it says UP IN 3 MIN).
-- It skips BRB, DANCE! and LAST CALL breaks.
+- It skips BRB, DANCE and LAST CALL breaks.
 - See everything together in goth: **https://kjqv.github.io/goth**
 
 | While a song plays | Near the end and between songs |
@@ -176,13 +176,13 @@ Off by default. Add `applause=on` and when a singer finishes, the screen shows a
 <details>
 <summary><b>Equity mode <i>(experimental)</i></b></summary>
 
-Off by default. Turn it on with `equity=on` and the screen spaces out repeat singers in KaraFun's queue, keeping at least 3 other singers between someone's songs. Set your own number with `equity=5`, or use `equity=scale` to have the spacing grow with the crowd: about a third of the people in line (5 singers → 1 between repeats, 15 singers → 5).
+Off by default. Turn it on in the **Options** menu (Equity), or add `equity=on` to the link, and the screen spaces out repeat singers in KaraFun's queue, keeping at least 3 other singers between someone's songs. Set your own number with `equity=5`, or use `equity=scale` to have the spacing grow with the crowd: about a third of the people in line (5 singers → 1 between repeats, 15 singers → 5).
 
 - Same name = same singer. Give two Susans different names ("Susan B", "Susan K").
 - It never moves the song that's on or the one in Up Next.
 - Anything you move by hand in KaraFun stays where you put it.
 - If there aren't enough other singers, the extra songs go to the end.
-- BRB, DANCE! and LAST CALL entries never move, and don't count as singers.
+- BRB, DANCE and LAST CALL entries never move, and don't count as singers.
 - See it on the sample queue: `https://kjqv.github.io/?demo&equity=on`
 
 </details>
@@ -195,7 +195,7 @@ Type one of these as the singer name on any song. Don't press play on it; skip i
 | Singer name | What the screen shows |
 |---|---|
 | `BRB KJ 15` | "15 min break · KJ will be back" in the line (in black letters, so it stands out as a break), then "KJ will be back · in about 15 min". KJ can be any name, BRB can go anywhere in it (`Bowser BRB 5`), or leave the name out (`BRB 10`) |
-| `DANCE! 10` (or `Dance Party 10`) | **DANCE PARTY** flashing through rainbow colors (or your `dance=` color), then "Karaoke's back in about 10 min" |
+| `DANCE 10` (or `DANCE! 10`, `Dance Party 10`) | **DANCE PARTY** flashing through rainbow colors (or your `dance=` color), then "Karaoke's back in about 10 min" |
 | `LAST CALL` | **LAST CALL** flashing in red, "Get your drink orders in!" |
 
 These are just singer names to KaraFun, so KaraFun's own screen and scrolling queue will still show them as typed ("BRB KJ 15" and so on). Only this screen turns them into breaks and announcements.
@@ -207,7 +207,7 @@ These are just singer names to KaraFun, so KaraFun's own screen and scrolling qu
 
 **Paused for now:** `idle=` is ignored while I rework this, so the screen always shows Up Next and Coming Up. The description below is how it worked.
 
-Turn this on with `idle=5` and if KaraFun hasn't played anything for 5 minutes (say you're playing a song from YouTube, or taking a music break), the screen switches to a simpler idle screen: your logo big in the middle (or "Short break" if you haven't set a logo) plus the Up Next box. As soon as you press play, it goes back to normal. It's off by default. Planned breaks (`BRB`, `DANCE!`, `LAST CALL`) work either way.
+Turn this on with `idle=5` and if KaraFun hasn't played anything for 5 minutes (say you're playing a song from YouTube, or taking a music break), the screen switches to a simpler idle screen: your logo big in the middle (or "Short break" if you haven't set a logo) plus the Up Next box. As soon as you press play, it goes back to normal. It's off by default. Planned breaks (`BRB`, `DANCE`, `LAST CALL`) work either way.
 
 | Option | What it does | Example |
 |---|---|---|
@@ -254,12 +254,14 @@ https://kjqv.github.io/?code=123456&logo=https://i.imgur.com/abc123.png&bg1=0b3d
 
 ### Example looks
 
-![Four example looks: clean, black and white with every detail, colorful with a logo, and Goth](screenshots/example-looks.png)
+![Six example looks: arcade pixel, big names, synthwave with music notes, goth, black and white names only, ice with houndstooth](screenshots/example-looks.png)
 
-- **Clean** (names and songs only): `&eta=off&clock=off&numbers=off&icons=off&pulse=off&time=off`
-- **Black & white, every detail:** `&bg1=0a0a0a&bg2=262626&now=ffffff&next=ffffff&up1=f2f2f2&up2=8c8c8c&dance=ffffff&time=both&line=on`
-- **Colorful, medium details, logo:** `&bg1=1a0533&bg2=4b0e5e&now=00f0ff&next=ff2ad4&up1=ffb347&up2=ff5fb0&clock=off&numbers=off&logo=https://i.imgur.com/abc123.png`
+- **Arcade, pixel font:** `&bg1=000000&bg2=101010&now=39ff14&next=ffe600&up1=00e5ff&up2=ff00aa&font=pixel&clock=off`
+- **Big names for a far-away TV:** `&count=4&songs=off&bg1=7a2e05&bg2=d9600f&now=ffd8a8&next=ffffff&up1=ffb366&up2=fff0dc&clock=off`
+- **Synthwave with scrolling music notes:** `&bg1=1a0533&bg2=4b0e5e&now=00f0ff&next=ff2ad4&up1=ffb347&up2=ff5fb0&pattern=notes&scroll=on&clock=off`
 - **Goth:** `&theme=goth`
+- **Black & white, names only:** `&bg1=0a0a0a&bg2=262626&now=ffffff&next=ffffff&up1=f2f2f2&up2=8c8c8c&dance=ffffff&songs=off&eta=off&numbers=off&icons=off&line=on`
+- **Ice with houndstooth:** `&bg1=071a2b&bg2=0e3a5a&now=7df9ff&next=ffffff&up1=bde8ff&up2=4fa8ff&pattern=houndstooth&clock=off`
 
 ### Example setups
 
@@ -290,8 +292,8 @@ Any PNG or JPG hosted on the web works: point `logo=` (or `bgimg=`) at the image
 <details>
 <summary><b>Fire Stick tips (and which Fire Stick to get)</b></summary>
 
-- **Check which Fire Stick you have.** Amazon's newest sticks run **Vega OS** instead of Fire OS: the **Fire TV Stick HD (2nd Gen, 2026)**, anything named **Select**, and the newest plain **Fire TV Stick 4K** (3rd gen). They can't install other apps, and they go to sleep after about 20 minutes no matter what the page does. Check under **Settings → My Fire TV → About**: a version that says **Fire OS** is fine; one that starts with **1** or **2** is Vega OS.
-- **For an always-on screen, use a Fire OS stick** (a Fire TV Stick 4K Max or 4K Plus is a good pick, and older sticks work too) with **[Fully Kiosk Browser](https://www.fully-kiosk.com)** *(not affiliated)* instead of Silk. Install the **Downloader** app by AFTVnews from the Amazon Appstore, use it to download Fully Kiosk from fully-kiosk.com, set the **Start URL** to your KJQV link, and turn on **Keep Screen On**. That gets around the 20-minute sleep.
+- **Check which Fire Stick you have.** Amazon's newest sticks run **Vega OS** instead of Fire OS: the **Fire TV Stick HD (2nd Gen, 2026)**, anything named **Select**, and the newest plain **Fire TV Stick 4K** (3rd gen). They can't install other apps, and the Silk browser drops back to the home screen after about 10 minutes no matter what the page does. Check under **Settings → My Fire TV → About**: a version that says **Fire OS** is fine; one that starts with **1** or **2** is Vega OS.
+- **For an always-on screen, use a Fire OS stick** (a Fire TV Stick 4K Max or 4K Plus is a good pick, and older sticks work too) with **[Fully Kiosk Browser](https://www.fully-kiosk.com)** *(not affiliated)* instead of Silk. Install the **Downloader** app by AFTVnews from the Amazon Appstore, use it to download Fully Kiosk from fully-kiosk.com, set the **Start URL** to your KJQV link, and turn on **Keep Screen On**. That gets around the sleep.
 - **Hide Silk's address bar:** once the page loads, press **down** on the remote.
 - **Stop the screensaver:** turn off **Ambient Experience**, or set **Settings → Display & Sounds → Screensaver → Start Time → Never**.
 - **Edges cut off?** The TV is cropping the picture. Try **Settings → Display & Sounds → Display → Calibrate Display** on the Fire Stick, or set the TV's picture size to "Just Scan" or "Fit to Screen".
