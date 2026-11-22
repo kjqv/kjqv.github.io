@@ -136,6 +136,9 @@
   #applause .claps { font-size: 7vh; margin-top: 2vh; letter-spacing: .3em; color: #fff; opacity: .7; }
   @keyframes applausein { from { opacity: 0; transform: scale(1.08); } to { opacity: 1; transform: none; } }
   @keyframes applausebeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+  /* KaraFun closed (away=logo, the default): just your logo, filling the screen */
+  body.intermission.awaylogo #view:not(.nologo) #brand { top: 6vh; height: calc(100% - 12vh); }
+  body.intermission.awaylogo #view:not(.nologo) #top, body.intermission.awaylogo #view:not(.nologo) #breakMsg { display: none !important; }
   /* BRB / Dance Party / Last Call: big logo, message under it, Up Next along the bottom */
   body.intermission.custombreak #brand { height: calc(100% - 52vh); }
   body.intermission.custombreak #view:not(.nologo) #breakMsg { top: calc(100% - 52vh); height: 22vh; font-size: 10vh; }
@@ -592,7 +595,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var CFG_KEY = "kqv.cfg";
   var cfg = {};
   try { cfg = JSON.parse(load(CFG_KEY) || "{}") || {}; } catch (e) { cfg = {}; }
-  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette", "flicker"];
+  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette", "flicker", "away"];
   // A link with any look options replaces the saved look; a bare link (just code=) keeps it.
   // The preview never uses what this device saved.
   if (DEMO || OPTS.some(function (k) { return params.has(k); })) cfg = {};
@@ -975,10 +978,24 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     while (size > 6 && el.scrollWidth > el.clientWidth + 1) { size -= 0.5; el.style.fontSize = size + "vh"; }
   }
   setInterval(spotTick, 500);
+  // away: what to show while the KaraFun app is closed or in the background (say, you switched to YouTube).
+  // "logo" (default): your logo fills the screen (MUSIC BREAK if there's no logo). "music": MUSIC BREAK · Karaoke's
+  // back soon, with Up Next. "dance": DANCE PARTY. "off": keep showing the queue. The small status pill in the corner
+  // says "KaraFun app closed" either way.
+  var awayMode = String(cfg.away || "logo").toLowerCase();
+  if (/^(off|no|false|0|queue)$/.test(awayMode)) awayMode = ""; else if (!/^(dance|music)$/.test(awayMode)) awayMode = "logo";
+  var kfAway = false;
+  function setAway(v) {
+    if (kfAway === v) return;
+    kfAway = v;
+    checkBreak(); updateTimes();
+  }
   function checkBreak() {
     if (playerState === 4) lastPlay = Date.now();
     var cur = current || queue[0] || null;
-    var b = isBreakItem(cur) || (!!afterApplause && !spotMode) || (idleMin > 0 && playerState !== 4 && Date.now() - lastPlay >= idleMin * 60000);
+    // a DANCE / BRB / LAST CALL at the top of the line still shows as itself while KaraFun's closed
+    document.body.classList.toggle("awaylogo", kfAway && awayMode === "logo" && !isBreakItem(cur));
+    var b = (!!awayMode && kfAway) || isBreakItem(cur) || (!!afterApplause && !spotMode) || (idleMin > 0 && playerState !== 4 && Date.now() - lastPlay >= idleMin * 60000);
     if (b !== onBreak) { onBreak = b; document.body.classList.toggle("intermission", b); render(); setTimeout(placeBrandFx, 30); }
   }
 
@@ -1053,19 +1070,19 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     client = c;
     c.setUrlProvider(freshUrl);
     c.setErrorHandler(function (e) { if (window.console) console.log("kcs error", e); });
-    c.addReadyHandler(function () { setPill("Live", false); nameSelf(c, 1); });
-    c.setReconnectHandler(function () { setPill("Live", false); nameSelf(c, 1); });
+    c.addReadyHandler(function () { setPill("Live", false); nameSelf(c, 1); setAway(false); });
+    c.setReconnectHandler(function () { setPill("Live", false); nameSelf(c, 1); setAway(false); });
     c.setLostConnectionHandler(function () { setPill("Connection lost. Reconnecting…", true); });
     c.addCloseHandler(function (e) {
       if (client !== c) return;
       var codeNum = e && e.code;
       // 4220 KaraFun app left, 4210 remote disabled, 4221/4403 invalid session
-      if (codeNum === 4220) { setPill("KaraFun app closed. Waiting…", true); setTimeout(function () { try { c.reconnect(); } catch (x) { retryLater(3000); } }, 3000); }
+      if (codeNum === 4220) { setPill("KaraFun app closed. Waiting…", true); setAway(true); setTimeout(function () { try { c.reconnect(); } catch (x) { retryLater(3000); } }, 3000); }
       else if (codeNum === 4210) { setPill("Remote control is off in KaraFun. Waiting…", true); retryLater(10000); }
       else { setPill("Reconnecting…", true); retryLater(4000); }
     });
-    c.addEventHandler("remote.AppLeftEvent", function () { setPill("KaraFun app closed. Waiting…", true); });
-    c.addEventHandler("remote.AppJoinEvent", function () { setPill("Live", false); nameSelf(c, 1); });
+    c.addEventHandler("remote.AppLeftEvent", function () { setPill("KaraFun app closed. Waiting…", true); setAway(true); });
+    c.addEventHandler("remote.AppJoinEvent", function () { setPill("Live", false); nameSelf(c, 1); setAway(false); });
     c.addEventHandler("remote.StatusEvent", function (e) {
       var st = e && e.data && e.data.status;
       if (!st) return;
@@ -1322,6 +1339,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       else if (sp.kind === "dance") msg = '<div class="' + danceClass(sp) + '" style="' + danceStyle(sp) + '">DANCE PARTY</div><span>' + (left ? "Karaoke's back in about " + left + " min" : "Karaoke's back soon") + "</span>";
       else msg = "Short break<span>" + (left ? "Back in about " + left + " min" : "Back in a few") + "</span>";
       setBreakMsg(msg, sp.kind !== "break");
+    } else if (awayMode && kfAway) {   // (away=logo with no logo set falls back to MUSIC BREAK)
+      setBreakMsg(awayMode === "dance"
+        ? '<div class="' + (danceRainbowDefault ? "rainbow" : "") + '" style="' + (danceRainbowDefault ? "" : "color:" + danceColor + ";text-shadow:0 0 1.2vh " + danceColor + "88") + '">DANCE PARTY</div><span>Karaoke\'s back soon</span>'
+        : '<div>MUSIC BREAK</div><span>Karaoke\'s back soon</span>', true);
     } else if (afterApplause) {
       setBreakMsg("Thank you, " + esc(afterApplause.name) + "!<span>Next singer coming right up</span>", false);
     } else {
@@ -1982,6 +2003,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["qr", "QR code", [["", "Off"], ["on", "Instead of logo"], ["split", "Flips with logo"], ["both", "Both"]]],
     ["vignette", "Vignette", [["", "Soft"], ["60", "Strong"], ["off", "Off"]]],
     ["flicker", "Singer flicker", [["", "On"], ["off", "Off"]]],
+    ["away", "When KaraFun's closed", [["", "Big logo"], ["music", "Music break"], ["dance", "Dance party"], ["off", "Keep the queue"]]],
     ["equity", "Equity (experimental)", [["", "Off"], ["on", "On (3 between)"], ["5", "On (5 between)"], ["scale", "Scale with crowd"]]],
     ["logo", "Logo link", "input"]
   ];
