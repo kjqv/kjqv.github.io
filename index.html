@@ -1703,7 +1703,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var o = optsOf(it, live), at = isAT(it), h = "", k = songKey(it);
     // Key: C (original), or C → Bb (−2) when it's been moved
     k = k && (transpose(k, 0) || k);
-    var kt = k ? (o.pitch ? k + " → " + transpose(k, o.pitch) + " (" + signed(o.pitch) + ")" : k) : (o.pitch ? signed(o.pitch) : at ? "Original" : "");
+    var kt = k ? (o.pitch ? k + " → " + transpose(k, o.pitch) + " (" + signed(o.pitch) + ")" : k) : (o.pitch ? signed(o.pitch) : "");   // no key from KaraFun and not moved: no key tag
     if (kt) keyOnly = '<span class="b key' + (o.pitch ? " moved" : "") + (at ? " at" : "") + '">Key ' + esc(kt) + "</span>";
     if (wantKey) return keyOnly;
     if (o.tempo) h += '<span class="b">Tempo ' + signed(o.tempo) + "%</span>";
@@ -1783,9 +1783,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var kjNightOpen = false;
   if (DEMO) {   // a made-up night so far
     var m = 60000, t0 = Date.now();
-    kjNight = [["Tony", "Sweet Caroline", "Neil Diamond", 95], ["Rachel", "Dancing Queen", "ABBA", 88], ["Kevin", "Friends in Low Places", "Garth Brooks", 80],
-      ["Tony", "Livin' on a Prayer", "Bon Jovi", 62], ["Priya", "Rolling in the Deep", "Adele", 55], ["Kevin", "Wagon Wheel", "Darius Rucker", 41],
-      ["Ashley", "Before He Cheats", "Carrie Underwood", 33], ["Tony", "Uptown Funk", "Mark Ronson ft. Bruno Mars", 20], ["Kevin", "Tennessee Whiskey", "Chris Stapleton", 9]]
+    kjNight = [["Rachel", "Dancing Queen", "ABBA", 88], ["Kevin", "Friends in Low Places", "Garth Brooks", 80],
+      ["Priya", "Rolling in the Deep", "Adele", 55], ["Kevin", "Wagon Wheel", "Darius Rucker", 41],
+      ["Ashley", "Before He Cheats", "Carrie Underwood", 33], ["Kevin", "Tennessee Whiskey", "Chris Stapleton", 9],
+      // Mike has been busy: 11 songs so far
+      ["Mike", "Born to Be Wild", "Steppenwolf", 178], ["Mike", "Paranoid", "Black Sabbath", 165], ["Mike", "Highway to Hell", "AC/DC", 151],
+      ["Mike", "Back in Black", "AC/DC", 138], ["Mike", "Pour Some Sugar on Me", "Def Leppard", 124], ["Mike", "Here I Go Again", "Whitesnake", 110],
+      ["Mike", "Welcome to the Jungle", "Guns N' Roses", 97], ["Mike", "Enter Sandman", "Metallica", 74], ["Mike", "Kickstart My Heart", "Mötley Crüe", 58],
+      ["Mike", "Bark at the Moon", "Ozzy Osbourne", 37], ["Mike", "Mama, I'm Coming Home", "Ozzy Osbourne", 14]]
       .map(function (d, i) { return { id: "night" + i, name: d[0], title: d[1], artist: d[2], at: t0 - d[3] * m }; });
   }
   function kjLogSong(cur) {
@@ -2526,12 +2531,12 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var DEMO_INFO = { "Valerie": ["Eb", 220], "September": ["F#m", 222], "Picture": ["G", 301], "Espresso": ["Am", 175], "Shallow": ["G", 215],
     "Man! I Feel Like a Woman!": ["Bb", 234], "Mr. Brightside": ["Db", 222], "Total Eclipse of the Heart": ["Ab", 276],
     "Livin' la Vida Loca": ["C#m", 242], "Pink Pony Club": ["Gb", 261], "Wagon Wheel": ["", 301], "No Scrubs": ["G#m", 221],
-    "Rolling in the Deep": ["Cm", 229], "Sweet Caroline": ["", 213], "Bohemian Rhapsody": ["Bb", 362] };
+    "Rolling in the Deep": ["Cm", 229], "Sweet Caroline": ["", 213], "Bohemian Rhapsody": ["Bb", 362], "Crazy Train": ["", 290] };
   var DEMO_SONGS = [
     ["Maya", "Valerie", "Amy Winehouse"], ["Rachel", "September", "Earth, Wind & Fire"],
     ["Dana & Mike", "Picture", "Kid Rock & Sheryl Crow"], ["Priya", "Espresso", "Sabrina Carpenter", -2],
-    ["Kevin", "Shallow", "Lady Gaga & Bradley Cooper"], ["Ashley", "Man! I Feel Like a Woman!", "Shania Twain"],
-    ["BRB KJ 5", "", ""], ["Tony", "Mr. Brightside", "The Killers", 0, 0, "at"], ["Grace", "Total Eclipse of the Heart", "Bonnie Tyler"],
+    ["Kevin", "Shallow", "Lady Gaga & Bradley Cooper"], ["Mike", "Crazy Train", "Ozzy Osbourne", 0, 0, "at"],
+    ["BRB KJ 5", "", ""], ["Ashley", "Man! I Feel Like a Woman!", "Shania Twain"], ["Grace", "Total Eclipse of the Heart", "Bonnie Tyler"],
     ["Luis", "Livin' la Vida Loca", "Ricky Martin"], ["Becca", "Pink Pony Club", "Chappell Roan"],
     ["Sam", "Wagon Wheel", "Darius Rucker"], ["Keisha", "No Scrubs", "TLC"], ["Olivia", "Rolling in the Deep", "Adele"],
     ["Ray", "Sweet Caroline", "Neil Diamond"], ["Chris", "Bohemian Rhapsody", "Queen"]];
