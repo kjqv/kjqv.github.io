@@ -386,6 +386,31 @@
   #kjVols .v b { width: 34px; flex: none; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; opacity: .8; }
   #kjVols input { flex: 1; min-width: 0; accent-color: #5ef0ff; height: 22px; }
   #kjCtrlMsg { font-size: 13px; color: #ff7b7b; min-height: 0; margin-top: 4px; }
+  #kjAlert .sep { opacity: .5; }
+  #kjPage .bs { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+  #kjPage .b { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 5px; background: rgba(255,255,255,.1); color: #fff; letter-spacing: .02em; }
+  #kjPage .b.key { background: rgba(255,207,90,.16); color: #ffcf5a; }
+  #kjPage .b.at { background: #39ff6a; color: #052b10; box-shadow: 0 0 8px rgba(57,255,106,.6); }
+  #kjPage [data-edit] { cursor: pointer; }
+  #kjSheetBg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 9100; }
+  #kjSheet { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 9200; background: #1a1830; border-radius: 16px 16px 0 0;
+    padding: 16px 18px 22px; max-width: 640px; margin: 0 auto; box-shadow: 0 -10px 30px rgba(0,0,0,.5); }
+  body.kjsheet #kjSheet, body.kjsheet #kjSheetBg { display: block; }
+  #kjSheet .sh { font-size: 12px; font-weight: 800; letter-spacing: .12em; opacity: .55; }
+  #kjSheetT { font-size: 16px; font-weight: 700; margin: 4px 0 12px; }
+  #kjSheet .f { display: flex; align-items: center; gap: 10px; padding: 7px 0; font-size: 15px; }
+  #kjSheet .f span { width: 70px; opacity: .7; }
+  #kjSheet .f input { flex: 1; font-size: 16px; padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); color: #fff; }
+  #kjSheet .f button { width: 40px; height: 36px; font-size: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); color: #fff; }
+  #kjSheet .f b { min-width: 80px; text-align: center; font-variant-numeric: tabular-nums; }
+  #kjSheetAT { width: 100%; margin-top: 10px; padding: 11px; font-size: 15px; font-weight: 800; border-radius: 10px; color: #fff;
+    border: 1px solid rgba(57,255,106,.5); background: rgba(57,255,106,.08); }
+  #kjSheetAT.on { background: #39ff6a; color: #052b10; }
+  #kjSheet .note { font-size: 12px; opacity: .5; margin-top: 8px; }
+  body:not(.kjctl) #kjSheet .ctl, body.kjctl #kjSheet .noctl { display: none; }
+  #kjSheet .acts { display: flex; gap: 10px; margin-top: 14px; }
+  #kjSheet .acts button { flex: 1; padding: 11px; font-size: 15px; font-weight: 700; border-radius: 10px; color: #fff; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); }
+  #kjSheet #kjSheetSave { background: #5ef0ff; color: #001a20; border-color: #5ef0ff; }
   #kjPage .empty { opacity: .5; font-size: 15px; padding: 10px 0; }
   #kjPage .foot { margin-top: 24px; font-size: 12px; opacity: .45; line-height: 1.5; }
   #nextLabel { font-size: 4.4vh; font-weight: 800; letter-spacing: .24em; color: #ffc27a; }
@@ -573,7 +598,16 @@
   <div id="kjCtrls"><div class="btns"><button id="kjPlay" aria-label="Play or pause" title="Play / pause"></button><button id="kjRestart" aria-label="Restart song" title="Restart song (tap twice)"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg></button><button id="kjSkip" aria-label="Skip song" title="Skip song (tap twice)"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M6 6l8.5 6L6 18zM16 6h2v12h-2z"/></svg></button><span id="kjArmMsg"></span><button id="kjVolBtn" aria-label="Audio levels" title="Audio levels"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M5 3h2v8H5zm-2 9h6v2H3zm2 4h2v5H5zm6-13h2v4h-2zm-2 5h6v2H9zm2 4h2v9h-2zm6-9h2v11h-2zm-2 12h6v2h-6zm2 4h2v2h-2z"/></svg></button></div>
     <div id="kjVols"></div><div id="kjCtrlMsg"></div></div>
   <div class="sec">QUEUE <span id="kjCount"></span></div><div id="kjQueue"></div>
-  <div class="foot">Only you see this page. Banned songs are hidden on the TV, which shows a tiny red dot while one is in the queue.
+  <div id="kjSheetBg"></div>
+  <div id="kjSheet"><div class="sh">Edit signup</div><div id="kjSheetT"></div>
+    <label class="f ctl"><span>Singer</span><input id="kjSheetName" type="text" maxlength="60"></label>
+    <div class="f ctl"><span>Key</span><button id="kjKeyDn">−</button><b id="kjSheetKey"></b><button id="kjKeyUp">+</button></div>
+    <div class="f ctl"><span>Tempo</span><button id="kjTmpDn">−</button><b id="kjSheetTempo"></b><button id="kjTmpUp">+</button></div>
+    <button id="kjSheetAT"></button>
+    <div class="note ctl">Name, key and tempo change the signup in KaraFun (experimental).</div>
+    <div class="note noctl">Turn on KJ controls in Options to change the name, key or tempo here.</div>
+    <div class="acts"><button id="kjSheetCancel">Cancel</button><button id="kjSheetSave">Save</button></div></div>
+  <div class="foot">Tap a singer to flag autotune (and, with KJ controls on, change their name, key or tempo). Only you see this page. Banned songs are hidden on the TV, which shows a tiny red dot while one is in the queue.
     This phone keeps its own banned list and settings (Options). KJQV is unofficial and not affiliated with KaraFun.</div>
 </div></div>
 <div id="opts" class="hidden" role="dialog" aria-label="Options"><div class="in">
@@ -1316,6 +1350,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       playerState = st.state || 0;
       tempo = st.tempo || 0;
       if (st.tracks) kjTracks = st.tracks;
+      kjPitch = st.pitch || 0;
       equityNoteSinger(current);
       trackTime(current, playerState, firstStatus);
       firstStatus = false;
@@ -1401,7 +1436,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       var fresh = hits.filter(function (it) { return !banSeen[it.id]; });
       hits.forEach(function (it) { banSeen[it.id] = 1; });
       $("kjBanList").innerHTML = hits.map(function (it) {
-        var x = info(it); return "<div>" + esc(x.singer || "Someone") + " · " + esc(x.title) + (x.artist ? " · " + esc(x.artist) : "") + "</div>";
+        var x = info(it); return "<div>" + esc(x.singer || "Someone") + ' <span class="sep">|</span> ' + esc(x.title) + (x.artist ? " - " + esc(x.artist) : "") + "</div>";
       }).join("");
       document.body.classList.toggle("kjalert", !!hits.length);
       if (fresh.length) banBeep();
@@ -1608,6 +1643,78 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       kjVolTimers[k] = setTimeout(function () { kjVolTimers[k] = 0; kjSend("remote.TrackVolumeRequest", { type: k, volume: v }, "changing the volume"); }, 150);
     });
   }
+  // ---- KJ mode: key/tempo changes, the autotune flag, and editing a signup (experimental)
+  // KaraFun doesn't share a song's musical key, only how many semitones it's moved (pitch) and the tempo change.
+  var kjPitch = 0, kjEdit = null;
+  var kjAT = {}; try { kjAT = JSON.parse(localStorage.getItem("kqv.autotune") || "{}") || {}; } catch (e) {}
+  function saveAT() {   // keep only flags for songs still in the queue
+    var keep = {}; queue.forEach(function (it) { if (kjAT[it.id]) keep[it.id] = 1; }); kjAT = keep;
+    try { localStorage.setItem("kqv.autotune", JSON.stringify(kjAT)); } catch (e) {}
+  }
+  function optsOf(it, live) {
+    var o = (it && it.song && it.song.options) || {};
+    return { pitch: live ? (kjPitch || 0) : (o.pitch || 0), tempo: live ? (tempo || 0) : (o.tempo || 0) };
+  }
+  function signed(v) { return v > 0 ? "+" + v : v < 0 ? "−" + Math.abs(v) : "0"; }
+  function kjBadges(it, live) {
+    var o = optsOf(it, live), at = !!kjAT[it.id], h = "";
+    if (o.pitch || at) h += '<span class="b key' + (at ? " at" : "") + '">' + (o.pitch ? "Key " + signed(o.pitch) : "Original key") + "</span>";
+    if (o.tempo) h += '<span class="b">Tempo ' + signed(o.tempo) + "%</span>";
+    if (at) h += '<span class="b at">AUTOTUNE</span>';
+    return h ? '<div class="bs">' + h + "</div>" : "";
+  }
+  // Tap a singer to open the editor: name, key and tempo (with KJ controls on) and the autotune flag (always)
+  function kjOpenEdit(id) {
+    var it = null; queue.concat(current ? [current] : []).forEach(function (q) { if (String(q.id) === String(id)) it = q; });
+    if (!it || isBreakItem(it)) return;
+    var live = !!current && String(current.id) === String(id), o = optsOf(it, live), x = info(it);
+    kjEdit = { id: it.id, live: live, singer: x.singer || "", pitch: o.pitch, tempo: o.tempo, at: !!kjAT[it.id], item: it, orig: o, origSinger: x.singer || "" };
+    $("kjSheetT").textContent = [x.title, x.artist].filter(Boolean).join(" - ");
+    $("kjSheetName").value = kjEdit.singer;
+    document.body.classList.add("kjsheet");
+    kjDrawEdit();
+  }
+  function kjDrawEdit() {
+    if (!kjEdit) return;
+    $("kjSheetKey").textContent = kjEdit.pitch ? signed(kjEdit.pitch) : "Original";
+    $("kjSheetTempo").textContent = kjEdit.tempo ? signed(kjEdit.tempo) + "%" : "Normal";
+    $("kjSheetAT").classList.toggle("on", kjEdit.at);
+    $("kjSheetAT").textContent = kjEdit.at ? "Autotune: ON" : "Autotune: off";
+  }
+  function kjCloseEdit() { kjEdit = null; document.body.classList.remove("kjsheet"); }
+  if (KJ) {
+    $("kjPage").addEventListener("click", function (e) {
+      var r = e.target.closest && e.target.closest("[data-edit]");
+      if (r && r.getAttribute("data-edit") && !(e.target.closest && e.target.closest("button"))) kjOpenEdit(r.getAttribute("data-edit"));
+    });
+    function step(k, d, lo, hi) { return function () { if (!kjEdit) return; kjEdit[k] = Math.max(lo, Math.min(hi, kjEdit[k] + d)); kjDrawEdit(); }; }
+    $("kjKeyDn").onclick = step("pitch", -1, -12, 12); $("kjKeyUp").onclick = step("pitch", 1, -12, 12);
+    $("kjTmpDn").onclick = step("tempo", -5, -50, 50); $("kjTmpUp").onclick = step("tempo", 5, -50, 50);
+    $("kjSheetAT").onclick = function () { if (kjEdit) { kjEdit.at = !kjEdit.at; kjDrawEdit(); } };
+    $("kjSheetCancel").onclick = kjCloseEdit;
+    $("kjSheetBg").onclick = kjCloseEdit;
+    $("kjSheetSave").onclick = function () {
+      var E = kjEdit; if (!E) return;
+      E.singer = $("kjSheetName").value.trim().slice(0, 60);
+      if (E.at) kjAT[E.id] = 1; else delete kjAT[E.id];
+      saveAT();
+      var ctl = document.body.classList.contains("kjctl");
+      var changed = E.singer !== E.origSinger || E.pitch !== E.orig.pitch || E.tempo !== E.orig.tempo;
+      if (ctl && changed) {
+        var opts = JSON.parse(JSON.stringify((E.item.song && E.item.song.options) || {}));
+        opts.singer = E.singer; opts.pitch = E.pitch; opts.tempo = E.tempo;
+        if (DEMO) { E.item.song.options = opts; if (E.live) { kjPitch = E.pitch; tempo = E.tempo; } }
+        else {
+          if (E.live) {   // the song that's on: change it live
+            if (E.pitch !== E.orig.pitch) kjSend("remote.PitchRequest", { pitch: E.pitch }, "changing the key");
+            if (E.tempo !== E.orig.tempo) kjSend("remote.TempoRequest", { tempo: E.tempo }, "changing the tempo");
+          }
+          kjSend("remote.SetQueueItemOptionsRequest", { queueItemId: String(E.id), options: opts }, "changing this signup");
+        }
+      }
+      kjCloseEdit(); render();
+    };
+  }
   // The KJ view's upright list (kj=on)
   function renderKJ() {
     var cur = current || null;
@@ -1615,14 +1722,16 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     function row(it, n) {
       var x = info(it), brk = isBreakItem(it), ban = isBanned(it);
       var what = brk ? (x.title || "") : [x.title, x.artist].filter(Boolean).join(" · ");
-      return '<div class="r' + (brk ? " brk" : "") + (ban ? " ban" : "") + '"><span class="n">' + (n || "") + '</span><div class="w"><div class="who">' +
-        esc(x.singer || (brk ? "" : "No name")) + '</div><div class="what">' + esc(what) + '</div></div>' + (ban ? '<span class="tag">BANNED</span>' : '<span class="ke" data-id="' + esc(String(it.id)) + '"></span>') + '</div>';
+      return '<div class="r' + (brk ? " brk" : "") + (ban ? " ban" : "") + '"' + (brk ? "" : ' data-edit="' + esc(String(it.id)) + '"') + '><span class="n">' + (n || "") + '</span><div class="w"><div class="who">' +
+        esc(x.singer || (brk ? "" : "No name")) + '</div><div class="what">' + esc(what) + '</div>' + (brk ? "" : kjBadges(it, false)) + '</div>' +
+        (ban ? '<span class="tag">BANNED</span>' : '<span class="ke" data-id="' + esc(String(it.id)) + '"></span>') + '</div>';
     }
     if (cur) {
       var c = info(cur);
       $("kjNow").innerHTML = '<div class="now" id="kjNowCard"><div class="top"><div class="who">' + esc(c.singer || (isBreakItem(cur) ? "Break" : "No name")) +
         '</div><span id="kjLeft"></span></div><div class="what">' + esc([c.title, c.artist].filter(Boolean).join(" · ")) +
-        '</div><div class="kbar"><i id="kjBar"></i></div></div>';
+        '</div>' + (isBreakItem(cur) ? "" : kjBadges(cur, true)) + '<div class="kbar"><i id="kjBar"></i></div></div>';
+      $("kjNowCard").setAttribute("data-edit", isBreakItem(cur) ? "" : String(cur.id));
     } else $("kjNow").innerHTML = '<div class="empty">Nobody right now</div>';
     var rest = queue.filter(function (it) { return !cur || it.id !== cur.id; });
     var n = 0;
@@ -2306,9 +2415,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   // ---------------------------------------------------------------- demo mode
   var DEMO_SONGS = [
     ["Maya", "Valerie", "Amy Winehouse"], ["Rachel", "September", "Earth, Wind & Fire"],
-    ["Dana & Mike", "Picture", "Kid Rock & Sheryl Crow"], ["Priya", "Espresso", "Sabrina Carpenter"],
+    ["Dana & Mike", "Picture", "Kid Rock & Sheryl Crow"], ["Priya", "Espresso", "Sabrina Carpenter", -2],
     ["Kevin", "Shallow", "Lady Gaga & Bradley Cooper"], ["Ashley", "Man! I Feel Like a Woman!", "Shania Twain"],
-    ["BRB KJ 5", "", ""], ["Tony", "Mr. Brightside", "The Killers"], ["Grace", "Total Eclipse of the Heart", "Bonnie Tyler"],
+    ["BRB KJ 5", "", ""], ["Tony", "Mr. Brightside", "The Killers", 0, 0, "at"], ["Grace", "Total Eclipse of the Heart", "Bonnie Tyler"],
     ["Luis", "Livin' la Vida Loca", "Ricky Martin"], ["Becca", "Pink Pony Club", "Chappell Roan"],
     ["Sam", "Wagon Wheel", "Darius Rucker"], ["Keisha", "No Scrubs", "TLC"], ["Olivia", "Rolling in the Deep", "Adele"],
     ["Ray", "Sweet Caroline", "Neil Diamond"], ["Chris", "Bohemian Rhapsody", "Queen"]];
@@ -2333,7 +2442,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var list = equityGap ? DEMO_EQ : /goth/i.test(String(cfg.theme || "")) ? DEMO_GOTH : DEMO_SONGS;
     var d = list[demoN % list.length], id = 9000 + demoN++;
     durCache[id] = 185 + (id * 37) % 70;        // real song lengths (about 3–4 min), so the wait times add up
-    return { id: "demo" + id, song: { id: { type: 1, id: id }, title: d[1], artist: d[2], options: { singer: d[0] } } };
+    var o = { singer: d[0] }; if (d[3]) o.pitch = d[3]; if (d[4]) o.tempo = d[4];
+    if (d[5] === "at") kjAT["demo" + id] = 1;                // demo: one singer flagged for autotune
+    return { id: "demo" + id, song: { id: { type: 1, id: id }, title: d[1], artist: d[2], options: o } };
   }
   // The demo only plays the last minute of each song so it keeps moving; the times still use the full length
   var DEMO_PLAY = 60;
