@@ -79,7 +79,7 @@ To open the small menu (**Full screen**, **Options**, **Change code**), tap or c
 
 ## Make it your own
 
-**The easy way: the Options menu.** On the code screen, press **Customize the look**. Or, once your queue is showing, tap the screen (or press an arrow on a TV remote) and choose **Options**. Pick a theme, colors, font, pattern and your logo, set the spotlight timing, turn features on or off, and press **Save**. Nearly every setting is in there. Your choices are remembered on that device. The menu only appears when you open it, so guests never see it.
+**The easy way: the Options menu.** On the code screen, press **Customize the look**. Or, once your queue is showing, tap the screen (or press an arrow on a TV remote) and choose **Options**. Pick a theme, colors, font, pattern and your logo, set the spotlight timing, turn features on or off, and press **Save**. The **Text** tab lets you change the wording, like the labels, the applause line and the empty-queue message. Nearly every setting is in there. Your choices are remembered on that device. The menu only appears when you open it, so guests never see it.
 
 ![The Options menu](screenshots/options-panel.png)
 
@@ -125,7 +125,7 @@ Anything you don't set uses the defaults: no logo, a deep purple-to-blue backgro
 | `pattern` | A faint tiled pattern over the background: `crosses`, `petrine` (black upside-down crosses), `tinycrosses` (tiny upside-down crosses), `mics`, `notes`, `trees` (little Christmas tree outlines) or `houndstooth` | `pattern=notes` |
 | `scroll` | `on` makes the background pattern drift upward forever (`down` for downward; on by default in goth, `off` to stop it) | `scroll=on` |
 | `drip` | `on` adds blood dripping from the top of the QR card and from SCAN TO SING | `drip=on` |
-| `mic` | `flicker` makes the Now Singing mic flicker like a dying candle, in your Now Singing color | `mic=flicker` |
+| `mic` | `flicker` makes the Now Singing mic flicker like a dying candle, in your Now Singing color; `off` hides the mic next to NOW SINGING | `mic=flicker` |
 | `mics` | `2` puts a mic on both sides of NOW SINGING | `mics=2` |
 | `flourish` | `on` makes COMING UP stark white with a soft glow and a curl on each side (on by default in goth) | `flourish=on` |
 | `nextflicker` | `on` makes the UP NEXT label flicker like a failing neon sign | `nextflicker=on` |
@@ -135,7 +135,11 @@ Anything you don't set uses the defaults: no logo, a deep purple-to-blue backgro
 | `align` | `left` or `right` lines up the NOW SINGING and UP NEXT labels on that side of their column instead of centering them | `align=right` |
 | `vu` | `swap` puts the VU bars next to NOW SINGING and the mic next to the singer's name; `off` hides the VU bars | `vu=swap` |
 | `portrait` | `on` for a screen mounted upright. Without it, a phone held upright shows the TV-shaped screen with a note to turn the phone sideways | `portrait=on` |
-| `qr` | `on` puts a QR code where the logo goes (or replaces it) so guests can scan it to join your KaraFun session and add songs. It opens the same link as KaraFun's own QR code. Or give it your own link (a sign-up form, say). `split` flips between your logo and the QR code like a coin (every 5 seconds; `qrswap=10` for 10). `both` shows your logo small on top with the QR code under it. `qrbg` sets the card color behind the code (default white; keep it light so it still scans). `qrtext` changes the caption (default SCAN TO SING) | `qr=on`, `qr=split` or `qr=both` |
+| `nowtext`, `nexttext`, `comingtext` | Your own wording for the NOW SINGING, UP NEXT and COMING UP labels (up to 20 characters). Also in the **Text** tab of Options, with all the others below | `nowtext=ON THE MIC` |
+| `noisetext`, `thankstext`, `thankssub` | Applause wording: the line before the name (default *Make some noise for*), the thank-you before the name (*Thank you*) and the line under it | `noisetext=Give it up for` |
+| `emptytext`, `signuptext` | Empty-queue wording (*Queue is empty* / *Come sign up to sing!*) | `signuptext=Grab the book!` |
+| `lastcalltext`, `musictext`, `backtext` | The line under LAST CALL, the MUSIC BREAK title, and the line under music breaks and dance parties (*Karaoke's back soon*) | `backtext=Back at 10!` |
+| `qr` | `on` puts a QR code where the logo goes (or replaces it) so guests can scan it to join your KaraFun session and add songs. It opens the same link as KaraFun's own QR code. Or give it your own link (a sign-up form, say). `split` flips between your logo and the QR code like a coin (every 5 seconds; `qrswap=10` for 10). `both` shows your logo small on top with the QR code under it. `qrbg` sets the card color behind the code (default white; keep it light so it still scans). `qrtext` changes the caption (default SCAN TO SING). When the queue is empty, the QR code (or your logo and the QR code, flipping) fills the middle of the screen with *Scan the code to sign up!* under QUEUE IS EMPTY | `qr=on`, `qr=split` or `qr=both` |
 | `theme` | A ready-made look. `goth`: red and black, gothic lettering, tiny white upside-down crosses slowly drifting down, two flickering red mics, a softly glowing UP NEXT label, a glowing COMING UP, a progress bar but no countdown, wait times or clock, and a red QR card if you turn on `qr`. `turkey`: warm browns, amber and gold with maple leaves drifting down 🦃. `holiday`: deep green and red with little tree outlines scrolling by 🎄 (`xmas` and `christmas` work too). Anything else you set overrides the theme | `theme=goth` ([see it](https://kjqv.github.io/goth)), `theme=turkey` or `theme=holiday` |
 | `dance` | DANCE PARTY flashes through rainbow colors by default; give it one color to use that instead | `dance=ff2ad4` |
 | `title` | `title=off` hides song titles in Coming Up | `title=off` |

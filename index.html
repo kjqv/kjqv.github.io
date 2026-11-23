@@ -268,6 +268,7 @@
   #hero .labelmic { height: 6.5vh; width: auto; visibility: hidden; }
   body.noicons #hero .labelmic { display: none; }
   #nowBar .labelmic { height: 6.5vh; width: auto; }
+  body.nomic #nowBar .labelmic, body.nomic #hero .labelmic { display: none !important; }   /* mic=off */
   /* Animated equalizer bars: transform-only animation, light on the Fire Stick */
   .wave { flex: none; display: flex; align-items: center; gap: .45vh; height: 4.4vh; }
   .wave i { display: block; width: .75vh; height: 100%; border-radius: 1vh; background: rgb(var(--now));
@@ -311,6 +312,12 @@
   body.emptyq:not(.intermission) #view:not(.nologo) #empty .emic { display: none; }
   body.emptyq:not(.intermission) #view:not(.nologo) #empty .ebig { font-size: 10vh; }
   body.emptyq:not(.intermission) #view:not(.nologo) #empty .esub { font-size: 4.4vh; }
+  /* qr=both with an empty queue: one big picture in the middle that coin-flips between your logo and the QR code */
+  #eqFlip { display: none; position: absolute; top: 4vh; left: 0; right: 0; width: 100%; height: calc(100% - 38vh); object-fit: contain;
+    object-position: center; transition: transform .38s ease-in; transform: perspective(120vh) rotateY(0deg); }
+  #eqFlip.flipping { transform: perspective(120vh) rotateY(90deg); }
+  body.qrboth.emptyq:not(.intermission) #eqFlip { display: block; }
+  body.qrboth.emptyq:not(.intermission) #brand, body.qrboth.emptyq:not(.intermission) #brandQr { visibility: hidden; }
   #nextLabel { font-size: 4.4vh; font-weight: 800; letter-spacing: .24em; color: #ffc27a; }
   /* Coming up: fills the first column, then a second column, side by side */
   /* Gap and divider between the two big boxes and Coming Up */
@@ -385,9 +392,6 @@
   /* ---------- code entry ---------- */
   #setup { align-items: center; justify-content: center; text-align: center; }
   #setup h1 { font-size: 3.6vh; margin: 0 0 1vh; text-transform: uppercase; letter-spacing: .08em; }
-  /* Faint KJQV mark behind the code screen */
-  #setupMark { position: absolute; left: 50%; top: 50%; height: 170vh; width: auto; transform: translate(-50%, -50%);
-    opacity: .018; pointer-events: none; z-index: -1; }
   #setup .brand { font-size: 2.4vh; font-weight: 800; letter-spacing: .3em; color: #ffb347; margin: 0 0 1.4vh; }
   #setup p { font-size: 2.6vh; color: var(--dim); margin: 0 0 3vh; }
   #codeBox { font-size: 8vh; font-weight: 800; letter-spacing: .4em; padding-left: .4em;
@@ -400,7 +404,7 @@
     color: rgba(255,255,255,.55); }
   body.demo #demoTag { display: block; }
   #setupMsg { min-height: 3.5vh; font-size: 2.6vh; color: #ffb3c0; margin-top: 2.4vh; }
-  /* Upright phone: tighter code screen so it all fits, and the mark sized to the width */
+  /* Upright phone: tighter code screen so it all fits */
   @media (max-aspect-ratio: 3/4) {
     #setup { overflow-y: auto; justify-content: flex-start; padding-top: 1.5vh; }
     #setup > * { flex: none; }
@@ -412,7 +416,6 @@
     #pad button { height: 7.6vh; font-size: 3.2vh; }
     #setupMsg { font-size: 1.6vh; min-height: 2.4vh; margin-top: 1.2vh; }
     #about { font-size: 1.4vh; margin-top: 1.2vh; }
-    #setupMark { position: fixed; height: auto; width: 190vw; opacity: .018; }
   }
 
   /* Fast taps on the keypad shouldn't double-tap-zoom on phones */
@@ -423,6 +426,11 @@
   #pad button { height: 10vh; font-size: 4.4vh; font-weight: 700; background: rgba(30,24,80,.92); }
   #pad button:focus { background: rgba(70,40,140,.95); }
   #pad button.wide { font-size: 2.6vh; }
+  /* Touch screens: no lingering highlight on the last key tapped, just a flash while pressed */
+  @media (pointer: coarse) {
+    #pad button:focus, #setup button:focus { border-color: transparent; background: rgba(30,24,80,.92); }
+    #pad button:active { background: rgba(70,40,140,.95); border-color: var(--yellow); }
+  }
   #menu button { font-size: 2.8vh; padding: 1.6vh 2.4vw; }
   button:focus { outline: none; border-color: var(--yellow); background: rgba(var(--next),.16); }
   /* ---------- options panel (Customize on the code screen, or Options in the menu) ---------- */
@@ -438,6 +446,10 @@
   #opts .row button.ch { min-width: 24vh; font-size: 2.4vh; padding: 1vh 1.4vw; font-weight: 700; }
   #opts .row button.ch::before { content: "\2039  "; opacity: .45; } #opts .row button.ch::after { content: "  \203A"; opacity: .45; }
   #opts .row.wide { grid-column: 1 / -1; }
+  #opts .tabs { grid-column: 1 / -1; display: flex; gap: 1vw; margin-bottom: .6vh; }
+  #opts .tabs .tab { font-size: 2.4vh; font-weight: 800; padding: 1vh 2.6vw; letter-spacing: .06em; opacity: .65; }
+  #opts .tabs .tab.on { opacity: 1; background: rgba(var(--next),.22); }
+  #opts .tabnote { grid-column: 1 / -1; font-size: 1.9vh; color: rgba(255,255,255,.6); }
   #opts .head { grid-column: 1 / -1; font-size: 2vh; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
     color: rgba(255,255,255,.5); margin-top: 1.6vh; padding-bottom: .5vh; border-bottom: 1px solid rgba(255,255,255,.12); }
   #opts .head:first-child { margin-top: 0; }
@@ -469,13 +481,6 @@
 <!-- Code entry: shown until a KaraFun remote code is saved on this device -->
 <div id="patLayer" class="hidden" aria-hidden="true"></div>
 <div id="setup" class="safe hidden">
-  <svg id="setupMark" viewBox="0 0 1024 1024" aria-hidden="true">
-    <g transform="translate(0 512) skewX(-5) translate(0 -512)" font-family="Inter, system-ui, sans-serif" font-weight="900" font-style="italic" font-size="440" text-anchor="middle" letter-spacing="-6">
-      <g fill="#ff2a55" transform="translate(-22 -3)"><text x="512" y="478">KJ</text><text x="512" y="873">QV</text></g>
-      <g fill="#2a8bff" transform="translate(22 3)"><text x="512" y="478">KJ</text><text x="512" y="873">QV</text></g>
-      <g fill="#ffffff"><text x="512" y="478">KJ</text><text x="512" y="873">QV</text></g>
-    </g>
-  </svg>
   <div class="brand">KJQV | UNOFFICIAL QUEUE VIEWER</div>
   <h1>Enter your remote code</h1>
   <p>The 6-digit code from KaraFun (Settings → Remote control)</p>
@@ -500,12 +505,13 @@
 <div id="view" class="safe hidden">
   <img id="brand" class="hidden" alt="">
   <img id="brandQr" class="hidden" alt="">
+  <img id="eqFlip" alt="">
   <div id="brandFx" class="hidden" aria-hidden="true"></div>
   <div id="clockFloat"></div>
   <div id="demoTag">PREVIEW · made-up sample queue · kjqv.github.io</div>
   <div id="breakMsg">Short break<span>Back in a few</span></div>
   <div id="spot" aria-hidden="true"><div id="spotPat"></div><div class="slabel"><svg class="smic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="2" width="7" height="12" rx="3.5" fill="currentColor" fill-opacity=".25"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/><path d="M8.5 22h7"/></svg><span id="spotLabel">UP NEXT</span><svg class="smic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="2" width="7" height="12" rx="3.5" fill="currentColor" fill-opacity=".25"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/><path d="M8.5 22h7"/></svg></div><div class="sname" id="spotName"></div><div class="ssong" id="spotSong"></div></div>
-  <div id="applause"><div class="pre">Make some noise for</div><div class="aname" id="applauseName"></div><div class="claps">👏 👏 👏</div></div>
+  <div id="applause"><div class="pre" id="applausePre">Make some noise for</div><div class="aname" id="applauseName"></div><div class="claps">👏 👏 👏</div></div>
   <div id="top">
     <div id="nowBar" class="hidden">
       <div id="nowBarLabel" class="boxLabel"><svg class="mic labelmic mic2" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="2" width="7" height="12" rx="3.5" fill="currentColor" fill-opacity=".25"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/><path d="M8.5 22h7"/></svg><span class="labeltext" id="nowLabelText">NOW<br>SINGING</span><svg class="mic labelmic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="2" width="7" height="12" rx="3.5" fill="currentColor" fill-opacity=".25"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/><path d="M8.5 22h7"/></svg><div class="wave labelwave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
@@ -528,10 +534,10 @@
         </div>
       </div>
     </div>
-    <div id="empty" class="hidden"><svg class="emic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="2" width="7" height="12" rx="3.5"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/><path d="M8.5 22h7"/></svg><div class="ebig">Queue is empty</div><div class="esub">Come sign up to sing!</div></div>
+    <div id="empty" class="hidden"><svg class="emic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="2" width="7" height="12" rx="3.5"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/><path d="M8.5 22h7"/></svg><div class="ebig" id="eBig">Queue is empty</div><div class="esub" id="esub">Come sign up to sing!</div></div>
   </div>
   <div id="nextWrap">
-    <div id="nextLabel"><span>COMING UP</span><span id="clock"></span></div>
+    <div id="nextLabel"><span id="comingText">COMING UP</span><span id="clock"></span></div>
     <div id="list"></div>
     <div id="more"></div>
   </div>
@@ -623,7 +629,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var CFG_KEY = "kqv.cfg";
   var cfg = {};
   try { cfg = JSON.parse(load(CFG_KEY) || "{}") || {}; } catch (e) { cfg = {}; }
-  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette", "flicker", "away", "spottime", "lite", "wipe"];
+  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette", "flicker", "away", "spottime", "lite", "wipe", "nowtext", "nexttext", "comingtext", "noisetext", "thankstext", "thankssub", "emptytext", "signuptext", "lastcalltext", "musictext", "backtext"];
   // A link with any look options replaces the saved look; a bare link (just code=) keeps it.
   // The preview never uses what this device saved.
   if (DEMO || OPTS.some(function (k) { return params.has(k); })) cfg = {};
@@ -631,7 +637,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   // The plain preview (?demo with no options) shows off a bit: no clock, the rule under COMING UP,
   // and a neon-blue sample logo that coin-flips with a matching QR card.
   if (DEMO && !OPTS.some(function (k) { return params.has(k); }))
-    cfg = { clock: "off", line: "on", qr: "split", qrbg: "5ee7ff", logo: "https://kjqv.github.io/sample-logo-blue.png", spotlight: "loop", long: "top" };
+    cfg = { clock: "off", line: "on", qr: "split", qrbg: "d17bff", logo: "https://kjqv.github.io/sample-logo-blue.png", spotlight: "loop", long: "top", mic: "off" };
   // Themes fill in any setting you didn't set yourself.
   var THEMES = {
     holiday: { bg1: "0b3d1f", bg2: "5a0b12", now: "3dff7a", next: "ff4d4d", up1: "9dffbe", up2: "ff6b6b",
@@ -648,6 +654,15 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if (t) for (var k in t) if (cfg[k] === undefined || cfg[k] === "") cfg[k] = t[k];
   }
   function off(k) { return /^(0|off|no|false|hide)$/i.test(String(cfg[k] || "")); }
+  // Custom text (the Text tab in Options): txt("noisetext", "Make some noise for") gives yours or the default
+  function txt(k, d) { var v = String(cfg[k] || "").replace(/\s+/g, " ").trim().slice(0, /^(now|next|coming)text$/.test(k) ? 20 : 40); return v || d; }
+  // A box label on two lines, split at the space nearest the middle ("NOW SINGING" → NOW / SINGING)
+  function twoLine(t) {
+    var sp = [], i; for (i = 0; i < t.length; i++) if (t[i] === " ") sp.push(i);
+    if (!sp.length) return esc(t);
+    var best = sp[0]; sp.forEach(function (x) { if (Math.abs(x - t.length / 2) < Math.abs(best - t.length / 2)) best = x; });
+    return esc(t.slice(0, best)) + "<br>" + esc(t.slice(best + 1));
+  }
   var comingCount = Math.max(0, Math.min(12, parseInt(cfg.count, 10)));
   if (isNaN(comingCount)) comingCount = 8;
   if (params.has("reset")) cfg = {};
@@ -784,11 +799,16 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     document.body.classList.toggle("vuswap", /^(swap|mic|label)$/.test(vu));
     document.body.classList.toggle("vuoff", /^(0|off|no|false|hide)$/.test(vu));
     document.body.classList.toggle("alignleft", /^(left|l)$/i.test(String(cfg.align || "")));
-    $("nowLabelText").innerHTML = "NOW<br>SINGING" + (/^(on|yes|true|1)$/i.test(String(cfg.excited || "")) ? "!" : "");
-    nextLabelBase = "UP<br>NEXT" + (/^(on|yes|true|1)$/i.test(String(cfg.dots || "")) ? "\u2026" : "");
+    $("nowLabelText").innerHTML = twoLine(txt("nowtext", "NOW SINGING")) + (/^(on|yes|true|1)$/i.test(String(cfg.excited || "")) ? "!" : "");
+    nextLabelBase = twoLine(txt("nexttext", "UP NEXT")) + (/^(on|yes|true|1)$/i.test(String(cfg.dots || "")) ? "\u2026" : "");
     $("nextLabelText").innerHTML = nextLabelBase;
+    $("comingText").textContent = txt("comingtext", "COMING UP");
+    $("applausePre").textContent = txt("noisetext", "Make some noise for");
+    $("eBig").textContent = txt("emptytext", "Queue is empty");
+    $("esub").textContent = txt("signuptext", cfg.qr && !off("qr") ? "Scan the code to sign up!" : "Come sign up to sing!");
     document.body.classList.toggle("twomics", String(cfg.mics || "") === "2");
     document.body.classList.toggle("micflicker", String(cfg.mic || "").toLowerCase() === "flicker");
+    document.body.classList.toggle("nomic", off("mic"));
     document.body.classList.toggle("nextflicker", /^(on|yes|true|1)$/i.test(String(cfg.nextflicker || "")));
     document.body.classList.toggle("flourish", /^(on|yes|true|1)$/i.test(String(cfg.flourish || "")));
     document.body.classList.toggle("caps", !off("caps"));
@@ -817,6 +837,13 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     // qr=both: your logo small on top and the QR code under it, both showing all the time
     if (qrSvg && qrMode === "both" && /^https?:\/\//i.test(logo)) {
       document.body.classList.add("qrboth");
+      // empty queue: one big picture flipping between the two instead
+      var ef = $("eqFlip"), efQr = false; ef.src = logo;
+      splitTimer = setInterval(function () {
+        if (!document.body.classList.contains("emptyq")) return;
+        ef.classList.add("flipping");
+        setTimeout(function () { efQr = !efQr; ef.src = efQr ? qrSvg : logo; setTimeout(function () { ef.classList.remove("flipping"); }, 60); }, 380);
+      }, swapSec * 1000);
       bq.onload = function () { bq.classList.remove("hidden"); $("view").classList.remove("nologo"); clearLogo(); };
       bq.src = qrSvg;
       img.onerror = function () { document.body.classList.remove("qrboth"); bq.classList.add("hidden"); img.onerror = noLogo; img.src = qrSvg; };
@@ -1234,7 +1261,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if (sp) {
       var mins = sp.mins ? sp.mins + " min" : "";
       if (sp.kind === "brb") return { singer: sp.mins ? sp.mins + " min break" : "Short break", title: sp.name ? sp.name + " will be back" : "We'll be right back", artist: "", special: "brb" };
-      if (sp.kind === "lastcall") return { singer: "LAST CALL", title: "Get your drink orders in!", artist: "", special: "lastcall" };
+      if (sp.kind === "lastcall") return { singer: "LAST CALL", title: txt("lastcalltext", "Get your drink orders in!"), artist: "", special: "lastcall" };
       if (sp.kind === "dance") return { singer: "DANCE PARTY", title: sp.mins ? sp.mins + " min" : "", artist: "", special: "dance" };
       return { singer: "DJ Break", title: sp.mins ? sp.mins + " minute break" : "Back in a few", artist: "", special: "break" };
     }
@@ -1381,7 +1408,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
   var breakAt = null, lastMsg = "";
   // upin=on: the UP NEXT label becomes a countdown, "UP IN 3 MIN", while a song is playing
-  var nextLabelBase = "UP<br>NEXT", upinOn = /^(on|yes|true|1)$/i.test(String(cfg.upin || ""));
+  var nextLabelBase = nextLabelBase || twoLine(txt("nexttext", "UP NEXT")), upinOn = /^(on|yes|true|1)$/i.test(String(cfg.upin || ""));
   function setBreakMsg(html, custom) {
     document.body.classList.toggle("custombreak", custom);
     if (html !== lastMsg) { $("breakMsg").innerHTML = html; lastMsg = html; }
@@ -1404,16 +1431,16 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       var left = bm ? Math.max(1, Math.round((bm * 60000 - (now - breakAt.at)) / 60000)) : 0;
       var sp = specialOf(cur), msg;
       if (sp.kind === "brb") msg = esc(sp.name ? sp.name + " will be back" : "We'll be back") + "<span>" + (left ? "in about " + left + " min" : "in a few") + "</span>";
-      else if (sp.kind === "lastcall") msg = '<div class="lastcall" style="font-size:1.4em">LAST CALL</div><span>Get your drink orders in!</span>';
-      else if (sp.kind === "dance") msg = '<div class="' + danceClass(sp) + '" style="' + danceStyle(sp) + '">DANCE PARTY</div><span>' + (left ? "Karaoke's back in about " + left + " min" : "Karaoke's back soon") + "</span>";
+      else if (sp.kind === "lastcall") msg = '<div class="lastcall" style="font-size:1.4em">LAST CALL</div><span>' + esc(txt("lastcalltext", "Get your drink orders in!")) + '</span>';
+      else if (sp.kind === "dance") msg = '<div class="' + danceClass(sp) + '" style="' + danceStyle(sp) + '">DANCE PARTY</div><span>' + (left ? "Karaoke's back in about " + left + " min" : esc(txt("backtext", "Karaoke's back soon"))) + "</span>";
       else msg = "Short break<span>" + (left ? "Back in about " + left + " min" : "Back in a few") + "</span>";
       setBreakMsg(msg, sp.kind !== "break");
     } else if (awayMode && kfAway) {   // (away=logo with no logo set falls back to MUSIC BREAK)
       setBreakMsg(awayMode === "dance"
-        ? '<div class="' + (danceRainbowDefault ? "rainbow" : "") + '" style="' + (danceRainbowDefault ? "" : "color:" + danceColor + ";text-shadow:0 0 1.2vh " + danceColor + "88") + '">DANCE PARTY</div><span>Karaoke\'s back soon</span>'
-        : '<div>MUSIC BREAK</div><span>Karaoke\'s back soon</span>', true);
+        ? '<div class="' + (danceRainbowDefault ? "rainbow" : "") + '" style="' + (danceRainbowDefault ? "" : "color:" + danceColor + ";text-shadow:0 0 1.2vh " + danceColor + "88") + '">DANCE PARTY</div><span>' + esc(txt("backtext", "Karaoke's back soon")) + '</span>'
+        : '<div>' + esc(txt("musictext", "MUSIC BREAK")) + '</div><span>' + esc(txt("backtext", "Karaoke's back soon")) + '</span>', true);
     } else if (afterApplause) {
-      setBreakMsg("Thank you, " + esc(afterApplause.name) + "!<span>Next singer coming right up</span>", false);
+      setBreakMsg(esc(txt("thankstext", "Thank you")) + ", " + esc(afterApplause.name) + "!<span>" + esc(txt("thankssub", "Next singer coming right up")) + "</span>", false);
     } else {
       setBreakMsg("Short break<span>Back in a few</span>", false);
     }
@@ -1572,7 +1599,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       html += '<div class="row"><span class="num">' + num +
         '</span><div class="cell"><div class="who' + (danceClass(specialOf(it)) ? " rainbow" : x.special === "lastcall" ? " lastcall" : (specialOf(it) && specialOf(it).kind === "brb") ? " brb" : "") + '" style="color:' + shade(i) + ";" + danceStyle(specialOf(it)) + '">' + esc(l.big) + '</div><div class="what mq">' + esc(l.small) + '</div></div><span class="eta" data-id="' + esc(String(it.id)) + '"></span></div>';
     });
-    if (!items.length) html = '<div class="row openrow"><span class="num"></span><span class="who">Queue is empty</span><span class="what">Come sign up!</span></div>';
+    if (!items.length) html = '<div class="row openrow"><span class="num"></span><span class="who">' + esc(txt("emptytext", "Queue is empty")) + '</span><span class="what">' + esc(txt("signuptext", "Come sign up!")) + '</span></div>';
     list.innerHTML = html;
     updateTimes();
     $("more").textContent = "";
@@ -1622,6 +1649,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     // bigger when nothing is playing yet. Each shrinks if it would overflow its column or box.
     var rgbf = document.body.classList.contains("rgbfont");
     var wide = Math.max(1, Math.min(1.6, (window.innerWidth / window.innerHeight) / (16 / 9)));
+    if (document.body.classList.contains("nomic")) wide *= 0.84;   // no mic: keep the labels the usual size, not bigger
     function fitLabel(l, box, max) {
       if (!l || !l.offsetWidth) return 0;
       var size = max; l.style.fontSize = size + "vh";
@@ -1800,8 +1828,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     $("setup").classList.remove("hidden");
     buildPad();
     drawCode();
+    // Start on the 1 for TV remotes; on touch screens (phones, tablets) don't, or it looks stuck highlighted
     var first = $("pad").querySelector("button");
-    if (first) first.focus();
+    var touch = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+    if (first && !touch) first.focus();
   }
   // ---------------------------------------------------------------- equity mode (experimental)
   // equity=5: keep at least 5 other singers between two songs by the same singer, by moving songs
@@ -2085,7 +2115,6 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["qrswap", "Spin / flip every", [["", "5 sec"], ["10", "10 sec"], ["20", "20 sec"], ["30", "30 sec"]]],
     ["qr", "QR code", [["", "Off"], ["on", "Instead of logo"], ["split", "Flips with logo"], ["both", "Both"]]],
     ["qrbg", "QR card color", [["", "White"], ["fff4d6", "Cream"], ["d6f3ff", "Light blue"], ["ffd6e8", "Light pink"], ["e0ffd6", "Light green"]]],
-    ["qrtext", "QR caption", "input", "SCAN TO SING"],
     ["#", "Spotlight and breaks"],
     ["spotlight", "Spotlight", [["", "All night"], ["on", "Between songs"], ["off", "Off"]]],
     ["wipe", "Spotlight wipe", [["", "Down"], ["up", "Up"], ["left", "Left"], ["right", "Right"], ["doors", "Doors"], ["iris", "Circle"], ["diamond", "Diamond"], ["fade", "Fade"], ["random", "Mix it up"]]],
@@ -2100,7 +2129,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["pulse", "Box pulse", [["", "On"], ["off", "Off"]]],
     ["icons", "Mic and sound bars", [["", "On"], ["off", "Off"]]],
     ["vu", "Sound bars", [["", "By the name"], ["swap", "By the label"], ["off", "Off"]]],
-    ["mic", "Mic", [["", "Steady"], ["flicker", "Candle flicker"]]],
+    ["mic", "Mic by NOW SINGING", [["", "Steady"], ["flicker", "Candle flicker"], ["off", "Off"]]],
     ["mics", "Mics by the label", [["", "One"], ["2", "Two"]]],
     ["excited", "Label", [["", "NOW SINGING"], ["on", "NOW SINGING!"]]],
     ["#", "Up Next"],
@@ -2123,6 +2152,25 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["#", "Old Fire Sticks"],
     ["lite", "Simple GFX mode (for old Fire Sticks)", [["", "Auto"], ["on", "On"], ["off", "Off"]]]
   ];
+  // The Text tab: your own wording. Leave a box blank for the default (shown faintly in it).
+  var TEXT_ROWS = [
+    ["#", "Box labels"],
+    ["nowtext", "Now Singing label", "input", "NOW SINGING"],
+    ["nexttext", "Up Next label", "input", "UP NEXT"],
+    ["comingtext", "Coming Up heading", "input", "COMING UP"],
+    ["#", "Applause"],
+    ["noisetext", "Applause line", "input", "Make some noise for"],
+    ["thankstext", "Thank-you line (before the name)", "input", "Thank you"],
+    ["thankssub", "Under the thank-you", "input", "Next singer coming right up"],
+    ["#", "Empty queue and breaks"],
+    ["emptytext", "Empty queue", "input", "Queue is empty"],
+    ["signuptext", "Under it", "input", "Come sign up to sing!"],
+    ["qrtext", "QR code caption", "input", "SCAN TO SING"],
+    ["lastcalltext", "Under LAST CALL", "input", "Get your drink orders in!"],
+    ["musictext", "Music break", "input", "MUSIC BREAK"],
+    ["backtext", "Under Music break / Dance party", "input", "Karaoke's back soon"]
+  ];
+  var optTab = "settings";
   var ed = {};
   function themeKey(v) { var tn = String(v || "").toLowerCase().replace(/[^a-z]/g, ""); return tn === "gothclub" ? "goth" : /^(xmas|christmas|holidays)$/.test(tn) ? "holiday" : /^(thanksgiving|fall|autumn)$/.test(tn) ? "turkey" : tn; }
   function curColors() { return COLOR_KEYS.map(function (k) { return String(ed[k] || "").toLowerCase(); }).join(","); }
@@ -2164,11 +2212,13 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function drawOpts() {
     readInputs();
     var focusKey = document.activeElement && document.activeElement.getAttribute && document.activeElement.getAttribute("data-k");
-    var html = "";
-    OPT_ROWS.forEach(function (row) {
+    var html = '<div class="tabs"><button class="tab' + (optTab === "settings" ? " on" : "") + '" data-tab="settings">Settings</button>' +
+      '<button class="tab' + (optTab === "text" ? " on" : "") + '" data-tab="text">Text</button></div>';
+    if (optTab === "text") html += '<div class="tabnote">Your own wording. Leave a box blank to keep the default. Box labels fit up to 20 characters, the rest up to 40.</div>';
+    (optTab === "text" ? TEXT_ROWS : OPT_ROWS).forEach(function (row) {
       if (row[0] === "#") { html += '<div class="head">' + esc(row[1]) + '</div>'; return; }
       if (row[2] === "input") {
-        html += '<label class="row wide"><span>' + row[1] + '</span><input data-k="' + row[0] + '" type="' + (row[0] === "qrtext" ? "text" : "url") +
+        html += '<label class="row wide"><span>' + row[1] + '</span><input data-k="' + row[0] + '" maxlength="' + (/^(logo|bgimg)$/.test(row[0]) ? 500 : /^(now|next|coming)text$/.test(row[0]) ? 20 : 40) + '" type="' + (/^(logo|bgimg)$/.test(row[0]) ? "url" : "text") +
           '" placeholder="' + esc(row[3] || "") + '" value="' + esc(ed[row[0]] || "") + '"></label>';
         return;
       }
@@ -2188,6 +2238,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
   function openOpts() {
     ed = JSON.parse(JSON.stringify(rawCfg));
+    optTab = "settings";
     $("optRows").innerHTML = "";
     closeMenu();
     $("opts").classList.remove("hidden");
@@ -2207,6 +2258,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     location.replace(location.pathname + (qs ? "?" + qs : ""));
   }
   $("optRows").addEventListener("click", function (e) {
+    var tb = e.target.closest && e.target.closest("button.tab");
+    if (tb) { readInputs(); optTab = tb.getAttribute("data-tab"); $("optRows").innerHTML = ""; drawOpts(); var f = $("optRows").querySelector('[data-tab="' + optTab + '"]'); if (f) f.focus(); return; }
     var b = e.target.closest && e.target.closest("button.ch"); if (b) cycleOpt(b.getAttribute("data-k"), 1);
   });
   $("optSave").addEventListener("click", saveOpts);
