@@ -444,7 +444,8 @@
   #kjPage .b.ex { background: rgba(255,80,160,.18); color: #ff7ac0; }
   #kjPage .cnt { display: inline-block; min-width: 20px; height: 20px; padding: 0 6px; margin-left: 6px; border-radius: 10px; vertical-align: 3px;
     font-size: 12px; line-height: 20px; text-align: center; font-weight: 800; letter-spacing: 0; text-transform: none; color: #fff; background: rgba(255,255,255,.14); }
-  #kjPage .cnt.lots { background: #ff9b5a; color: #2a1200; }
+  #kjPage .pips { display: inline-flex; gap: 2px; margin-left: 8px; vertical-align: 2px; font-size: 11px; font-weight: 800; align-items: center; }
+  #kjPage .pips i { display: block; width: 4px; height: 11px; border-radius: 1px; background: currentColor; opacity: .85; }
   #kjPage .r.ban .cnt { text-decoration: none; }
   #kjPage .empty { opacity: .5; font-size: 15px; padding: 10px 0; }
   #kjPage .foot { margin-top: 24px; font-size: 12px; opacity: .45; line-height: 1.5; }
@@ -1832,8 +1833,15 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function sungCount(name) { var k = nameKey(name); return kjNight.filter(function (x) { return nameKey(x.name) === k; }).length; }
   // Songs sung tonight, as a little number next to the name (orange at 3+)
   // Green at 1 song, yellow around 6, red at 11+
-  function cntStyle(n) { var h = Math.max(0, 120 - (n - 1) * 12); return ' style="background:hsl(' + h + ',85%,52%);color:#141414"'; }
-  function sungTag(name) { var n = name ? sungCount(name) : 0; return n ? ' <span class="cnt"' + cntStyle(n) + ' title="Songs sung tonight">' + n + "</span>" : ""; }
+  function cntHue(n) { return Math.max(0, 120 - (n - 1) * 12); }
+  function cntStyle(n) { var h = cntHue(n); return ' style="background:hsla(' + h + ',60%,50%,.18);color:hsl(' + h + ',65%,68%)"'; }
+  // Songs sung tonight as a row of small blocks (one per song, up to 12), muted green → yellow → red
+  function sungTag(name) {
+    var n = name ? sungCount(name) : 0; if (!n) return "";
+    var h = cntHue(n), b = "", i;
+    for (i = 0; i < Math.min(n, 12); i++) b += "<i></i>";
+    return ' <span class="pips" style="color:hsl(' + h + ',55%,58%)" title="' + n + (n === 1 ? " song" : " songs") + ' sung tonight">' + b + (n > 12 ? "+" : "") + "</span>";
+  }
   function renderNight() {
     var by = {}, order = [];
     kjNight.forEach(function (x) { var k = nameKey(x.name); if (!by[k]) { by[k] = { name: x.name, songs: [], line: 0 }; order.push(k); } by[k].songs.push(x); });
