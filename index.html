@@ -33,7 +33,7 @@
   html.silkfix body { min-height: calc(100vh + 300px); }
   html.silkfix .safe { position: fixed; } /* content stays put while the page scrolls */
   /* Default background: deep purple fading to blue, with a soft vignette (both changeable in the link). */
-  html, body { margin: 0; height: 100%; background: #1a0b4d radial-gradient(ellipse at center, rgba(0,0,0,0) 40%, rgba(0,0,0,.3) 100%), #1a0b4d linear-gradient(135deg, #1a0b4d 0%, #0a3a8c 100%); color: var(--fg);
+  html, body { margin: 0; height: 100%; background: radial-gradient(ellipse at center, rgba(0,0,0,0) 40%, rgba(0,0,0,.3) 100%), linear-gradient(135deg, #1a0b4d 0%, #0a3a8c 100%) #1a0b4d; color: var(--fg);
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     overflow: hidden; }
   /* 5% safe margins: some TVs crop the edges */
@@ -426,6 +426,9 @@
   #opts .row button.ch { min-width: 24vh; font-size: 2.4vh; padding: 1vh 1.4vw; font-weight: 700; }
   #opts .row button.ch::before { content: "\2039  "; opacity: .45; } #opts .row button.ch::after { content: "  \203A"; opacity: .45; }
   #opts .row.wide { grid-column: 1 / -1; }
+  #opts .head { grid-column: 1 / -1; font-size: 2vh; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+    color: rgba(255,255,255,.5); margin-top: 1.6vh; padding-bottom: .5vh; border-bottom: 1px solid rgba(255,255,255,.12); }
+  #opts .head:first-child { margin-top: 0; }
   #opts input { flex: 1; min-width: 0; font: inherit; font-size: 2.2vh; padding: 1vh 1vw; border-radius: 1.2vh;
     border: .3vh solid rgba(255,255,255,.2); background: rgba(255,255,255,.08); color: #fff; }
   #opts input:focus { outline: none; border-color: var(--yellow); }
@@ -596,7 +599,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var CFG_KEY = "kqv.cfg";
   var cfg = {};
   try { cfg = JSON.parse(load(CFG_KEY) || "{}") || {}; } catch (e) { cfg = {}; }
-  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette", "flicker", "away"];
+  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette", "flicker", "away", "spottime"];
   // A link with any look options replaces the saved look; a bare link (just code=) keeps it.
   // The preview never uses what this device saved.
   if (DEMO || OPTS.some(function (k) { return params.has(k); })) cfg = {};
@@ -715,7 +718,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var vg = String(cfg.vignette || "").trim(), vn = parseFloat(vg);
     if (!/^(0|off|no|false|none)$/i.test(vg))   // on by default at 30; vignette=off removes it
       layers.unshift("radial-gradient(ellipse at center, rgba(0,0,0,0) 40%, rgba(0,0,0," + (vn > 0 ? Math.min(100, vn) / 100 : /^(on|yes|true)$/i.test(vg) ? 0.6 : 0.3) + ") 100%)");
-    if (b1 || b2 || layers.length) {
+    {   // always set it, so vignette=off still gets the default fade
       var c1 = b1 || "1a0b4d", c2 = b2 || (b1 ? b1 : "0a3a8c");
       layers.push("linear-gradient(135deg, #" + c1 + " 0%, #" + c2 + " 100%)");
       var bg = layers.join(", ");
@@ -731,7 +734,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     document.body.classList.toggle("rgbfont", /^(pixel|space)$/i.test(String(cfg.font || "")));
     var fontName = String(cfg.font || "").trim();
     fontName = FONTS[fontName.toLowerCase()] || fontName.replace(/[^A-Za-z0-9 ]/g, "");
-    if (fontName && fontName.toLowerCase() !== "default") {
+    if (fontName && !/^(default|off|standard)$/i.test(fontName)) {
       var link = document.createElement("link");
       link.rel = "stylesheet";
       link.href = "https://fonts.googleapis.com/css2?family=" + encodeURIComponent(fontName).replace(/%20/g, "+") +
@@ -945,6 +948,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var spotMode = String(cfg.spotlight || "loop").toLowerCase();
   if (/^(on|yes|true|1)$/.test(spotMode)) spotMode = "on"; else if (spotMode !== "loop") spotMode = "";
   var spotSince = 0, spotShown = false;
+  var spotParts = String(cfg.spottime || "").split(/[^0-9.]+/), spotCard = parseFloat(spotParts[0]), spotQueue = parseFloat(spotParts[1]);
+  if (isNaN(spotCard)) spotCard = 10; if (isNaN(spotQueue)) spotQueue = 10;
+  spotCard = Math.max(3, Math.min(60, spotCard)); spotQueue = Math.max(3, Math.min(120, spotQueue));
   var heroOpen = false;
   function spotTick() {
     if (!spotMode) return;
@@ -960,10 +966,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       !(onBreak && !afterApplause) && (spotMode === "loop" || between);
     if (!ok) { spotSince = 0; setSpot(false); return; }
     if (!spotSince) spotSince = Date.now();
-    var t = (Date.now() - spotSince) / 1000, cycle = 20;   // 10 seconds of the card, 10 of the normal screen
+    // spottime=CARD-QUEUE in seconds (default 10-10): how long the card shows, then the normal screen
+    var t = (Date.now() - spotSince) / 1000, cycle = spotCard + spotQueue;
     // All-night mode starts on the normal screen, so a fresh page shows the whole queue first;
     // between-songs mode still opens on the card.
-    var want = spotMode === "loop" ? (t % cycle) >= 10 : (t % cycle) < 10;
+    var want = spotMode === "loop" ? (t % cycle) >= spotQueue : (t % cycle) < spotCard;
     if (want && !spotShown) {
       $("spotLabel").textContent = nowCard ? $("nowLabelText").innerHTML.replace(/<br\s*\/?>/gi, " ").replace(/<[^>]*>/g, "").trim()
         : ($("nextLabelText").innerHTML.replace(/<br\s*\/?>/gi, " ").replace(/<[^>]*>/g, "") || "UP NEXT").replace(/\u2026$/, "").trim();
@@ -2011,22 +2018,56 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   ];
   var COLOR_KEYS = ["bg1", "bg2", "now", "next", "up1", "up2"];
   var OPT_ROWS = [
+    ["#", "Look"],
     ["theme", "Theme", [["", "Default"], ["goth", "Goth"], ["turkey", "Turkey"], ["holiday", "Holiday"]]],
     ["colors", "Colors", null],
-    ["spotlight", "Spotlight", [["", "All night"], ["on", "Between songs"], ["off", "Off"]]],
-    ["applause", "Applause", [["", "Off"], ["on", "On"]]],
-    ["eta", "Wait times", [["", "On"], ["off", "Off"]]],
-    ["time", "Song progress", [["", "Bar"], ["both", "Bar + countdown"], ["off", "Off"]]],
-    ["clock", "Clock", [["", "On"], ["off", "Off"]]],
+    ["font", "Font", [["", "Standard"], ["rounded", "Rounded"], ["retro", "Retro"], ["marker", "Marker"], ["pixel", "Arcade pixel"]]],
     ["caps", "Names", [["", "ALL CAPS"], ["off", "As typed"]]],
-    ["logosize", "Logo size", [["", "76%"], ["60", "60%"], ["70", "70%"], ["90", "90%"], ["100", "100%"]]],
-    ["spin", "Logo spin", [["", "Off"], ["on", "Every 5 sec"]]],
-    ["qr", "QR code", [["", "Off"], ["on", "Instead of logo"], ["split", "Flips with logo"], ["both", "Both"]]],
+    ["pattern", "Background pattern", [["", "None"], ["notes", "Music notes"], ["mics", "Mics"], ["houndstooth", "Houndstooth"], ["maple", "Maple leaves"], ["harvest", "Harvest"], ["trees", "Trees"], ["crosses", "Crosses"], ["tinycrosses", "Tiny crosses"], ["petrine", "Upside-down crosses"]]],
+    ["scroll", "Pattern drift", [["", "Still"], ["on", "Drift up"], ["down", "Drift down"]]],
     ["vignette", "Vignette", [["", "Soft"], ["60", "Strong"], ["off", "Off"]]],
-    ["flicker", "Singer flicker", [["", "On"], ["off", "Off"]]],
+    ["bgimg", "Wallpaper link", "input", "https://…/wallpaper.jpg (blank for none)"],
+    ["#", "Logo and QR code"],
+    ["logo", "Logo link", "input", "https://…/your-logo.png (blank for none)"],
+    ["logosize", "Logo size", [["", "76%"], ["60", "60%"], ["70", "70%"], ["90", "90%"], ["100", "100%"]]],
+    ["spin", "Logo spin", [["", "Off"], ["on", "On"]]],
+    ["qrswap", "Spin / flip every", [["", "5 sec"], ["10", "10 sec"], ["20", "20 sec"], ["30", "30 sec"]]],
+    ["qr", "QR code", [["", "Off"], ["on", "Instead of logo"], ["split", "Flips with logo"], ["both", "Both"]]],
+    ["qrbg", "QR card color", [["", "White"], ["fff4d6", "Cream"], ["d6f3ff", "Light blue"], ["ffd6e8", "Light pink"], ["e0ffd6", "Light green"]]],
+    ["qrtext", "QR caption", "input", "SCAN TO SING"],
+    ["#", "Spotlight and breaks"],
+    ["spotlight", "Spotlight", [["", "All night"], ["on", "Between songs"], ["off", "Off"]]],
+    ["spottime", "Spotlight timing", [["", "10s card / 10s queue"], ["5-15", "5s card / 15s queue"], ["8-20", "8s card / 20s queue"], ["10-30", "10s card / 30s queue"], ["15-15", "15s card / 15s queue"], ["5-30", "5s card / 30s queue"]]],
+    ["applause", "Applause", [["", "Off"], ["on", "On"]]],
     ["away", "When KaraFun's closed", [["", "Big logo"], ["music", "Music break"], ["dance", "Dance party"], ["off", "Keep the queue"]]],
+    ["dance", "Dance party color", [["", "Rainbow"], ["ff2ad4", "Pink"], ["00e5ff", "Cyan"], ["ffd23f", "Gold"], ["39ff88", "Green"]]],
     ["equity", "Equity (experimental)", [["", "Off"], ["on", "On (3 between)"], ["5", "On (5 between)"], ["scale", "Scale with crowd"]]],
-    ["logo", "Logo link", "input"]
+    ["#", "Now Singing"],
+    ["time", "Song progress", [["", "Bar"], ["both", "Bar + countdown"], ["text", "Countdown only"], ["off", "Off"]]],
+    ["flicker", "Singer flicker", [["", "On"], ["off", "Off"]]],
+    ["pulse", "Box pulse", [["", "On"], ["off", "Off"]]],
+    ["icons", "Mic and sound bars", [["", "On"], ["off", "Off"]]],
+    ["vu", "Sound bars", [["", "By the name"], ["swap", "By the label"], ["off", "Off"]]],
+    ["mic", "Mic", [["", "Steady"], ["flicker", "Candle flicker"]]],
+    ["mics", "Mics by the label", [["", "One"], ["2", "Two"]]],
+    ["excited", "Label", [["", "NOW SINGING"], ["on", "NOW SINGING!"]]],
+    ["#", "Up Next"],
+    ["upin", "Label", [["", "UP NEXT"], ["on", "UP IN 3 MIN"]]],
+    ["dots", "Trailing dots", [["", "Off"], ["on", "UP NEXT…"]]],
+    ["nextflicker", "Neon flicker", [["", "Off"], ["on", "On"]]],
+    ["align", "Label position", [["", "Centered"], ["left", "Left"], ["right", "Right"]]],
+    ["#", "Coming Up"],
+    ["count", "How many", [["", "8"], ["3", "3"], ["4", "4"], ["5", "5"], ["6", "6"], ["10", "10"], ["12", "12"], ["0", "Hide Coming Up"]]],
+    ["eta", "Wait times", [["", "On"], ["on", "Also by Up Next"], ["time", "Clock times"], ["off", "Off"]]],
+    ["gap", "Time between singers", [["", "60 sec"], ["30", "30 sec"], ["45", "45 sec"], ["90", "90 sec"], ["120", "2 min"]]],
+    ["title", "Song titles", [["", "On"], ["off", "Off"]]],
+    ["artist", "Artists", [["", "On"], ["off", "Off"]]],
+    ["long", "Long song lines", [["", "Take turns"], ["scroll", "Slide sideways"]]],
+    ["numbers", "Place numbers", [["", "On"], ["off", "Off"]]],
+    ["clock", "Clock", [["", "On"], ["12", "12-hour"], ["24", "24-hour"], ["off", "Off"]]],
+    ["line", "Line under COMING UP", [["", "Off"], ["on", "On"]]],
+    ["flourish", "Glowing COMING UP", [["", "Off"], ["on", "On"]]],
+    ["drip", "Blood drips (goth)", [["", "Off"], ["on", "On"]]]
   ];
   var ed = {};
   function themeKey(v) { var tn = String(v || "").toLowerCase().replace(/[^a-z]/g, ""); return tn === "gothclub" ? "goth" : /^(xmas|christmas|holidays)$/.test(tn) ? "holiday" : /^(thanksgiving|fall|autumn)$/.test(tn) ? "turkey" : tn; }
@@ -2041,7 +2082,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     }
     list = row[2].slice();
     var t = THEMES[themeKey(ed.theme)];
-    if (t && t[key] !== undefined && key !== "theme") list[0] = ["", "Theme's choice"];
+    if (t && t[key] !== undefined && key !== "theme") {
+      // the theme picks this one; keep a way to turn it back to the plain default
+      if (!list.some(function (c) { return c[0] === "off"; }) && !/^(off|0)$/i.test(String(t[key]))) list.push(["off", list[0][1]]);
+      list[0] = ["", "Theme's choice"];
+    }
     var v = key === "theme" ? themeKey(ed.theme) : String(ed[key] || "");
     if (v && !list.some(function (c) { return c[0].toLowerCase() === v.toLowerCase(); })) list.unshift([v, v + " (custom)"]);
     return list;
@@ -2057,13 +2102,20 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       COLOR_KEYS.forEach(function (k, i) { if (parts[i]) ed[k] = parts[i]; else delete ed[k]; });
     } else if (v) ed[key] = v; else delete ed[key];
   }
+  function readInputs() {
+    Array.prototype.forEach.call($("optRows").querySelectorAll("input[data-k]"), function (el) {
+      var u = el.value.trim(), k = el.getAttribute("data-k"); if (u) ed[k] = u; else delete ed[k];
+    });
+  }
   function drawOpts() {
+    readInputs();
     var focusKey = document.activeElement && document.activeElement.getAttribute && document.activeElement.getAttribute("data-k");
     var html = "";
     OPT_ROWS.forEach(function (row) {
+      if (row[0] === "#") { html += '<div class="head">' + esc(row[1]) + '</div>'; return; }
       if (row[2] === "input") {
-        html += '<label class="row wide"><span>' + row[1] + '</span><input id="optLogo" data-k="logo" type="url" placeholder="https://…/your-logo.png (blank for none)" value="' +
-          esc(ed.logo || "") + '"></label>';
+        html += '<label class="row wide"><span>' + row[1] + '</span><input data-k="' + row[0] + '" type="' + (row[0] === "qrtext" ? "text" : "url") +
+          '" placeholder="' + esc(row[3] || "") + '" value="' + esc(ed[row[0]] || "") + '"></label>';
         return;
       }
       var list = choicesFor(row), v = curVal(row[0]).toLowerCase(), label = list[0][1];
@@ -2082,6 +2134,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
   function openOpts() {
     ed = JSON.parse(JSON.stringify(rawCfg));
+    $("optRows").innerHTML = "";
     closeMenu();
     $("opts").classList.remove("hidden");
     document.body.classList.remove("nocursor");
@@ -2090,7 +2143,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
   function closeOpts() { $("opts").classList.add("hidden"); if (document.activeElement) document.activeElement.blur(); }
   function saveOpts() {
-    var lg = $("optLogo"); if (lg) { var u = lg.value.trim(); if (u) ed.logo = u; else delete ed.logo; }
+    readInputs();
     var q = new URLSearchParams(location.search);
     OPTS.forEach(function (k) { q.delete(k); });
     q.delete("v"); q.delete("reset");
@@ -2104,7 +2157,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   });
   $("optSave").addEventListener("click", saveOpts);
   $("optCancel").addEventListener("click", closeOpts);
-  $("optReset").addEventListener("click", function () { ed = {}; drawOpts(); });
+  $("optReset").addEventListener("click", function () { $("optRows").innerHTML = ""; ed = {}; drawOpts(); });
   $("btnOpts").addEventListener("click", openOpts);
   function optsKey(e) {
     var k = e.key, a = document.activeElement;

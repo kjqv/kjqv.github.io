@@ -36,7 +36,7 @@
 - **Spotlight mode** (on by default; `spotlight=off` to turn it off): the screen wipes over to a big full-screen card: **NOW SINGING** while a song plays, **UP NEXT** near the end and between songs, switching back and forth with the normal screen. [See it in goth](https://kjqv.github.io/goth).
 - **Scan-to-sing QR code** (`qr=on`) so guests can join your KaraFun session and add songs. Use it in place of your logo, flip between your logo and the QR code like a coin every 5 seconds (`qr=split`), or show both, small (`qr=both`).
 - **Applause mode** (`applause=on`): a big "MAKE SOME NOISE FOR (name)!!!" when each singer finishes.
-- **Equity mode** (`equity=on`, *experimental*): spaces out repeat singers in KaraFun's queue so everyone gets a turn.
+- **[Equity mode](#equity-mode)** (`equity=on`, *experimental*, off by default): spaces out repeat singers so everyone gets a turn. This is the only feature that changes your actual KaraFun queue: it reorders songs.
 - **Planned breaks and announcements:** queue `BRB KJ 15`, `DANCE 10` or `LAST CALL` as a singer name and the screen shows a countdown, a DANCE PARTY or a flashing LAST CALL. Nothing to turn on.
 - **Idle screen** (`idle=5`): *paused for now while I rework it.* The setting is ignored, so the screen always shows the full queue.
 
@@ -58,7 +58,7 @@ The first time you open the page, it asks for the 6-digit **remote control code*
 - The code is saved only in that device's browser. It only appears on the screen if you turn on `qr=on`, which shows the same join QR code KaraFun gives your guests.
 - There's no account, no sign-up, no ads, no tracking, and no server of mine collecting anything. The whole app is one web page.
 - The page talks directly to KaraFun. The only other things it loads are your logo (from wherever you host it), a Google Font if you pick one, and its own page from GitHub to check for updates.
-- It only **reads** the queue and never changes it: it can't add, remove or reorder songs, and it can't touch your KaraFun account or billing. It shows up as **KJQV** in KaraFun's list of connected guests.
+- By default it only **reads** the queue and never changes it: it doesn't add, remove or reorder songs, and it can't touch your KaraFun account or billing. The one exception is [Equity mode](#equity-mode) (experimental, off unless you turn it on), which moves songs around in your queue to space out repeat singers. It never adds or removes songs. It shows up as **KJQV** in KaraFun's list of connected guests.
 - It's open source: everything is in one file, [index.html](index.html), that anyone can read.
 
 ## What you need
@@ -79,11 +79,11 @@ To open the small menu (**Full screen**, **Options**, **Change code**), tap or c
 
 ## Make it your own
 
-**The easy way: the Options menu.** On the code screen, press **Customize the look**. Or, once your queue is showing, tap the screen (or press an arrow on a TV remote) and choose **Options**. Pick a theme, colors and your logo, turn features on or off, and press **Save**. Your choices are remembered on that device. The menu only appears when you open it, so guests never see it.
+**The easy way: the Options menu.** On the code screen, press **Customize the look**. Or, once your queue is showing, tap the screen (or press an arrow on a TV remote) and choose **Options**. Pick a theme, colors, font, pattern and your logo, set the spotlight timing, turn features on or off, and press **Save**. Nearly every setting is in there. Your choices are remembered on that device. The menu only appears when you open it, so guests never see it.
 
 ![The Options menu](screenshots/options-panel.png)
 
-**More settings: add them to the page address.** Everything in the Options menu, plus a lot more (fonts, patterns, wait-time tweaks and so on), can also be set by adding it to the end of the web address, separated by `&`. Like this: `https://kjqv.github.io/?code=123456&theme=goth`. That's handy for bookmarking an exact setup, or for setting up several screens the same way. You never have to do this, but it's there if you want it.
+**Or add them to the page address.** Everything in the Options menu (plus a few extras, like any Google Font or your own QR link) can also be set by adding it to the end of the web address, separated by `&`. Like this: `https://kjqv.github.io/?code=123456&theme=goth`. That's handy for bookmarking an exact setup, or for setting up several screens the same way. You never have to do this, but it's there if you want it.
 
 ![Settings you can add to the address](screenshots/what-you-can-adjust.png)
 
@@ -98,6 +98,7 @@ Anything you don't set uses the defaults: no logo, a deep purple-to-blue backgro
 |---|---|---|
 | `code` | Your KaraFun remote control code | `code=123456` |
 | `logo` | A direct link to your logo image. A transparent PNG looks best | `logo=https://i.imgur.com/abc123.png` |
+| `spottime` | Spotlight timing: seconds of the card, then seconds of the normal screen (default `10-10`) | `spottime=8-20` |
 | `spin` | `on` makes your logo spin like a coin every 5 seconds (`qrswap=10` for every 10) | `spin=on` |
 | `logosize` | Logo size in percent, 40 to 100 (default 76, which leaves room between it and the boxes) | `logosize=100` |
 | `vignette` | How much the edges of the background darken, 1 to 100 (default 30; `on` is 60, `off` removes it) | `vignette=off` |
@@ -152,7 +153,7 @@ Tap one to read more. Spotlight is on by default and planned breaks work any tim
 Keeps the focus on who's singing and who's up next. **On by default** (as `loop`); add `spotlight=off` to turn it off.
 
 - `spotlight=on`: only between songs. When a song ends (after the applause, if that's on), the screen wipes over to a full-screen **UP NEXT** card with the next singer's name, big and glowing. After 10 seconds it wipes back to the normal screen, then back to the card 10 seconds later, back and forth until the next song starts.
-- `spotlight=loop` (the default): the card all night, during songs too: 10 seconds of the card, then 10 seconds of the normal screen. While a song has more than 30 seconds left, the card shows **NOW SINGING** and the current singer (in the Now Singing color); in the last 30 seconds and between songs it switches to **UP NEXT** (with `upin=on` it says UP IN 3 MIN).
+- `spotlight=loop` (the default): the card all night, during songs too: 10 seconds of the card, then 10 seconds of the normal screen (change it with **Spotlight timing** in Options, or `spottime=8-20` for 8 seconds of card and 20 of the queue). While a song has more than 30 seconds left, the card shows **NOW SINGING** and the current singer (in the Now Singing color); in the last 30 seconds and between songs it switches to **UP NEXT** (with `upin=on` it says UP IN 3 MIN).
 - It skips BRB, DANCE and LAST CALL breaks.
 - See everything together in goth: **https://kjqv.github.io/goth**
 
@@ -173,10 +174,11 @@ Off by default. Add `applause=on` and when a singer finishes, the screen shows a
 
 </details>
 
+<a id="equity-mode"></a>
 <details>
 <summary><b>Equity mode <i>(experimental)</i></b></summary>
 
-Off by default. Turn it on in the **Options** menu (Equity), or add `equity=on` to the link, and the screen spaces out repeat singers in KaraFun's queue, keeping at least 3 other singers between someone's songs. Set your own number with `equity=5`, or use `equity=scale` to have the spacing grow with the crowd: about a third of the people in line (5 singers → 1 between repeats, 15 singers → 5).
+Off by default. **Heads up: this is the one feature that changes your real KaraFun queue.** It moves songs around (it never adds or removes any), and the new order shows up in KaraFun and on everyone's phones. Turn it on in the **Options** menu (Equity), or add `equity=on` to the link, and the screen spaces out repeat singers in KaraFun's queue, keeping at least 3 other singers between someone's songs. Set your own number with `equity=5`, or use `equity=scale` to have the spacing grow with the crowd: about a third of the people in line (5 singers → 1 between repeats, 15 singers → 5).
 
 - Same name = same singer. Give two Susans different names ("Susan B", "Susan K").
 - It never moves the song that's on or the one in Up Next.
@@ -305,7 +307,7 @@ Any PNG or JPG hosted on the web works: point `logo=` (or `bgimg=`) at the image
 <details>
 <summary><b>How it works</b></summary>
 
-KaraFun's public remote page (`karafun.com/<code>/`) embeds a short-lived WebSocket address for the session. This page fetches that (KaraFun allows cross-origin reads), loads KaraFun's own `WebKCS` client from their CDN, and listens for `remote.QueueEvent` and `remote.StatusEvent` as a read-only listener. It names itself **KJQV** so it shows up clearly in KaraFun's list of connected guests. It reconnects on its own if Wi-Fi drops or KaraFun restarts.
+KaraFun's public remote page (`karafun.com/<code>/`) embeds a short-lived WebSocket address for the session. This page fetches that (KaraFun allows cross-origin reads), loads KaraFun's own `WebKCS` client from their CDN, and listens for `remote.QueueEvent` and `remote.StatusEvent` as a listener. Normally it only listens; the only thing it ever sends is a move-in-queue request (`remote.MoveInQueueRequest`), and only when [Equity mode](#equity-mode) is turned on. It names itself **KJQV** so it shows up clearly in KaraFun's list of connected guests. It reconnects on its own if Wi-Fi drops or KaraFun restarts.
 
 This relies on KaraFun's undocumented remote protocol, so a KaraFun update could break it.
 
