@@ -1712,7 +1712,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var o = optsOf(it, live), at = isAT(it), h = "", k = songKey(it);
     // Key: C (original), or C → Bb (−2) when it's been moved
     k = k && (transpose(k, 0) || k);
-    var kt = k ? (o.pitch ? k + " → " + transpose(k, o.pitch) + " (" + signed(o.pitch) + ")" : k) : (o.pitch ? signed(o.pitch) : "");   // no key from KaraFun and not moved: no key tag
+    var kt = k ? (o.pitch ? k + " → " + transpose(k, o.pitch) + " (" + signed(o.pitch) + ")" : k) : (o.pitch ? signed(o.pitch) + " from original" : at ? "unknown" : "");   // autotune always gets a key tag, even when KaraFun has no key
     if (kt) keyOnly = '<span class="b key' + (o.pitch ? " moved" : "") + (at ? " at" : "") + '">Key ' + esc(kt) + "</span>";
     if (wantKey) return keyOnly;
     if (o.tempo) h += '<span class="b">Tempo ' + signed(o.tempo) + "%</span>";
