@@ -363,7 +363,9 @@
   #kjPage .now .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   #kjPage .now .top .who { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   #kjPage .now .rt { flex-direction: row; align-items: center; gap: 8px; }   /* time left and key on the name's line */
-  #kjPage .now .what { margin-top: 0; }
+  #kjPage .now .what { margin-top: 0; display: flex; align-items: center; gap: 8px; min-width: 0; }
+  #kjPage .now .what .st { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #kjPage .now .what .kr { flex: none; }
   #kjPage .now .kbar { margin-top: 7px; }
   #kjPage .now .kbar { height: 4px; border-radius: 2px; background: rgba(94,240,255,.15); margin-top: 10px; overflow: hidden; }
   #kjPage .now .kbar i { display: block; height: 100%; width: 0; background: #5ef0ff; border-radius: 2px; transition: width 1s linear; }
@@ -1882,8 +1884,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if (cur) {
       var c = info(cur);
       $("kjNow").innerHTML = '<div class="now" id="kjNowCard"><div class="top"><div class="who">' + esc(c.singer || (isBreakItem(cur) ? "Break" : "No name")) + (isBreakItem(cur) ? "" : sungTag(c.singer)) +
-        '</div><div class="rt"><span id="kjLeft"></span>' + (isBreakItem(cur) ? "" : kjBadges(cur, true, true)) + '</div></div><div class="what">' + esc([c.title, c.artist].filter(Boolean).join(" · ")) +
-        '</div>' + (isBreakItem(cur) ? "" : kjBadges(cur, true)) + '<div class="kbar"><i id="kjBar"></i></div></div>';
+        '</div><span id="kjLeft"></span></div><div class="what"><span class="st">' + esc([c.title, c.artist].filter(Boolean).join(" · ")) + '</span>' +
+        (isBreakItem(cur) ? "" : kjBadges(cur, true, true)) + '</div>' + (isBreakItem(cur) ? "" : kjBadges(cur, true)) + '<div class="kbar"><i id="kjBar"></i></div></div>';
       $("kjNowCard").setAttribute("data-edit", isBreakItem(cur) ? "" : String(cur.id));
     } else $("kjNow").innerHTML = '<div class="empty">Nobody right now</div>';
     var rest = queue.filter(function (it) { return !cur || it.id !== cur.id; });
