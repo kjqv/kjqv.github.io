@@ -417,6 +417,15 @@
   #kjSheet .acts { display: flex; gap: 10px; margin-top: 14px; }
   #kjSheet .acts button { flex: 1; padding: 11px; font-size: 15px; font-weight: 700; border-radius: 10px; color: #fff; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); }
   #kjSheet #kjSheetSave { background: #5ef0ff; color: #001a20; border-color: #5ef0ff; }
+  #kjNightHead { cursor: pointer; }
+  #kjNightList .ng { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
+  #kjNightList .nh { display: flex; justify-content: space-between; align-items: baseline; font-size: 16px; }
+  #kjNightList .nh span { font-size: 13px; opacity: .65; }
+  #kjNightList .ng.lots .nh b, #kjNightList .ng.lots .nh span { color: #ff9b5a; opacity: 1; }
+  #kjNightList .ns { font-size: 13px; opacity: .65; margin-top: 2px; }
+  #kjNightList .ns i { font-style: normal; display: inline-block; width: 64px; opacity: .7; font-variant-numeric: tabular-nums; }
+  #kjPage .b.rep { background: rgba(255,255,255,.1); }
+  #kjPage .b.rep.lots { background: rgba(255,155,90,.2); color: #ff9b5a; }
   #kjPage .empty { opacity: .5; font-size: 15px; padding: 10px 0; }
   #kjPage .foot { margin-top: 24px; font-size: 12px; opacity: .45; line-height: 1.5; }
   #nextLabel { font-size: 4.4vh; font-weight: 800; letter-spacing: .24em; color: #ffc27a; }
@@ -613,6 +622,7 @@
     <div class="note ctl">Name, key and tempo change the signup in KaraFun (experimental).</div>
     <div class="note noctl">Turn on KJ controls in Options to change the name, key or tempo here.</div>
     <div class="acts"><button id="kjSheetCancel">Cancel</button><button id="kjSheetSave">Save</button></div></div>
+  <div class="sec" id="kjNightHead" role="button"></div><div id="kjNightList"></div>
   <div class="foot">Tap a singer to flag autotune (and, with KJ controls on, change their name, key or tempo). Only you see this page. Banned songs are hidden on the TV, which shows a tiny red dot while one is in the queue.
     This phone keeps its own banned list and settings (Options). KJQV is unofficial and not affiliated with KaraFun.</div>
 </div></div>
@@ -1695,6 +1705,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if (wantKey) return keyOnly;
     if (o.tempo) h += '<span class="b">Tempo ' + signed(o.tempo) + "%</span>";
     if (at) h += '<span class="b at">AUTOTUNE</span>';
+    var sc = it.song && !live ? sungCount(info(it).singer) : 0;
+    if (sc) h += '<span class="b rep' + (sc >= 3 ? " lots" : "") + '">' + sc + " sung tonight</span>";
     return h ? '<div class="bs">' + h + "</div>" : "";
   }
   // Tap a singer to open the editor: name, key and tempo (with KJ controls on) and the autotune flag (always)
@@ -1733,6 +1745,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     $("kjSheetAT").onclick = function () { if (kjEdit) { kjEdit.at = !kjEdit.at; if (!kjEdit.at && !kjEdit.fromOpts) kjEdit.always = false; kjDrawEdit(); } };
     $("kjSheetAlways").onclick = function () { if (kjEdit && !kjEdit.fromOpts) { kjEdit.always = !kjEdit.always; if (kjEdit.always) kjEdit.at = true; kjDrawEdit(); } };
     $("kjSheetCancel").onclick = kjCloseEdit;
+    $("kjNightHead").onclick = function () { kjNightOpen = !kjNightOpen; renderNight(); };
     $("kjSheetBg").onclick = kjCloseEdit;
     $("kjSheetSave").onclick = function () {
       var E = kjEdit; if (!E) return;
@@ -1762,10 +1775,50 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       kjCloseEdit(); render();
     };
   }
+  // ---- Tonight: who's sung what (KJ mode). Logged on this phone while KJ mode is open; a "night" runs until 6am.
+  function nightKey() { var d = new Date(Date.now() - 6 * 3600000); return "kqv.night." + d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); }
+  var kjNight = []; try { kjNight = JSON.parse(localStorage.getItem(nightKey()) || "[]") || []; } catch (e) {}
+  var kjNightOpen = false;
+  if (DEMO) {   // a made-up night so far
+    var m = 60000, t0 = Date.now();
+    kjNight = [["Tony", "Sweet Caroline", "Neil Diamond", 95], ["Rachel", "Dancing Queen", "ABBA", 88], ["Kevin", "Friends in Low Places", "Garth Brooks", 80],
+      ["Tony", "Livin' on a Prayer", "Bon Jovi", 62], ["Priya", "Rolling in the Deep", "Adele", 55], ["Kevin", "Wagon Wheel", "Darius Rucker", 41],
+      ["Ashley", "Before He Cheats", "Carrie Underwood", 33], ["Tony", "Uptown Funk", "Mark Ronson ft. Bruno Mars", 20], ["Kevin", "Tennessee Whiskey", "Chris Stapleton", 9]]
+      .map(function (d, i) { return { id: "night" + i, name: d[0], title: d[1], artist: d[2], at: t0 - d[3] * m }; });
+  }
+  function kjLogSong(cur) {
+    if (!cur || isBreakItem(cur) || !(playerState === 4 || playerState === 5)) return;
+    if (kjNight.some(function (x) { return x.id === String(cur.id); })) return;
+    var x = info(cur);
+    kjNight.push({ id: String(cur.id), name: x.singer || "No name", title: x.title || "", artist: x.artist || "", at: Date.now() });
+    if (!DEMO) { try {
+      localStorage.setItem(nightKey(), JSON.stringify(kjNight));
+      for (var i = localStorage.length - 1; i >= 0; i--) { var k = localStorage.key(i); if (/^kqv\.night\./.test(k) && k !== nightKey()) localStorage.removeItem(k); }   // keep tonight only
+    } catch (e) {} }
+  }
+  function sungCount(name) { var k = nameKey(name); return kjNight.filter(function (x) { return nameKey(x.name) === k; }).length; }
+  function renderNight() {
+    var by = {}, order = [];
+    kjNight.forEach(function (x) { var k = nameKey(x.name); if (!by[k]) { by[k] = { name: x.name, songs: [], line: 0 }; order.push(k); } by[k].songs.push(x); });
+    queue.forEach(function (it) {   // also count who's still in line
+      if (isBreakItem(it) || (current && it.id === current.id)) return;
+      var nm = info(it).singer || "No name", k = nameKey(nm);
+      if (!by[k]) { by[k] = { name: nm, songs: [], line: 0 }; order.push(k); }
+      by[k].line++;
+    });
+    order.sort(function (a, b) { return by[b].songs.length - by[a].songs.length || by[b].line - by[a].line; });
+    $("kjNightHead").textContent = "TONIGHT · " + kjNight.length + (kjNight.length === 1 ? " song" : " songs") + " · " + order.length + (order.length === 1 ? " singer" : " singers") + (kjNightOpen ? " ▴" : " ▾");
+    $("kjNightList").innerHTML = !kjNightOpen ? "" : order.length ? order.map(function (k) {
+      var g = by[k], n = g.songs.length;
+      return '<div class="ng' + (n >= 3 ? " lots" : "") + '"><div class="nh"><b>' + esc(g.name) + '</b><span>' + n + " sung" + (g.line ? " · " + g.line + " in line" : "") + '</span></div>' +
+        g.songs.map(function (x) { return '<div class="ns"><i>' + esc(hhmm(x.at)) + '</i>' + esc(x.title) + (x.artist ? " - " + esc(x.artist) : "") + "</div>"; }).join("") + "</div>";
+    }).join("") : '<div class="empty">Nobody yet</div>';
+  }
   // The KJ view's upright list (kj=on)
   function renderKJ() {
     var cur = current || null;
     var playing = !!cur && (playerState === 4 || playerState === 5);
+    kjLogSong(cur);
     function row(it, n) {
       var x = info(it), brk = isBreakItem(it), ban = isBanned(it);
       var what = brk ? (x.title || "") : [x.title, x.artist].filter(Boolean).join(" · ");
@@ -1785,6 +1838,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var n = 0;
     $("kjQueue").innerHTML = rest.length ? rest.map(function (it) { return row(it, isBreakItem(it) ? "" : ++n); }).join("") : '<div class="empty">Queue is empty</div>';
     $("kjCount").textContent = n ? "· " + n + (n === 1 ? " singer" : " singers") : "";
+    renderNight();
   }
   function render() {
     banCheck();
