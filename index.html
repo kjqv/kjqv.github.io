@@ -897,7 +897,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     document.body.classList.toggle("kj", KJ);
     document.body.classList.toggle("kjctl", KJ && /^(on|yes|1|true)$/i.test(String(cfg.kjcontrols || "")));
     if ($("kjOpts")) $("kjOpts").onclick = function () { openOpts(); };
-    if (DEMO && $("kjConn")) $("kjConn").textContent = "";
+    if (DEMO && $("kjConn")) { $("kjConn").textContent = "● Connected to the sample queue"; $("kjConn").className = "ok"; }
     setTimeout(showQueueControl, 0);
     document.body.classList.toggle("nextflicker", /^(on|yes|true|1)$/i.test(String(cfg.nextflicker || "")));
     document.body.classList.toggle("flourish", /^(on|yes|true|1)$/i.test(String(cfg.flourish || "")));
