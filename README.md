@@ -36,7 +36,7 @@
 - **Spotlight mode** (on by default; `spotlight=off` to turn it off): the screen wipes over to a big full-screen card: **NOW SINGING** while a song plays, **UP NEXT** near the end and between songs, switching back and forth with the normal screen. [See it in goth](https://kjqv.github.io/goth).
 - **Scan-to-sing QR code** (`qr=on`) so guests can join your KaraFun session and add songs. Use it in place of your logo, flip between your logo and the QR code like a coin every 5 seconds (`qr=split`), or show both, small (`qr=both`).
 - **Applause mode** (`applause=on`): a big "MAKE SOME NOISE FOR (name)!!!" when each singer finishes.
-- **[Equity mode](#equity-mode)** (`equity=on`, *experimental*, off by default): spaces out repeat singers so everyone gets a turn. This is the only feature that changes your actual KaraFun queue: it reorders songs.
+- **[Equity mode](#equity-mode)** (`equity=on`, *experimental*, off by default): spaces out repeat singers so everyone gets a turn. Along with the banned-songs *move to the end* and *delete* settings, this is the only feature that changes your actual KaraFun queue: it reorders songs.
 - **Planned breaks and announcements:** queue `BRB KJ 15`, `DANCE 10` or `LAST CALL` as a singer name and the screen shows a countdown, a DANCE PARTY or a flashing LAST CALL. Nothing to turn on.
 - **Idle screen** (`idle=5`): *paused for now while I rework it.* The setting is ignored, so the screen always shows the full queue.
 
@@ -58,7 +58,7 @@ The first time you open the page, it asks for the 6-digit **remote control code*
 - The code is saved only in that device's browser. It only appears on the screen if you turn on `qr=on`, which shows the same join QR code KaraFun gives your guests.
 - There's no account, no sign-up, no ads, no tracking, and no server of mine collecting anything. The whole app is one web page.
 - The page talks directly to KaraFun. The only other things it loads are your logo (from wherever you host it), a Google Font if you pick one, and its own page from GitHub to check for updates.
-- By default it only **reads** the queue and never changes it: it doesn't add, remove or reorder songs, and it can't touch your KaraFun account or billing. The one exception is [Equity mode](#equity-mode) (experimental, off unless you turn it on), which moves songs around in your queue to space out repeat singers. It never adds or removes songs. It shows up as **KJQV** in KaraFun's list of connected guests.
+- By default it only **reads** the queue and never changes it: it doesn't add, remove or reorder songs, and it can't touch your KaraFun account or billing. The two exceptions, both off unless you turn them on, are [Equity mode](#equity-mode) (experimental), which moves songs around to space out repeat singers, and the [banned songs](#banned-songs) setting for KaraFun's own queue, which can move banned songs to the end or (experimental) **delete** them. Nothing else ever adds, removes or reorders songs. It shows up as **KJQV** in KaraFun's list of connected guests.
 - It's open source: everything is in one file, [index.html](index.html), that anyone can read.
 
 ## What you need
@@ -180,11 +180,30 @@ Off by default. Add `applause=on` and when a singer finishes, the screen shows a
 
 </details>
 
+<a id="banned-songs"></a>
+<details>
+<summary><b>Banned songs</b></summary>
+
+List songs or artists you won't play in **Options → Text → Banned songs** (or `ban=` in the link), with commas between: `Wonderwall, Mr. Brightside, Nickelback`. Each one matches a song title or an artist, whole words, any capitalization. For one specific version, write `Title - Artist` (`Shallow - Lady Gaga`).
+
+When someone signs up for one:
+
+- **The TV leaves it out.** It doesn't show in Up Next or Coming Up, and the wait times skip it. (If you load it in KaraFun anyway, it shows like any other song.)
+- **A tiny red dot** shows in the bottom-left corner of the TV while one is in the queue. Only you know what it means. Turn it off with *Red dot on the TV* in Options (`banalert=off`).
+- **KJ view:** open your usual link on your phone or the KaraFun laptop with `&kj=on` added. Banned songs show crossed out in red, with a red alert at the top naming the singer and song, and phones that allow it buzz. Each device keeps its own settings, so put the same banned list in that device's Options too.
+- **Banned songs in KaraFun's own queue** (Options, or `banmove=`). Off by default (*Leave them*). Like Equity mode, the other two choices change your actual KaraFun queue:
+  - **Move to the end** (`banmove=on`): pushes banned songs to the bottom, so you can delete them when you get to them.
+  - **Delete** (`banmove=delete`, *experimental*): removes banned songs from KaraFun's queue as soon as they're signed up. This can't be undone, and the singer sees their song disappear from their phone. The KJ view lists what was deleted. It never deletes the song KaraFun has loaded.
+
+**Queue control (needed for Move, Delete and Equity mode, experimental).** KaraFun only lets a remote change the queue if you allow it. In KaraFun Pro: **Remote Control → Participants**, find **KJQV** (the TV screen) and make it an **admin**. Only do it for KJQV; turning on queue management for everyone under *Permissions* would let any guest move or delete songs. The KJ view's top bar shows *Queue control: on*, *checking…* or *OFF* with that reminder. If KaraFun refuses, KJQV stops trying. We haven't confirmed yet whether KaraFun keeps the admin grant when the TV reconnects, so check the KJ view after a restart.
+
+</details>
+
 <a id="equity-mode"></a>
 <details>
 <summary><b>Equity mode <i>(experimental)</i></b></summary>
 
-Off by default. **Heads up: this is the one feature that changes your real KaraFun queue.** It moves songs around (it never adds or removes any), and the new order shows up in KaraFun and on everyone's phones. Turn it on in the **Options** menu (Equity), or add `equity=on` to the link, and the screen spaces out repeat singers in KaraFun's queue, keeping at least 3 other singers between someone's songs. Set your own number with `equity=5`, or use `equity=scale` to have the spacing grow with the crowd: about a third of the people in line (5 singers → 1 between repeats, 15 singers → 5).
+Off by default. **Heads up: this changes your real KaraFun queue** (the only other setting that does is the banned-songs *move to the end* / *delete*). It moves songs around (it never adds or removes any), and the new order shows up in KaraFun and on everyone's phones. Turn it on in the **Options** menu (Equity), or add `equity=on` to the link, and the screen spaces out repeat singers in KaraFun's queue, keeping at least 3 other singers between someone's songs. Set your own number with `equity=5`, or use `equity=scale` to have the spacing grow with the crowd: about a third of the people in line (5 singers → 1 between repeats, 15 singers → 5).
 
 - Same name = same singer. Give two Susans different names ("Susan B", "Susan K").
 - It never moves the song that's on or the one in Up Next.
@@ -313,7 +332,7 @@ Any PNG or JPG hosted on the web works: point `logo=` (or `bgimg=`) at the image
 <details>
 <summary><b>How it works</b></summary>
 
-KaraFun's public remote page (`karafun.com/<code>/`) embeds a short-lived WebSocket address for the session. This page fetches that (KaraFun allows cross-origin reads), loads KaraFun's own `WebKCS` client from their CDN, and listens for `remote.QueueEvent` and `remote.StatusEvent` as a listener. Normally it only listens; the only thing it ever sends is a move-in-queue request (`remote.MoveInQueueRequest`), and only when [Equity mode](#equity-mode) is turned on. It names itself **KJQV** so it shows up clearly in KaraFun's list of connected guests. It reconnects on its own if Wi-Fi drops or KaraFun restarts.
+KaraFun's public remote page (`karafun.com/<code>/`) embeds a short-lived WebSocket address for the session. This page fetches that (KaraFun allows cross-origin reads), loads KaraFun's own `WebKCS` client from their CDN, and listens for `remote.QueueEvent` and `remote.StatusEvent` as a listener. Normally it only listens; the only thing it ever sends is a move-in-queue request (`remote.MoveInQueueRequest`), and only when [Equity mode](#equity-mode) or the banned-songs *move to the end* setting is turned on, plus a delete request (`remote.RemoveFromQueueRequest`) only when the experimental banned-songs *delete* setting is on. It names itself **KJQV** so it shows up clearly in KaraFun's list of connected guests. It reconnects on its own if Wi-Fi drops or KaraFun restarts.
 
 This relies on KaraFun's undocumented remote protocol, so a KaraFun update could break it.
 

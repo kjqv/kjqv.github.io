@@ -318,6 +318,22 @@
   #eqFlip.flipping { transform: perspective(120vh) rotateY(90deg); }
   body.qrboth.emptyq:not(.intermission) #eqFlip { display: block; }
   body.qrboth.emptyq:not(.intermission) #brand, body.qrboth.emptyq:not(.intermission) #brandQr { visibility: hidden; }
+  /* Banned songs: a tiny red dot on the TV (bottom-left) that only the KJ knows about */
+  #banDot { display: none; position: fixed; left: 1.2vh; bottom: 1.2vh; width: 1.3vh; height: 1.3vh; border-radius: 50%;
+    background: #ff2020; z-index: 50; }
+  body.banhit #banDot { display: block; }
+  /* KJ view (kj=on): a bar on top, a red alert listing banned songs, and BANNED on their rows */
+  #kjBar { display: none; position: fixed; left: 0; right: 0; top: 0; z-index: 9000; padding: .8vh 1.4vw; font-size: 1.8vh;
+    background: rgba(0,0,0,.75); color: #fff; letter-spacing: .04em; }
+  body.kj #kjBar { display: block; }
+  #kjHint { opacity: .6; margin-left: 1vw; }
+  #kjAlert { display: none; margin-top: .8vh; padding: 1vh 1.2vw; background: #c00018; border-radius: 1vh; font-size: 2.4vh; }
+  body.kjalert #kjAlert { display: block; }
+  #kjCtl { margin-left: 1.5vw; opacity: .8; } #kjCtl.ok { color: #6dff9a; } #kjCtl.bad { color: #ff6b6b; opacity: 1; font-weight: 700; }
+  #kjDeleted { display: none; margin-top: .8vh; padding: 1vh 1.2vw; background: #2b2a44; border-radius: 1vh; font-size: 2vh; }
+  body.kjdeleted #kjDeleted { display: block; }
+  #list .row.banned .who, #list .row.banned .what { color: #ff3b3b !important; text-decoration: line-through; }
+  #list .row.banned .num::after { content: "BANNED"; display: block; font-size: 1.4vh; color: #ff3b3b; letter-spacing: .1em; }
   #nextLabel { font-size: 4.4vh; font-weight: 800; letter-spacing: .24em; color: #ffc27a; }
   /* Coming up: fills the first column, then a second column, side by side */
   /* Gap and divider between the two big boxes and Coming Up */
@@ -493,6 +509,9 @@
 </div>
 
 <!-- Options (only shown when someone opens it) -->
+<div id="kjBar"><b>KJ VIEW</b> <span id="kjHint">Only you see this: banned songs and queue control</span> <span id="kjCtl"></span>
+  <div id="kjDeleted"></div>
+  <div id="kjAlert"><b>Banned song signed up:</b><div id="kjBanList"></div></div></div>
 <div id="opts" class="hidden" role="dialog" aria-label="Options"><div class="in">
   <h2>Options</h2>
   <div class="sub">Press a setting (or ‹ ›) to change it. Saved on this device and in the link.</div>
@@ -506,6 +525,7 @@
   <img id="brand" class="hidden" alt="">
   <img id="brandQr" class="hidden" alt="">
   <img id="eqFlip" alt="">
+  <div id="banDot" aria-hidden="true"></div>
   <div id="brandFx" class="hidden" aria-hidden="true"></div>
   <div id="clockFloat"></div>
   <div id="demoTag">PREVIEW · made-up sample queue · kjqv.github.io</div>
@@ -629,7 +649,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var CFG_KEY = "kqv.cfg";
   var cfg = {};
   try { cfg = JSON.parse(load(CFG_KEY) || "{}") || {}; } catch (e) { cfg = {}; }
-  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette", "flicker", "away", "spottime", "lite", "wipe", "nowtext", "nexttext", "comingtext", "noisetext", "thankstext", "thankssub", "emptytext", "signuptext", "lastcalltext", "musictext", "backtext"];
+  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette", "flicker", "away", "spottime", "lite", "wipe", "nowtext", "nexttext", "comingtext", "noisetext", "thankstext", "thankssub", "emptytext", "signuptext", "lastcalltext", "musictext", "backtext", "ban", "banalert", "banmove"];
   // A link with any look options replaces the saved look; a bare link (just code=) keeps it.
   // The preview never uses what this device saved.
   if (DEMO || OPTS.some(function (k) { return params.has(k); })) cfg = {};
@@ -809,6 +829,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     document.body.classList.toggle("twomics", String(cfg.mics || "") === "2");
     document.body.classList.toggle("micflicker", String(cfg.mic || "").toLowerCase() === "flicker");
     document.body.classList.toggle("nomic", off("mic"));
+    document.body.classList.toggle("kj", KJ);
+    setTimeout(showQueueControl, 0);
     document.body.classList.toggle("nextflicker", /^(on|yes|true|1)$/i.test(String(cfg.nextflicker || "")));
     document.body.classList.toggle("flourish", /^(on|yes|true|1)$/i.test(String(cfg.flourish || "")));
     document.body.classList.toggle("caps", !off("caps"));
@@ -1160,14 +1182,53 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     } catch (e) {}
   }
 
+  // ---------------------------------------------------------------- queue control (experimental)
+  // Equity mode and the banned-songs move/delete need KaraFun to let this screen manage the queue
+  // (in KaraFun Pro: Remote Control → Participants → make KJQV an admin). canManage: null = unknown, true/false once we know.
+  var canManage = null;
+  function wantsQueueControl() { return !!equityGap || /^(on|yes|1|true|delete)$/i.test(String(cfg.banmove || "")); }
+  function findKey(o, k, depth) {
+    if (!o || typeof o !== "object" || (depth || 0) > 6) return undefined;
+    if (Object.prototype.hasOwnProperty.call(o, k)) return o[k];
+    for (var x in o) { var v = findKey(o[x], k, (depth || 0) + 1); if (v !== undefined) return v; }
+    return undefined;
+  }
+  function setCanManage(v, why) {
+    if (v === canManage) return;
+    canManage = v;
+    if (window.console) console.log("KJQV queue control:", v, why || "");
+    showQueueControl();
+  }
+  function showQueueControl() {
+    var el = $("kjCtl"); if (!el) return;
+    if (!wantsQueueControl()) { el.textContent = ""; el.className = ""; return; }
+    if (DEMO) { el.className = ""; el.textContent = "Queue control: preview only, nothing real changes"; return; }
+    el.className = canManage === false ? "bad" : canManage ? "ok" : "";
+    el.textContent = canManage === false ? "Queue control: OFF. In KaraFun: Remote Control → Participants → make KJQV an admin"
+      : canManage ? "Queue control: on" : "Queue control: checking…";
+  }
+  function checkPermissions(c) {
+    if (client !== c || !wantsQueueControl()) return;
+    var p; try { p = c.send("remote.GetPermissionsRequest", {}); } catch (e) { p = null; }
+    if (p && p.then) p.then(function (r) {
+      if (window.console) console.log("KJQV permissions", r);
+      var role = String(findKey(r, "role") || "").toUpperCase(), mq = findKey(r, "manageQueue");
+      if (role === "ADMIN" || mq === true) setCanManage(true, "permissions");
+      else if (mq === false) setCanManage(false, "permissions");
+    }, function () {});
+  }
+  // A move or delete that works proves we have control; KaraFun refusing one proves we don't.
+  function queueActionResult(ok) { setCanManage(!!ok, ok ? "worked" : "refused"); }
+
   function startClient(url) {
     try { if (client && client.close) client.close(); } catch (e) {}
     var c = WebKCS.Client.fromAddress(url);
     client = c;
     c.setUrlProvider(freshUrl);
     c.setErrorHandler(function (e) { if (window.console) console.log("kcs error", e); });
-    c.addReadyHandler(function () { setPill("Live", false); nameSelf(c, 1); setAway(false); });
-    c.setReconnectHandler(function () { setPill("Live", false); nameSelf(c, 1); setAway(false); });
+    c.addReadyHandler(function () { setPill("Live", false); nameSelf(c, 1); setAway(false); setTimeout(function () { checkPermissions(c); }, 1500); });
+    c.setReconnectHandler(function () { setPill("Live", false); nameSelf(c, 1); setAway(false); setTimeout(function () { checkPermissions(c); }, 1500); });
+    c.addEventHandler("remote.PermissionsUpdateEvent", function () { checkPermissions(c); });
     c.setLostConnectionHandler(function () { setPill("Connection lost. Reconnecting…", true); });
     c.addCloseHandler(function (e) {
       if (client !== c) return;
@@ -1236,6 +1297,91 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function danceClass(sp) { return sp && sp.kind === "dance" && (sp.rainbow || danceRainbowDefault) ? "rainbow" : ""; }
   function danceStyle(sp) { return sp && sp.kind === "dance" && !danceClass(sp) ? "color:" + danceColor + ";text-shadow:0 0 1.2vh " + danceColor + "88" : ""; }
   function isBreakItem(item) { return !!specialOf(item); }
+
+  // ---------------------------------------------------------------- banned songs
+  // ban=Wonderwall, Mr. Brightside, Nickelback, Shallow - Lady Gaga
+  // Each entry is a song title or an artist (whole words, any case); "Title - Artist" for one version.
+  // The TV leaves banned songs out of the queue. kj=on (a KJ view, e.g. on your phone) shows them in red with an alert.
+  // banalert=off hides the TV's tiny red dot; banmove=on pushes banned songs to the end of the real KaraFun queue.
+  var KJ = /^(on|yes|1|true)$/i.test(params.get("kj") || "");
+  function normBan(t) { return " " + String(t || "").toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").trim() + " "; }
+  var BANS = String(cfg.ban || "").split(/[,;\n]+/).map(function (b) {
+    var parts = b.split(/\s+[-–—]\s+/);
+    return parts.length > 1 ? { t: normBan(parts[0]), a: normBan(parts.slice(1).join(" ")) } : { any: normBan(b) };
+  }).filter(function (b) { return (b.any || b.t || "").trim(); });
+  function isBanned(item) {
+    if (!BANS.length || !item || isBreakItem(item)) return false;
+    var s = item.song || {}, t = normBan(s.title), a = normBan(s.artist);
+    return BANS.some(function (b) {
+      if (b.any) return t.indexOf(b.any) >= 0 || a.indexOf(b.any) >= 0;
+      return t.indexOf(b.t) >= 0 && a.indexOf(b.a) >= 0;
+    });
+  }
+  // The queue as this screen shows it: banned songs left out (unless KaraFun already has one loaded, or this is the KJ view)
+  function shownQueue() {
+    if (KJ || !BANS.length) return queue;
+    return queue.filter(function (it) { return !isBanned(it) || (current && it.id === current.id); });
+  }
+  var banSeen = {};
+  function banBeep() { try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) {} }   // a buzz on phones that allow it, no sound
+  function banCheck() {
+    var hits = queue.filter(isBanned);
+    document.body.classList.toggle("banhit", !!hits.length && !KJ && !off("banalert"));
+    if (KJ) {
+      var fresh = hits.filter(function (it) { return !banSeen[it.id]; });
+      hits.forEach(function (it) { banSeen[it.id] = 1; });
+      $("kjBanList").innerHTML = hits.map(function (it) {
+        var x = info(it); return "<div>" + esc(x.singer || "Someone") + " · " + esc(x.title) + (x.artist ? " · " + esc(x.artist) : "") + "</div>";
+      }).join("");
+      document.body.classList.toggle("kjalert", !!hits.length);
+      if (fresh.length) banBeep();
+    }
+    banMoveSoon();
+  }
+  // banmove=on: move banned songs to the end of the real KaraFun queue (one move at a time)
+  // banmove=delete (experimental): delete them from KaraFun's queue. Never the song KaraFun has loaded.
+  var banMovePending = 0, banMoveFails = 0, banMoveTimer = null, banDeleted = [];
+  function banMoveSoon() {
+    var mode = String(cfg.banmove || "").toLowerCase();
+    var del = mode === "delete";
+    if (!(del || /^(on|yes|1|true)$/.test(mode)) || !BANS.length) return;
+    clearTimeout(banMoveTimer);
+    banMoveTimer = setTimeout(function () {
+      if (Date.now() < banMovePending || banMoveFails >= 3 || (!DEMO && canManage === false)) return;
+      var last = queue.length - 1, i;
+      for (i = 0; i <= last; i++) {
+        var it = queue[i];
+        if (!isBanned(it) || (current && it.id === current.id)) continue;
+        if (!del && queue.slice(i + 1).every(isBanned)) return;   // banned songs are already at the end
+        if (DEMO) {
+          queue.splice(i, 1);
+          if (del) noteDeleted(it); else queue.push(it);
+          render(); return;
+        }
+        if (!client) return;
+        banMovePending = Date.now() + 8000;
+        var pr;
+        try {
+          pr = del ? client.send("remote.RemoveFromQueueRequest", { queueItemId: String(it.id) })
+                   : client.send("remote.MoveInQueueRequest", { queueItemId: String(it.id), to: last });
+        } catch (e) { pr = null; }
+        (function (item) {
+          if (pr && pr.then) pr.then(function () { banMoveFails = 0; banMovePending = 0; queueActionResult(true); if (del) noteDeleted(item); },
+            function () { banMoveFails++; banMovePending = 0; queueActionResult(false); });
+        })(it);
+        return;
+      }
+    }, DEMO ? 300 : 1500);
+  }
+  function noteDeleted(it) {
+    var x = info(it);
+    banDeleted.unshift((x.singer || "Someone") + " · " + x.title + (x.artist ? " · " + x.artist : ""));
+    banDeleted = banDeleted.slice(0, 5);
+    var el = $("kjDeleted");
+    if (el) el.innerHTML = "<b>Deleted from KaraFun's queue:</b>" + banDeleted.map(function (t) { return "<div>" + esc(t) + "</div>"; }).join("");
+    document.body.classList.add("kjdeleted");
+    if (KJ) banBeep();
+  }
   function breakMins(item) { var sp = specialOf(item); return sp ? sp.mins : 0; }
 
   // Community tracks often carry uploader junk: "(username)", "(BJK!)", "[Karaoke]", "(SC)", "- - -".
@@ -1284,9 +1430,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
 
   function render() {
+    banCheck();
     // The current song is also the first queue item. Use status.current when we have it.
-    var cur = current || queue[0] || null;
-    var rest = queue.filter(function (it) { return !cur || it.id !== cur.id; });
+    var sq = shownQueue();
+    var cur = current || sq[0] || null;
+    var rest = sq.filter(function (it) { return !cur || it.id !== cur.id; });
 
     // Once the song is actually playing, the singer drops to the small green bar and the
     // next person takes the big spot. Before play is pressed, the loaded song's singer
@@ -1419,8 +1567,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     $("clock").textContent = c;
     $("clockFloat").textContent = c;
     $("clockFloat").classList.toggle("on", !!c);
-    var cur = current || queue[0] || null;
-    var rest = queue.filter(function (it) { return !cur || it.id !== cur.id; });
+    var sq = shownQueue();
+    var cur = current || sq[0] || null;
+    var rest = sq.filter(function (it) { return !cur || it.id !== cur.id; });
     var playing = !!cur && (playerState === 4 || playerState === 5) && !isBreakItem(cur);
     var t = now, curDur = durOf(cur) / (1 + (tempo || 0) / 100);
     if (isBreakItem(cur)) {
@@ -1596,7 +1745,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if (!off("title") && !off("songs")) bits.push(x.title);
       if (!off("artist") && !off("songs") && x.singer && x.artist) bits.push(x.artist);
       l.small = bits.join(SEP);
-      html += '<div class="row"><span class="num">' + num +
+      html += '<div class="row' + (KJ && isBanned(it) ? " banned" : "") + '"><span class="num">' + num +
         '</span><div class="cell"><div class="who' + (danceClass(specialOf(it)) ? " rainbow" : x.special === "lastcall" ? " lastcall" : (specialOf(it) && specialOf(it).kind === "brb") ? " brb" : "") + '" style="color:' + shade(i) + ";" + danceStyle(specialOf(it)) + '">' + esc(l.big) + '</div><div class="what mq">' + esc(l.small) + '</div></div><span class="eta" data-id="' + esc(String(it.id)) + '"></span></div>';
     });
     if (!items.length) html = '<div class="row openrow"><span class="num"></span><span class="who">' + esc(txt("emptytext", "Queue is empty")) + '</span><span class="what">' + esc(txt("signuptext", "Come sign up!")) + '</span></div>';
@@ -1920,7 +2069,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     eqTimer = setTimeout(equityStep, DEMO ? 300 : 1200);
   }
   function equityStep() {
-    if (!equityGap || eqPending || Date.now() < eqPausedUntil || queue.length < 3) return;
+    if (!equityGap || eqPending || Date.now() < eqPausedUntil || queue.length < 3 || (!DEMO && canManage === false)) return;
     var want = equityDesired(queue);
     for (var i = 0; i < queue.length; i++) {
       if (String(queue[i].id) === String(want[i].id)) continue;
@@ -1934,8 +2083,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       eqPending = { id: String(mover.id), to: i, at: Date.now() };
       var p;
       try { p = client.send("remote.MoveInQueueRequest", { queueItemId: String(mover.id), to: i }); } catch (e) { p = null; }
-      if (p && p.then) p.then(function () { eqFails = 0; }, function () {
-        eqPending = null; eqFails++;
+      if (p && p.then) p.then(function () { eqFails = 0; queueActionResult(true); }, function () {
+        eqPending = null; eqFails++; queueActionResult(false);
         if (eqFails >= 3) { eqPausedUntil = Date.now() + 10 * 60000; setPill("Equity mode: KaraFun won't let this screen reorder the queue", true); }
       });
       setTimeout(function () { if (eqPending && Date.now() - eqPending.at > 8000) eqPending = null; }, 9000);
@@ -2149,6 +2298,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["line", "Line under COMING UP", [["", "Off"], ["on", "On"]]],
     ["flourish", "Glowing COMING UP", [["", "Off"], ["on", "On"]]],
     ["drip", "Blood drips (goth)", [["", "Off"], ["on", "On"]]],
+    ["#", "Banned songs (list them in the Text tab)"],
+    ["banalert", "Red dot on the TV when one's signed up", [["", "On"], ["off", "Off"]]],
+    ["banmove", "Banned songs in KaraFun's own queue", [["", "Leave them"], ["on", "Move to the end"], ["delete", "Delete (experimental)"]]],
     ["#", "Old Fire Sticks"],
     ["lite", "Simple GFX mode (for old Fire Sticks)", [["", "Auto"], ["on", "On"], ["off", "Off"]]]
   ];
@@ -2168,7 +2320,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["qrtext", "QR code caption", "input", "SCAN TO SING"],
     ["lastcalltext", "Under LAST CALL", "input", "Get your drink orders in!"],
     ["musictext", "Music break", "input", "MUSIC BREAK"],
-    ["backtext", "Under Music break / Dance party", "input", "Karaoke's back soon"]
+    ["backtext", "Under Music break / Dance party", "input", "Karaoke's back soon"],
+    ["#", "Banned songs"],
+    ["ban", "Banned songs or artists (commas between)", "input", "Wonderwall, Mr. Brightside, Shallow - Lady Gaga"]
   ];
   var optTab = "settings";
   var ed = {};
@@ -2218,7 +2372,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     (optTab === "text" ? TEXT_ROWS : OPT_ROWS).forEach(function (row) {
       if (row[0] === "#") { html += '<div class="head">' + esc(row[1]) + '</div>'; return; }
       if (row[2] === "input") {
-        html += '<label class="row wide"><span>' + row[1] + '</span><input data-k="' + row[0] + '" maxlength="' + (/^(logo|bgimg)$/.test(row[0]) ? 500 : /^(now|next|coming)text$/.test(row[0]) ? 20 : 40) + '" type="' + (/^(logo|bgimg)$/.test(row[0]) ? "url" : "text") +
+        html += '<label class="row wide"><span>' + row[1] + '</span><input data-k="' + row[0] + '" maxlength="' + (/^(logo|bgimg|ban)$/.test(row[0]) ? 1000 : /^(now|next|coming)text$/.test(row[0]) ? 20 : 40) + '" type="' + (/^(logo|bgimg)$/.test(row[0]) ? "url" : "text") +
           '" placeholder="' + esc(row[3] || "") + '" value="' + esc(ed[row[0]] || "") + '"></label>';
         return;
       }
