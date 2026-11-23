@@ -477,7 +477,9 @@
     filter: drop-shadow(0 0 .5vh rgba(255,255,255,.6)); }
   body.flourish #nextLabel > span:first-child::before { transform: scaleX(-1); }
   /* weather=ZIP: local temperature and a little icon, next to the clock (TV only, not KJ mode) */
-  #weather { display: none; letter-spacing: .02em; color: var(--fg); opacity: .6; font-variant-numeric: tabular-nums; margin-right: 1.4em; }
+  #weather { display: none; letter-spacing: .02em; color: var(--fg); opacity: .6; font-variant-numeric: tabular-nums; }
+  #clock:not(:empty) + #weather.on::before { content: ""; display: inline-block; width: .12em; height: .8em; margin: 0 .7em; vertical-align: -.02em;
+    background: currentColor; opacity: .45; border-radius: .06em; }   /* a thin divider between the clock and the weather */
   #weather.on { display: inline; }
   body.kj #weather, body.demo #weather.demohide { display: none !important; }
   #clock { letter-spacing: .02em; color: var(--fg); opacity: .6; font-variant-numeric: tabular-nums; }
@@ -696,7 +698,7 @@
     <div id="empty" class="hidden"><svg class="emic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="2" width="7" height="12" rx="3.5"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/><path d="M8.5 22h7"/></svg><div class="ebig" id="eBig">Queue is empty</div><div class="esub" id="esub">Come sign up to sing!</div></div>
   </div>
   <div id="nextWrap">
-    <div id="nextLabel"><span id="comingText">COMING UP</span><span class="cw"><span id="weather" aria-hidden="true"></span><span id="clock"></span></span></div>
+    <div id="nextLabel"><span id="comingText">COMING UP</span><span class="cw"><span id="clock"></span><span id="weather" aria-hidden="true"></span></span></div>
     <div id="list"></div>
     <div id="more"></div>
   </div>
