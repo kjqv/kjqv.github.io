@@ -57,7 +57,7 @@ The first time you open the page, it asks for the 6-digit **remote control code*
 
 - The code is saved only in that device's browser. It only appears on the screen if you turn on `qr=on`, which shows the same join QR code KaraFun gives your guests.
 - There's no account, no sign-up, no ads, no tracking, and no server of mine collecting anything. The whole app is one web page.
-- The page talks directly to KaraFun. The only other things it loads are your logo (from wherever you host it), a Google Font if you pick one, and its own page from GitHub to check for updates.
+- The page talks directly to KaraFun. The only other things it loads are your logo (from wherever you host it), a Google Font if you pick one, its own page from GitHub to check for updates, and, only if you turn on weather, [Open-Meteo](https://open-meteo.com) (free, no account) with your ZIP code's location.
 - By default it only **reads** the queue and never changes it: it doesn't add, remove or reorder songs, and it can't touch your KaraFun account or billing. The two exceptions, both off unless you turn them on, are [Equity mode](#equity-mode) (experimental), which moves songs around to space out repeat singers, and the [banned songs](#banned-songs) setting (experimental) for KaraFun's own queue, which can move banned songs to the end or (experimental) **delete** them. Nothing else ever adds, removes or reorders songs. It shows up as **KJQV** in KaraFun's list of connected guests.
 - It's open source: everything is in one file, [index.html](index.html), that anyone can read.
 
@@ -120,7 +120,8 @@ Anything you don't set uses the defaults: no logo, a deep purple-to-blue backgro
 | `long` | Song lines too long to fit: `alternate` (default, title and artist take turns), `top` (slides sideways in Now Singing and Up Next, takes turns in Coming Up) or `scroll` (slides sideways everywhere) | `long=scroll` |
 | `caps` | Singer names in capitals (on by default); `off` shows names as typed | `caps=off` |
 | `numbers` | `off` hides the place numbers in Coming Up | `numbers=off` |
-| `line` | `on` adds a line under COMING UP (the clock sits above it) | `line=on` |
+| `line` | The line under COMING UP (on by default; it fades out before the clock and weather). `off` hides it | `line=off` |
+| `weather` | A US ZIP code: shows the local temperature (°F) and a little weather icon next to the clock, updated every 15 minutes. TV screen only | `weather=28714` |
 | `bgimg` | A wallpaper behind everything: a direct link to a PNG or JPG (darkened a little so names stay readable) | `bgimg=https://i.imgur.com/abc123.jpg` |
 | `pattern` | A faint tiled pattern over the background: `crosses`, `petrine` (black upside-down crosses), `tinycrosses` (tiny upside-down crosses), `mics`, `notes`, `trees` (little Christmas tree outlines) or `houndstooth` | `pattern=notes` |
 | `scroll` | `on` makes the background pattern drift upward forever (`down` for downward; on by default in goth, `off` to stop it) | `scroll=on` |
