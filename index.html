@@ -337,6 +337,7 @@
   #kjPage .exp { display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: .1em; color: #ffcf5a; border: 1px solid #ffcf5a; border-radius: 4px;
     padding: 1px 5px; margin-left: 6px; vertical-align: 3px; }
   #kjPage .st { font-size: 13px; opacity: .7; margin-top: 4px; }
+  #kjConn.ok { color: #6dff9a; } #kjConn.wait { color: #ffcf5a; } #kjConn.bad { color: #ff7b7b; }
   #kjCtl.ok { color: #6dff9a; } #kjCtl.bad { color: #ff7b7b; font-weight: 700; }
   #kjPage header button { font-size: 14px; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); }
   #kjAlert, #kjDeleted { display: none; margin-top: 12px; padding: 12px 14px; border-radius: 10px; font-size: 15px; line-height: 1.4; }
@@ -356,6 +357,7 @@
   #kjPage .tag { font-size: 10px; font-weight: 800; letter-spacing: .1em; color: #ff6b6b; border: 1px solid #ff6b6b; border-radius: 4px; padding: 1px 5px; flex: none; }
   #kjPage .now { padding: 12px 14px; border-radius: 10px; background: rgba(0,229,255,.08); border: 1px solid rgba(0,229,255,.3); }
   #kjPage .now .who { font-size: 22px; font-weight: 800; color: #5ef0ff; }
+  body.caps #kjPage .now .who { text-transform: uppercase; letter-spacing: .02em; }   /* follows the Names setting */
   #kjPage .now .what { font-size: 15px; opacity: .75; margin-top: 2px; }
   #kjPage .now .top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
   #kjPage .now .kbar { height: 4px; border-radius: 2px; background: rgba(94,240,255,.15); margin-top: 10px; overflow: hidden; }
@@ -563,7 +565,7 @@
 <!-- Options (only shown when someone opens it) -->
 <div id="kjPage"><div class="in">
   <header><div class="hd"><div class="t"><span class="nm">KJQV <span class="sep">|</span> KJ MODE</span><span class="exp">EXPERIMENTAL</span></div>
-    <div class="st"><span id="kjConn"></span><span id="kjCtlSep"></span><span id="kjCtl"></span></div></div>
+    <div class="st"><span id="kjConn" class="wait">○ Connecting to KaraFun…</span><span id="kjCtlSep"></span><span id="kjCtl"></span></div></div>
     <button id="kjOpts">Options</button></header>
   <div id="kjAlert"><b>Banned song signed up</b><div id="kjBanList"></div></div>
   <div id="kjDeleted"></div>
@@ -895,6 +897,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     document.body.classList.toggle("kj", KJ);
     document.body.classList.toggle("kjctl", KJ && /^(on|yes|1|true)$/i.test(String(cfg.kjcontrols || "")));
     if ($("kjOpts")) $("kjOpts").onclick = function () { openOpts(); };
+    if (DEMO && $("kjConn")) $("kjConn").textContent = "";
     setTimeout(showQueueControl, 0);
     document.body.classList.toggle("nextflicker", /^(on|yes|true|1)$/i.test(String(cfg.nextflicker || "")));
     document.body.classList.toggle("flourish", /^(on|yes|true|1)$/i.test(String(cfg.flourish || "")));
@@ -2110,7 +2113,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 
   var pillTimer = null;
   function setPill(text, bad) {
-    var kc = $("kjConn"); if (kc && !DEMO) { kc.textContent = text; kc.style.color = bad ? "#ff7b7b" : ""; }
+    // KJ mode: say plainly whether we're connected to the KaraFun queue (Equity's own message isn't about the connection)
+    var kc = $("kjConn");
+    if (kc && !DEMO && !/^Equity/.test(text)) {
+      var live = text === "Live";
+      kc.textContent = live ? "● Connected to KaraFun" : (bad ? "● " : "○ ") + text;
+      kc.className = live ? "ok" : bad ? "bad" : "wait";
+      if ($("kjCtlSep") && $("kjCtl").textContent) $("kjCtlSep").textContent = " · ";
+    }
     var p = $("pill");
     p.textContent = text;
     p.classList.toggle("bad", !!bad);
