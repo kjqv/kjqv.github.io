@@ -1879,7 +1879,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         '</div>' + (isBreakItem(cur) ? "" : kjBadges(cur, true)) + '<div class="kbar"><i id="kjBar"></i></div></div>';
       $("kjNowCard").setAttribute("data-edit", isBreakItem(cur) ? "" : String(cur.id));
     } else $("kjNow").innerHTML = '<div class="empty">Nobody right now</div>';
-    var rest = queue.filter(function (it) { return !cur || it.id !== cur.id; });
+    var rest = queue.filter(function (it) {
+      if (cur && it.id === cur.id) return false;
+      var sp = specialOf(it); return !(sp && (sp.kind === "dance" || sp.kind === "lastcall"));   // DANCE PARTY / LAST CALL are for the crowd
+    });
     var n = 0;
     $("kjQueue").innerHTML = rest.length ? rest.map(function (it) { return row(it, isBreakItem(it) ? "" : ++n); }).join("") : '<div class="empty">Queue is empty</div>';
     $("kjCount").textContent = n ? "· " + n + (n === 1 ? " singer" : " singers") : "";
