@@ -1879,9 +1879,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     function row(it, n) {
       var x = info(it), brk = isBreakItem(it), ban = isBanned(it);
       if (brk) {   // breaks: one big centered line with when it starts
-        var sp = specialOf(it), lbl = sp.kind === "brb" ? (sp.mins ? sp.mins + " min break" : "Short break") : sp.kind === "dance" ? "Dance party" + (sp.mins ? " · " + sp.mins + " min" : "")
+        var sp = specialOf(it), lbl = sp.kind === "brb" ? (sp.mins ? sp.mins + " min break" : "Short break") : sp.kind === "dance" ? "Dance party"
           : sp.kind === "lastcall" ? "Last call" : (sp.mins ? sp.mins + " min break" : "Break");
-        return '<div class="r brk"><span class="bl">' + esc(lbl) + '</span><span class="ke" data-id="' + esc(String(it.id)) + '"></span></div>';
+        return '<div class="r brk"><span class="bl">' + esc(lbl) + '</span>' + (sp.kind === "lastcall" ? '<span class="ke" data-id="' + esc(String(it.id)) + '"></span>' : "") + '</div>';   // only LAST CALL shows when
       }
       var what = brk ? (x.title || "") : [x.title, x.artist].filter(Boolean).join(" · ");
       return '<div class="r' + (brk ? " brk" : "") + (ban ? " ban" : "") + '"' + (brk ? "" : ' data-edit="' + esc(String(it.id)) + '"') + '><span class="n">' + (n || "") + '</span><div class="w"><div class="who">' +
