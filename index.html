@@ -408,6 +408,10 @@
   #kjSheetAT { width: 100%; margin-top: 10px; padding: 11px; font-size: 15px; font-weight: 800; border-radius: 10px; color: #fff;
     border: 1px solid rgba(57,255,106,.5); background: rgba(57,255,106,.08); }
   #kjSheetAT.on { background: #39ff6a; color: #052b10; }
+  #kjSheetAlways { width: 100%; margin-top: 6px; padding: 8px; font-size: 13px; font-weight: 600; border-radius: 8px; color: rgba(255,255,255,.75);
+    border: 1px dashed rgba(57,255,106,.4); background: none; }
+  #kjSheetAlways.on { color: #39ff6a; border-style: solid; }
+  #kjSheetAlways:disabled { opacity: .6; }
   #kjSheet .note { font-size: 12px; opacity: .5; margin-top: 8px; }
   body:not(.kjctl) #kjSheet .ctl, body.kjctl #kjSheet .noctl { display: none; }
   #kjSheet .acts { display: flex; gap: 10px; margin-top: 14px; }
@@ -605,7 +609,7 @@
     <label class="f ctl"><span>Singer</span><input id="kjSheetName" type="text" maxlength="60"></label>
     <div class="f ctl"><span>Key</span><button id="kjKeyDn">−</button><b id="kjSheetKey"></b><button id="kjKeyUp">+</button></div>
     <div class="f ctl"><span>Tempo</span><button id="kjTmpDn">−</button><b id="kjSheetTempo"></b><button id="kjTmpUp">+</button></div>
-    <button id="kjSheetAT"></button>
+    <button id="kjSheetAT"></button><button id="kjSheetAlways"></button>
     <div class="note ctl">Name, key and tempo change the signup in KaraFun (experimental).</div>
     <div class="note noctl">Turn on KJ controls in Options to change the name, key or tempo here.</div>
     <div class="acts"><button id="kjSheetCancel">Cancel</button><button id="kjSheetSave">Save</button></div></div>
@@ -750,7 +754,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var CFG_KEY = "kqv.cfg";
   var cfg = {};
   try { cfg = JSON.parse(load(CFG_KEY) || "{}") || {}; } catch (e) { cfg = {}; }
-  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette", "flicker", "away", "spottime", "lite", "wipe", "nowtext", "nexttext", "comingtext", "noisetext", "thankstext", "thankssub", "emptytext", "signuptext", "lastcalltext", "musictext", "backtext", "ban", "banalert", "banmove", "kjcontrols", "keys"];
+  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette", "flicker", "away", "spottime", "lite", "wipe", "nowtext", "nexttext", "comingtext", "noisetext", "thankstext", "thankssub", "emptytext", "signuptext", "lastcalltext", "musictext", "backtext", "ban", "banalert", "banmove", "kjcontrols", "keys", "autotune"];
   // A link with any look options replaces the saved look; a bare link (just code=) keeps it.
   // The preview never uses what this device saved.
   if (DEMO || OPTS.some(function (k) { return params.has(k); })) cfg = {};
@@ -1649,6 +1653,16 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   // Original keys come from KaraFun's song info (the same lookup as song lengths); pitch is how many half steps it's moved.
   var kjPitch = 0, kjEdit = null;
   var kjAT = {}; try { kjAT = JSON.parse(localStorage.getItem("kqv.autotune") || "{}") || {}; } catch (e) {}
+  // Singers who always want autotune: from Options (Text tab, autotune=) plus ones flagged "always" on this phone
+  var kjATNames = {}; try { kjATNames = JSON.parse(localStorage.getItem("kqv.atnames") || "{}") || {}; } catch (e) {}
+  function nameKey(n) { return String(n || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); }
+  String(cfg.autotune || "").split(/[,;\n]+/).forEach(function (n) { if (nameKey(n)) kjATNames[nameKey(n)] = 2; });   // 2 = from Options
+  function alwaysAT(it) { var x = info(it); return !!(x && x.singer && kjATNames[nameKey(x.singer)]); }
+  function isAT(it) { return !!kjAT[it.id] || alwaysAT(it); }
+  function saveATNames() {
+    var mine = {}; for (var k in kjATNames) if (kjATNames[k] === 1) mine[k] = 1;
+    try { localStorage.setItem("kqv.atnames", JSON.stringify(mine)); } catch (e) {}
+  }
   function saveAT() {   // keep only flags for songs still in the queue
     var keep = {}; queue.forEach(function (it) { if (kjAT[it.id]) keep[it.id] = 1; }); kjAT = keep;
     try { localStorage.setItem("kqv.autotune", JSON.stringify(kjAT)); } catch (e) {}
@@ -1673,7 +1687,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function songKey(it) { var k = durKey(it); return k === null ? "" : (keyCache[k] || ""); }
   function kjBadges(it, live, wantKey) {
     var keyOnly = "";
-    var o = optsOf(it, live), at = !!kjAT[it.id], h = "", k = songKey(it);
+    var o = optsOf(it, live), at = isAT(it), h = "", k = songKey(it);
     // Key: C (original), or C → Bb (−2) when it's been moved
     k = k && (transpose(k, 0) || k);
     var kt = k ? (o.pitch ? k + " → " + transpose(k, o.pitch) + " (" + signed(o.pitch) + ")" : k) : (o.pitch ? signed(o.pitch) : at ? "Original" : "");
@@ -1688,7 +1702,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var it = null; queue.concat(current ? [current] : []).forEach(function (q) { if (String(q.id) === String(id)) it = q; });
     if (!it || isBreakItem(it)) return;
     var live = !!current && String(current.id) === String(id), o = optsOf(it, live), x = info(it);
-    kjEdit = { id: it.id, live: live, singer: x.singer || "", pitch: o.pitch, tempo: o.tempo, at: !!kjAT[it.id], item: it, orig: o, origSinger: x.singer || "" };
+    kjEdit = { id: it.id, live: live, singer: x.singer || "", pitch: o.pitch, tempo: o.tempo, at: !!kjAT[it.id] || alwaysAT(it),
+      always: alwaysAT(it), fromOpts: kjATNames[nameKey(x.singer)] === 2, item: it, orig: o, origSinger: x.singer || "" };
     $("kjSheetT").textContent = [x.title, x.artist].filter(Boolean).join(" - ");
     $("kjSheetName").value = kjEdit.singer;
     document.body.classList.add("kjsheet");
@@ -1701,6 +1716,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     $("kjSheetTempo").textContent = kjEdit.tempo ? signed(kjEdit.tempo) + "%" : "Normal";
     $("kjSheetAT").classList.toggle("on", kjEdit.at);
     $("kjSheetAT").textContent = kjEdit.at ? "Autotune: ON" : "Autotune: off";
+    var nm = $("kjSheetName").value.trim() || kjEdit.singer;
+    $("kjSheetAlways").classList.toggle("on", kjEdit.always);
+    $("kjSheetAlways").disabled = !nm || kjEdit.fromOpts;
+    $("kjSheetAlways").textContent = kjEdit.fromOpts ? "Always autotune for " + nm + " (set in Options)" : (kjEdit.always ? "✓ " : "") + "Always autotune for " + (nm || "this singer");
   }
   function kjCloseEdit() { kjEdit = null; document.body.classList.remove("kjsheet"); }
   if (KJ) {
@@ -1711,7 +1730,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     function step(k, d, lo, hi) { return function () { if (!kjEdit) return; kjEdit[k] = Math.max(lo, Math.min(hi, kjEdit[k] + d)); kjDrawEdit(); }; }
     $("kjKeyDn").onclick = step("pitch", -1, -12, 12); $("kjKeyUp").onclick = step("pitch", 1, -12, 12);
     $("kjTmpDn").onclick = step("tempo", -5, -50, 50); $("kjTmpUp").onclick = step("tempo", 5, -50, 50);
-    $("kjSheetAT").onclick = function () { if (kjEdit) { kjEdit.at = !kjEdit.at; kjDrawEdit(); } };
+    $("kjSheetAT").onclick = function () { if (kjEdit) { kjEdit.at = !kjEdit.at; if (!kjEdit.at && !kjEdit.fromOpts) kjEdit.always = false; kjDrawEdit(); } };
+    $("kjSheetAlways").onclick = function () { if (kjEdit && !kjEdit.fromOpts) { kjEdit.always = !kjEdit.always; if (kjEdit.always) kjEdit.at = true; kjDrawEdit(); } };
     $("kjSheetCancel").onclick = kjCloseEdit;
     $("kjSheetBg").onclick = kjCloseEdit;
     $("kjSheetSave").onclick = function () {
@@ -1719,6 +1739,12 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       E.singer = $("kjSheetName").value.trim().slice(0, 60);
       if (E.at) kjAT[E.id] = 1; else delete kjAT[E.id];
       saveAT();
+      if (!E.fromOpts) {
+        var nk = nameKey(E.singer || E.origSinger), ok = nameKey(E.origSinger);
+        if (ok && kjATNames[ok] === 1) delete kjATNames[ok];
+        if (E.always && nk) kjATNames[nk] = 1;
+        saveATNames();
+      }
       var ctl = document.body.classList.contains("kjctl");
       var changed = E.singer !== E.origSinger || E.pitch !== E.orig.pitch || E.tempo !== E.orig.tempo;
       if (ctl && changed) {
@@ -2474,7 +2500,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var o = { singer: d[0] }; if (d[3]) o.pitch = d[3]; if (d[4]) o.tempo = d[4];
     var real = DEMO_INFO[d[1]];                                // real key and length from KaraFun's song pages
     if (real) { if (real[0]) keyCache[id] = real[0]; durCache[id] = real[1]; }
-    if (d[5] === "at") kjAT["demo" + id] = 1;                // demo: one singer flagged for autotune
+    if (d[5] === "at") kjATNames[nameKey(d[0])] = 3;           // demo: one singer who always wants autotune (never saved)
     return { id: "demo" + id, song: { id: { type: 1, id: id }, title: d[1], artist: d[2], options: o } };
   }
   // The demo only plays the last minute of each song so it keeps moving; the times still use the full length
@@ -2685,7 +2711,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["musictext", "Music break", "input", "MUSIC BREAK"],
     ["backtext", "Under Music break / Dance party", "input", "Karaoke's back soon"],
     ["#", "Banned songs (experimental)"],
-    ["ban", "Banned songs or artists (commas between)", "input", "Wonderwall, Mr. Brightside, Shallow - Lady Gaga"]
+    ["ban", "Banned songs or artists (commas between)", "input", "Wonderwall, Mr. Brightside, Shallow - Lady Gaga"],
+    ["#", "KJ mode (experimental)"],
+    ["autotune", "Singers who always want autotune (commas between)", "input", "Tony, Big Mike"]
   ];
   var optTab = "settings";
   var ed = {};
@@ -2735,7 +2763,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     (optTab === "text" ? TEXT_ROWS : OPT_ROWS).forEach(function (row) {
       if (row[0] === "#") { html += '<div class="head">' + esc(row[1]) + '</div>'; return; }
       if (row[2] === "input") {
-        html += '<label class="row wide"><span>' + row[1] + '</span><input data-k="' + row[0] + '" maxlength="' + (/^(logo|bgimg|ban)$/.test(row[0]) ? 1000 : /^(now|next|coming)text$/.test(row[0]) ? 20 : 40) + '" type="' + (/^(logo|bgimg)$/.test(row[0]) ? "url" : "text") +
+        html += '<label class="row wide"><span>' + row[1] + '</span><input data-k="' + row[0] + '" maxlength="' + (/^(logo|bgimg|ban|autotune)$/.test(row[0]) ? 1000 : /^(now|next|coming)text$/.test(row[0]) ? 20 : 40) + '" type="' + (/^(logo|bgimg)$/.test(row[0]) ? "url" : "text") +
           '" placeholder="' + esc(row[3] || "") + '" value="' + esc(ed[row[0]] || "") + '"></label>';
         return;
       }
