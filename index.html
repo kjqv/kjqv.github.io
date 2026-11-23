@@ -749,7 +749,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var CFG_KEY = "kqv.cfg";
   var cfg = {};
   try { cfg = JSON.parse(load(CFG_KEY) || "{}") || {}; } catch (e) { cfg = {}; }
-  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette", "flicker", "away", "spottime", "lite", "wipe", "nowtext", "nexttext", "comingtext", "noisetext", "thankstext", "thankssub", "emptytext", "signuptext", "lastcalltext", "musictext", "backtext", "ban", "banalert", "banmove", "kjcontrols"];
+  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette", "flicker", "away", "spottime", "lite", "wipe", "nowtext", "nexttext", "comingtext", "noisetext", "thankstext", "thankssub", "emptytext", "signuptext", "lastcalltext", "musictext", "backtext", "ban", "banalert", "banmove", "kjcontrols", "keys"];
   // A link with any look options replaces the saved look; a bare link (just code=) keeps it.
   // The preview never uses what this device saved.
   if (DEMO || OPTS.some(function (k) { return params.has(k); })) cfg = {};
@@ -1660,14 +1660,20 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   // Move a key like "Bb" or "F#m" by some half steps: transpose("C", -2) → "Bb"
   var NOTES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"];
   var NOTE_IX = { C: 0, "C#": 1, Db: 1, D: 2, "D#": 3, Eb: 3, E: 4, Fb: 4, "E#": 5, F: 5, "F#": 6, Gb: 6, G: 7, "G#": 8, Ab: 8, A: 9, "A#": 10, Bb: 10, B: 11, Cb: 11 };
+  // keys=sharp shows every key with sharps (C#, F#m), keys=flat with flats (Db, Gbm); default: the way KaraFun lists them
+  var SHARPS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"], FLATS = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+  var keyStyle = String(cfg.keys || "").toLowerCase();
   function transpose(key, n) {
     var m = /^([A-G](?:#|b)?)(.*)$/.exec(String(key || "").trim()); if (!m || NOTE_IX[m[1]] === undefined) return "";
-    return NOTES[((NOTE_IX[m[1]] + n) % 12 + 12) % 12] + m[2];
+    var i = ((NOTE_IX[m[1]] + n) % 12 + 12) % 12;
+    var names = keyStyle === "sharp" ? SHARPS : keyStyle === "flat" ? FLATS : (n === 0 ? null : NOTES);
+    return (names ? names[i] : m[1]) + m[2];
   }
   function songKey(it) { var k = durKey(it); return k === null ? "" : (keyCache[k] || ""); }
   function kjBadges(it, live) {
     var o = optsOf(it, live), at = !!kjAT[it.id], h = "", k = songKey(it);
     // Key: C (original), or C → Bb (−2) when it's been moved
+    k = k && (transpose(k, 0) || k);
     var kt = k ? (o.pitch ? k + " → " + transpose(k, o.pitch) + " (" + signed(o.pitch) + ")" : k) : (o.pitch ? signed(o.pitch) : at ? "Original" : "");
     if (kt) h += '<span class="b key' + (o.pitch ? " moved" : "") + (at ? " at" : "") + '">Key ' + esc(kt) + "</span>";
     if (o.tempo) h += '<span class="b">Tempo ' + signed(o.tempo) + "%</span>";
@@ -1687,7 +1693,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
   function kjDrawEdit() {
     if (!kjEdit) return;
-    var k = songKey(kjEdit.item);
+    var k = songKey(kjEdit.item); k = k && (transpose(k, 0) || k);
     $("kjSheetKey").textContent = k ? (kjEdit.pitch ? k + " → " + transpose(k, kjEdit.pitch) + " (" + signed(kjEdit.pitch) + ")" : k + " (original)") : (kjEdit.pitch ? signed(kjEdit.pitch) : "Original");
     $("kjSheetTempo").textContent = kjEdit.tempo ? signed(kjEdit.tempo) + "%" : "Normal";
     $("kjSheetAT").classList.toggle("on", kjEdit.at);
@@ -2653,6 +2659,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["banalert", "Red dot on the TV when one's signed up", [["", "On"], ["off", "Off"]]],
     ["banmove", "Banned songs in KaraFun's own queue", [["", "Leave them"], ["on", "Move to the end"], ["delete", "Delete (experimental)"]]],
     ["kjcontrols", "KJ view: play, skip, restart and levels", [["", "Off"], ["on", "On (experimental)"]]],
+    ["keys", "KJ view: show keys as", [["", "KaraFun's way"], ["sharp", "Sharps (C#, F#m)"], ["flat", "Flats (Db, Gbm)"]]],
     ["#", "Old Fire Sticks"],
     ["lite", "Simple GFX mode (for old Fire Sticks)", [["", "Auto"], ["on", "On"], ["off", "Off"]]]
   ];
