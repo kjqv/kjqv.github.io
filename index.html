@@ -1717,9 +1717,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var o = optsOf(it, live), at = isAT(it), h = "", k = songKey(it);
     // Key: C (original), or C → Bb (−2) when it's been moved
     k = k && (transpose(k, 0) || k);
-    var kt = k ? (o.pitch ? k + " → " + transpose(k, o.pitch) + " (" + signed(o.pitch) + ")" : k) : (o.pitch ? signed(o.pitch) + " from original" : at ? "unknown" : "");   // autotune always gets a key tag, even when KaraFun has no key
-    if (kt) keyOnly = '<span class="b key' + (o.pitch ? " moved" : "") + (at ? " at" : "") + '">Key ' + esc(kt) + "</span>";
-    if (wantKey) return (at ? '<span class="b at">AUTOTUNE</span>' : "") + keyOnly ? '<div class="kr">' + (at ? '<span class="b at">AUTOTUNE</span>' : "") + keyOnly + "</div>" : "";
+    var kt = k ? (o.pitch ? k + " → " + transpose(k, o.pitch) + " (" + signed(o.pitch) + ")" : k) : (o.pitch ? signed(o.pitch) + " from original" : at ? "Key ?" : "");   // autotune always gets a key tag, even when KaraFun has no key
+    if (kt) keyOnly = '<span class="b key' + (o.pitch ? " moved" : "") + (at ? " at" : "") + '">' + esc(kt) + "</span>";
+    var autoTag = at ? '<span class="b at" title="Autotune">AUTO</span>' : "";
+    if (wantKey) return autoTag || keyOnly ? '<div class="kr">' + autoTag + keyOnly + "</div>" : "";
     if (o.tempo) h += '<span class="b">Tempo ' + signed(o.tempo) + "%</span>";
     var ek = durKey(it); if (ek !== null && explicitCache[ek]) h += '<span class="b ex">EXPLICIT</span>';
     return h ? '<div class="bs">' + h + "</div>" : "";
