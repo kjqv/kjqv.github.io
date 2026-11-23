@@ -200,10 +200,9 @@
   /* goth: UP NEXT softly glows (nextflicker=on swaps this for the flicker) */
   @keyframes labelglow { 0%, 100% { text-shadow: 0 0 .6vh rgba(var(--next),.25); } 50% { text-shadow: 0 0 2.2vh rgba(var(--next),.7); } }
   body.gothspot:not(.nextflicker) #nextLabelText { animation: labelglow 3.4s ease-in-out infinite; }
-  /* The line under COMING UP (line=off hides it). It fades out before the clock and weather, leaving them room. */
+  /* The line under COMING UP, all the way across (line=off hides it) */
   body.rule #nextLabel { border-bottom: .3vh solid rgba(255,255,255,.3); padding-bottom: .8vh; }
   /* with a logo, the line fades out before it reaches the logo's corner */
-  body.rule #nextLabel { border-image: linear-gradient(to right, rgba(255,255,255,.3) 0, rgba(255,255,255,.3) calc(100% - var(--cww, 0px) - 6vh), rgba(255,255,255,0) calc(100% - var(--cww, 0px) - 1.5vh)) 1; }
   /* font=space: arcade pixel font with an RGB split */
   body.rgbfont #nowBarName, body.rgbfont #heroName, body.rgbfont .who, body.rgbfont .boxLabel, body.rgbfont #nextLabel,
   body.rgbfont #breakMsg { text-shadow: -.07em 0 rgba(255,0,70,.75), .07em 0 rgba(0,210,255,.75) !important; }
@@ -2088,7 +2087,6 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var c = clockOn ? hhmm(now, true) : "";
     $("clock").textContent = c;
     $("clockFloat").textContent = c;
-    var cw = document.querySelector("#nextLabel .cw"); if (cw) document.body.style.setProperty("--cww", (cw.textContent.trim() ? cw.offsetWidth : 0) + "px");
     $("clockFloat").classList.toggle("on", !!c);
     var sq = shownQueue(true);
     var cur = current || sq[0] || null;

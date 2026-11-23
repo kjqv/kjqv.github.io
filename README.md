@@ -120,7 +120,7 @@ Anything you don't set uses the defaults: no logo, a deep purple-to-blue backgro
 | `long` | Song lines too long to fit: `alternate` (default, title and artist take turns), `top` (slides sideways in Now Singing and Up Next, takes turns in Coming Up) or `scroll` (slides sideways everywhere) | `long=scroll` |
 | `caps` | Singer names in capitals (on by default); `off` shows names as typed | `caps=off` |
 | `numbers` | `off` hides the place numbers in Coming Up | `numbers=off` |
-| `line` | The line under COMING UP (on by default; it fades out before the clock and weather). `off` hides it | `line=off` |
+| `line` | The line under COMING UP, all the way across (on by default). `off` hides it | `line=off` |
 | `weather` | A US ZIP code: shows the local temperature (°F) and a little weather icon next to the clock, updated every 15 minutes. TV screen only | `weather=28714` |
 | `bgimg` | A wallpaper behind everything: a direct link to a PNG or JPG (darkened a little so names stay readable) | `bgimg=https://i.imgur.com/abc123.jpg` |
 | `pattern` | A faint tiled pattern over the background: `crosses`, `petrine` (black upside-down crosses), `tinycrosses` (tiny upside-down crosses), `mics`, `notes`, `trees` (little Christmas tree outlines) or `houndstooth` | `pattern=notes` |
