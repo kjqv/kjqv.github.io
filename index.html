@@ -359,7 +359,7 @@
   #kjPage .now .who { font-size: 22px; font-weight: 800; color: #5ef0ff; }
   body.caps #kjPage .now .who { text-transform: uppercase; letter-spacing: .02em; }   /* follows the Names setting */
   #kjPage .now .what { font-size: 15px; opacity: .75; margin-top: 2px; }
-  #kjPage .now .top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  #kjPage .now .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
   #kjPage .now .kbar { height: 4px; border-radius: 2px; background: rgba(94,240,255,.15); margin-top: 10px; overflow: hidden; }
   #kjPage .now .kbar i { display: block; height: 100%; width: 0; background: #5ef0ff; border-radius: 2px; transition: width 1s linear; }
   #kjPage .now.ending { animation: kjend 1s ease-in-out infinite; }
@@ -387,6 +387,7 @@
   #kjVols input { flex: 1; min-width: 0; accent-color: #5ef0ff; height: 22px; }
   #kjCtrlMsg { font-size: 13px; color: #ff7b7b; min-height: 0; margin-top: 4px; }
   #kjAlert .sep { opacity: .5; }
+  #kjPage .rt { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
   #kjPage .bs { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
   #kjPage .b { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 5px; background: rgba(255,255,255,.1); color: #fff; letter-spacing: .02em; }
   #kjPage .b.key { background: rgba(255,255,255,.08); color: rgba(255,255,255,.75); }
@@ -1670,12 +1671,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     return (names ? names[i] : m[1]) + m[2];
   }
   function songKey(it) { var k = durKey(it); return k === null ? "" : (keyCache[k] || ""); }
-  function kjBadges(it, live) {
+  function kjBadges(it, live, wantKey) {
+    var keyOnly = "";
     var o = optsOf(it, live), at = !!kjAT[it.id], h = "", k = songKey(it);
     // Key: C (original), or C → Bb (−2) when it's been moved
     k = k && (transpose(k, 0) || k);
     var kt = k ? (o.pitch ? k + " → " + transpose(k, o.pitch) + " (" + signed(o.pitch) + ")" : k) : (o.pitch ? signed(o.pitch) : at ? "Original" : "");
-    if (kt) h += '<span class="b key' + (o.pitch ? " moved" : "") + (at ? " at" : "") + '">Key ' + esc(kt) + "</span>";
+    if (kt) keyOnly = '<span class="b key' + (o.pitch ? " moved" : "") + (at ? " at" : "") + '">Key ' + esc(kt) + "</span>";
+    if (wantKey) return keyOnly;
     if (o.tempo) h += '<span class="b">Tempo ' + signed(o.tempo) + "%</span>";
     if (at) h += '<span class="b at">AUTOTUNE</span>';
     return h ? '<div class="bs">' + h + "</div>" : "";
@@ -1742,12 +1745,13 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       var what = brk ? (x.title || "") : [x.title, x.artist].filter(Boolean).join(" · ");
       return '<div class="r' + (brk ? " brk" : "") + (ban ? " ban" : "") + '"' + (brk ? "" : ' data-edit="' + esc(String(it.id)) + '"') + '><span class="n">' + (n || "") + '</span><div class="w"><div class="who">' +
         esc(x.singer || (brk ? "" : "No name")) + '</div><div class="what">' + esc(what) + '</div>' + (brk ? "" : kjBadges(it, false)) + '</div>' +
-        (ban ? '<span class="tag">BANNED</span>' : '<span class="ke" data-id="' + esc(String(it.id)) + '"></span>') + '</div>';
+        '<div class="rt">' + (ban ? '<span class="tag">BANNED</span>' : '<span class="ke" data-id="' + esc(String(it.id)) + '"></span>') +
+        (brk ? "" : kjBadges(it, false, true)) + '</div></div>';
     }
     if (cur) {
       var c = info(cur);
       $("kjNow").innerHTML = '<div class="now" id="kjNowCard"><div class="top"><div class="who">' + esc(c.singer || (isBreakItem(cur) ? "Break" : "No name")) +
-        '</div><span id="kjLeft"></span></div><div class="what">' + esc([c.title, c.artist].filter(Boolean).join(" · ")) +
+        '</div><div class="rt"><span id="kjLeft"></span>' + (isBreakItem(cur) ? "" : kjBadges(cur, true, true)) + '</div></div><div class="what">' + esc([c.title, c.artist].filter(Boolean).join(" · ")) +
         '</div>' + (isBreakItem(cur) ? "" : kjBadges(cur, true)) + '<div class="kbar"><i id="kjBar"></i></div></div>';
       $("kjNowCard").setAttribute("data-edit", isBreakItem(cur) ? "" : String(cur.id));
     } else $("kjNow").innerHTML = '<div class="empty">Nobody right now</div>';
