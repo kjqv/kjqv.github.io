@@ -562,8 +562,8 @@
 
 <!-- Options (only shown when someone opens it) -->
 <div id="kjPage"><div class="in">
-  <header><div class="hd"><div class="t"><span class="nm">KJQV <span class="sep">|</span> KJ VIEW</span><span class="exp">EXPERIMENTAL</span></div>
-    <div class="st"><span id="kjConn">Connecting…</span><span id="kjCtlSep"></span><span id="kjCtl"></span></div></div>
+  <header><div class="hd"><div class="t"><span class="nm">KJQV <span class="sep">|</span> KJ MODE</span><span class="exp">EXPERIMENTAL</span></div>
+    <div class="st"><span id="kjConn"></span><span id="kjCtlSep"></span><span id="kjCtl"></span></div></div>
     <button id="kjOpts">Options</button></header>
   <div id="kjAlert"><b>Banned song signed up</b><div id="kjBanList"></div></div>
   <div id="kjDeleted"></div>
@@ -1267,7 +1267,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function showQueueControl() {
     var el = $("kjCtl"); if (!el) return;
     if (!wantsQueueControl()) { el.textContent = ""; el.className = ""; if ($("kjCtlSep")) $("kjCtlSep").textContent = ""; return; }
-    if (DEMO) { if ($("kjCtlSep")) $("kjCtlSep").textContent = " · "; el.className = ""; el.textContent = "Queue control: preview only"; return; }
+    if (DEMO) { if ($("kjCtlSep")) $("kjCtlSep").textContent = ""; el.className = ""; el.textContent = "Queue control: preview only"; return; }
     if ($("kjCtlSep")) $("kjCtlSep").textContent = " · ";
     el.className = canManage === false ? "bad" : canManage ? "ok" : "";
     el.textContent = canManage === false ? "Queue control: OFF. In KaraFun: Remote Control → Participants → make KJQV an admin"
@@ -2110,7 +2110,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 
   var pillTimer = null;
   function setPill(text, bad) {
-    var kc = $("kjConn"); if (kc) { kc.textContent = text; kc.style.color = bad ? "#ff7b7b" : ""; }
+    var kc = $("kjConn"); if (kc && !DEMO) { kc.textContent = text; kc.style.color = bad ? "#ff7b7b" : ""; }
     var p = $("pill");
     p.textContent = text;
     p.classList.toggle("bad", !!bad);
