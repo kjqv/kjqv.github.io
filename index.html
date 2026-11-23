@@ -797,7 +797,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   // The preview shows off a bit: the rule under COMING UP and a neon-blue sample logo that coin-flips with a
   // matching QR card. Anything in the link (weather=, theme=...) goes on top; with weather the clock stays on too.
   if (DEMO) {
-    cfg = { clock: "off", line: "on", qr: "split", qrbg: "d17bff", logo: "https://kjqv.github.io/sample-logo-blue.png", spotlight: "loop", long: "top", mic: "off" };
+    cfg = { clock: "off", line: "on", qr: "split", qrbg: "d17bff", logo: "https://kjqv.github.io/sample-logo-blue.png", spotlight: "loop", long: "top", mic: "off",
+      spottime: "5-15", wipe: "random" };
     if (params.has("weather")) delete cfg.clock;
     if (params.has("theme")) { delete cfg.qrbg; delete cfg.line; delete cfg.clock; }   // let the theme pick those
   }
@@ -1199,7 +1200,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         : ($("nextLabelText").innerHTML.replace(/<br\s*\/?>/gi, " ").replace(/<[^>]*>/g, "") || "UP NEXT").replace(/\u2026$/, "").trim();
       $("spotName").textContent = name;
       $("spot").classList.toggle("nowcard", nowCard);
-      var song = nowCard ? $("nowBarSong") : $("heroSong"), full = song.getAttribute("data-full") || song.textContent, parts = full.split(/\s*\u00b7\s*/);
+      var song = nowCard ? $("nowBarSong") : $("heroSong"), sx = song._x,
+        full = sx ? [sx.title, sx.singer ? sx.artist : ""].filter(Boolean).join(" \u00b7 ") : (song.getAttribute("data-full") || song.textContent), parts = full.split(/\s*\u00b7\s*/);
+      // (built from the song itself, not the box's text, which holds two copies while it slides)
       // same look as the song line in the boxes: title, then the artist styled separately
       $("spotSong").innerHTML = esc(parts[0]) + (parts.length > 1 ? '<span class="art">' + esc(SEP + parts.slice(1).join(" \u00b7 ")) + "</span>" : "");
       fitSpot(); spotBackground();
@@ -2698,7 +2701,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var gothDemo = /goth/i.test(String(cfg.theme || ""));
     // goth: the line runs through Jess (Zombified) and ends on LAST CALL; elsewhere DANCE PARTY then LAST CALL
     queue = []; for (var i = 0; i < (equityGap ? 12 : gothDemo ? 9 : 8); i++) queue.push(demoItem());
-    if (!equityGap) (gothDemo ? [["LAST CALL", "", ""]] : [["DANCE! 5", "", ""], ["LAST CALL", "", ""]]).forEach(function (d, j) {   // the night ends with these
+    if (!equityGap) (gothDemo ? [["LAST CALL", "", ""]] : [["LAST CALL", "", ""]]).forEach(function (d, j) {   // the night ends with these
       var id = 8800 + j; durCache[id] = 60;
       queue.push({ id: "demoend" + j, tail: true, song: { id: { type: 1, id: id }, title: d[1], artist: d[2], options: { singer: d[0] } } });
     });
