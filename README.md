@@ -58,7 +58,7 @@ The first time you open the page, it asks for the 6-digit **remote control code*
 - The code is saved only in that device's browser. It only appears on the screen if you turn on `qr=on`, which shows the same join QR code KaraFun gives your guests.
 - There's no account, no sign-up, no ads, no tracking, and no server of mine collecting anything. The whole app is one web page.
 - The page talks directly to KaraFun. The only other things it loads are your logo (from wherever you host it), a Google Font if you pick one, and its own page from GitHub to check for updates.
-- By default it only **reads** the queue and never changes it: it doesn't add, remove or reorder songs, and it can't touch your KaraFun account or billing. The two exceptions, both off unless you turn them on, are [Equity mode](#equity-mode) (experimental), which moves songs around to space out repeat singers, and the [banned songs](#banned-songs) setting for KaraFun's own queue, which can move banned songs to the end or (experimental) **delete** them. Nothing else ever adds, removes or reorders songs. It shows up as **KJQV** in KaraFun's list of connected guests.
+- By default it only **reads** the queue and never changes it: it doesn't add, remove or reorder songs, and it can't touch your KaraFun account or billing. The two exceptions, both off unless you turn them on, are [Equity mode](#equity-mode) (experimental), which moves songs around to space out repeat singers, and the [banned songs](#banned-songs) setting (experimental) for KaraFun's own queue, which can move banned songs to the end or (experimental) **delete** them. Nothing else ever adds, removes or reorders songs. It shows up as **KJQV** in KaraFun's list of connected guests.
 - It's open source: everything is in one file, [index.html](index.html), that anyone can read.
 
 ## What you need
@@ -182,15 +182,15 @@ Off by default. Add `applause=on` and when a singer finishes, the screen shows a
 
 <a id="banned-songs"></a>
 <details>
-<summary><b>Banned songs</b></summary>
+<summary><b>Banned songs and KJ view <i>(experimental)</i></b></summary>
 
-List songs or artists you won't play in **Options → Text → Banned songs** (or `ban=` in the link), with commas between: `Wonderwall, Mr. Brightside, Nickelback`. Each one matches a song title or an artist, whole words, any capitalization. For one specific version, write `Title - Artist` (`Shallow - Lady Gaga`).
+*Experimental: new, and not yet tested much on real nights.* List songs or artists you won't play in **Options → Text → Banned songs** (or `ban=` in the link), with commas between: `Wonderwall, Mr. Brightside, Nickelback`. Each one matches a song title or an artist, whole words, any capitalization. For one specific version, write `Title - Artist` (`Shallow - Lady Gaga`).
 
 When someone signs up for one:
 
 - **The TV leaves it out.** It doesn't show in Up Next or Coming Up, and the wait times skip it. (If you load it in KaraFun anyway, it shows like any other song.)
 - **A tiny red dot** shows in the bottom-left corner of the TV while one is in the queue. Only you know what it means. Turn it off with *Red dot on the TV* in Options (`banalert=off`).
-- **KJ view:** open your usual link on your phone or the KaraFun laptop with `&kj=on` added. Banned songs show crossed out in red, with a red alert at the top naming the singer and song, and phones that allow it buzz. Each device keeps its own settings, so put the same banned list in that device's Options too.
+- **KJ view** (*experimental*): open your usual link on your phone with `&kj=on` added. Instead of the TV screen you get a simple upright page just for you: who's on stage and how much of their song is left, the whole queue with roughly when each person is up, banned songs crossed out in red, and a red alert at the top naming the singer and song (phones that allow it buzz). It shows whether KJQV has queue control too. **Controls** (*experimental*, off by default; turn on *KJ view: play, skip, restart and levels* in Options, or `kjcontrols=on`): small play/pause, restart and skip buttons, plus the audio levels KaraFun reports, like KaraFun's own remote. Skip and restart need a second tap. KaraFun's remote has no real restart, so restart adds a copy of the song right after the current one and skips to it. The controls only work if KaraFun lets KJQV do those things (make it an admin). Each device keeps its own settings, so put the same banned list in the phone's Options too (there's an Options button at the top).
 - **Banned songs in KaraFun's own queue** (Options, or `banmove=`). Off by default (*Leave them*). Like Equity mode, the other two choices change your actual KaraFun queue:
   - **Move to the end** (`banmove=on`): pushes banned songs to the bottom, so you can delete them when you get to them.
   - **Delete** (`banmove=delete`, *experimental*): removes banned songs from KaraFun's queue as soon as they're signed up. This can't be undone, and the singer sees their song disappear from their phone. The KJ view lists what was deleted. It never deletes the song KaraFun has loaded.
