@@ -374,8 +374,8 @@
   #setup { align-items: center; justify-content: center; text-align: center; }
   #setup h1 { font-size: 3.6vh; margin: 0 0 1vh; text-transform: uppercase; letter-spacing: .08em; }
   /* Faint KJQV mark behind the code screen */
-  #setupMark { position: absolute; left: 50%; top: 50%; height: 104vh; width: auto; transform: translate(-50%, -50%);
-    opacity: .05; pointer-events: none; z-index: -1; }
+  #setupMark { position: absolute; left: 50%; top: 50%; height: 170vh; width: auto; transform: translate(-50%, -50%);
+    opacity: .018; pointer-events: none; z-index: -1; }
   #setup .brand { font-size: 2.4vh; font-weight: 800; letter-spacing: .3em; color: #ffb347; margin: 0 0 1.4vh; }
   #setup p { font-size: 2.6vh; color: var(--dim); margin: 0 0 3vh; }
   #codeBox { font-size: 8vh; font-weight: 800; letter-spacing: .4em; padding-left: .4em;
@@ -400,7 +400,7 @@
     #pad button { height: 7.6vh; font-size: 3.2vh; }
     #setupMsg { font-size: 1.6vh; min-height: 2.4vh; margin-top: 1.2vh; }
     #about { font-size: 1.4vh; margin-top: 1.2vh; }
-    #setupMark { position: fixed; height: auto; width: 96vw; opacity: .06; }
+    #setupMark { position: fixed; height: auto; width: 190vw; opacity: .018; }
   }
 
   /* Fast taps on the keypad shouldn't double-tap-zoom on phones */
@@ -408,12 +408,13 @@
   html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }   /* stop iPhones from enlarging text on their own */
   button { font: inherit; color: var(--fg); background: rgba(255,255,255,.08);
     border: .3vh solid transparent; border-radius: 1.6vh; cursor: pointer; }
-  #pad button { height: 10vh; font-size: 4.4vh; font-weight: 700; }
+  #pad button { height: 10vh; font-size: 4.4vh; font-weight: 700; background: rgba(30,24,80,.92); }
+  #pad button:focus { background: rgba(70,40,140,.95); }
   #pad button.wide { font-size: 2.6vh; }
   #menu button { font-size: 2.8vh; padding: 1.6vh 2.4vw; }
   button:focus { outline: none; border-color: var(--yellow); background: rgba(var(--next),.16); }
   /* ---------- options panel (Customize on the code screen, or Options in the menu) ---------- */
-  #btnOpts { margin-top: 2.2vh; font-size: 2.4vh; padding: 1.2vh 2.4vw; }
+  #btnOpts { margin-top: 1.6vh; font-size: 1.7vh; padding: .7vh 1.6vw; opacity: .8; }
   #opts { position: fixed; inset: 0; z-index: 9500; background: rgba(8,6,24,.97); color: #fff; overflow-y: auto;
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-transform: none; letter-spacing: 0; }
   #opts .in { max-width: 150vh; margin: 0 auto; padding: 4vh 5vw; }
