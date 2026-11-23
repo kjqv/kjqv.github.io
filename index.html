@@ -1465,8 +1465,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       return "🌡️";
     }
     function show(t, code, day) { el.textContent = icon(code, day) + " " + Math.round(t) + "°"; el.classList.add("on"); }
-    if (DEMO) { show(52, 3, 0); return; }
-    var loc = null; try { loc = JSON.parse(localStorage.getItem("kqv.wloc") || "null"); } catch (e) {}
+    var loc = null; try { if (!DEMO) loc = JSON.parse(localStorage.getItem("kqv.wloc") || "null"); } catch (e) {}
     function getWeather() {
       fetch("https://api.open-meteo.com/v1/forecast?latitude=" + loc.lat + "&longitude=" + loc.lon +
         "&current=temperature_2m,weather_code,is_day" + (fahrenheit ? "&temperature_unit=fahrenheit" : ""))
@@ -1481,7 +1480,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       .then(function (g) {
         var x = g && g.results && g.results[0]; if (!x) return;
         loc = { zip: zip, lat: x.latitude, lon: x.longitude };
-        try { localStorage.setItem("kqv.wloc", JSON.stringify(loc)); } catch (e) {}
+        if (!DEMO) try { localStorage.setItem("kqv.wloc", JSON.stringify(loc)); } catch (e) {}
         start();
       }).catch(function () {});
   })();
