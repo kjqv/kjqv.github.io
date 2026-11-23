@@ -606,15 +606,17 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     cfg = { clock: "off", line: "on", qr: "split", qrbg: "5ee7ff", logo: "https://kjqv.github.io/sample-logo-blue.png", spotlight: "loop" };
   // Themes fill in any setting you didn't set yourself.
   var THEMES = {
-    xmas: { bg1: "0b3d1f", bg2: "5a0b12", now: "3dff7a", next: "ff4d4d", up1: "9dffbe", up2: "ff6b6b",
+    holiday: { bg1: "0b3d1f", bg2: "5a0b12", now: "3dff7a", next: "ff4d4d", up1: "9dffbe", up2: "ff6b6b",
             pattern: "trees", scroll: "on", line: "on", clock: "off" },
+    turkey: { bg1: "3b1605", bg2: "8a3a0a", now: "ffb347", next: "ffe08a", up1: "ffd36b", up2: "e0561f",
+            pattern: "maple", scroll: "down", line: "on", clock: "off" },
     goth: { bg1: "3a0000", bg2: "000000", now: "ff1a1a", next: "f2f2f2", up1: "ff4d4d", up2: "b30000",
                 font: "Pirata One", pattern: "tinycrosses", line: "on", mic: "flicker",
             eta: "off", time: "bar", clock: "off", mics: "2", qrbg: "ff1a1a", flourish: "on", scroll: "down" }
   };
   function applyTheme() {
     var tn = String(cfg.theme || "").toLowerCase().replace(/[^a-z]/g, "");
-    var t = THEMES[tn === "gothclub" ? "goth" : /^(christmas|holiday|holidays)$/.test(tn) ? "xmas" : tn];   // old name still works
+    var t = THEMES[tn === "gothclub" ? "goth" : /^(xmas|christmas|holidays)$/.test(tn) ? "holiday" : /^(thanksgiving|fall|autumn)$/.test(tn) ? "turkey" : tn];   // old name still works
     if (t) for (var k in t) if (cfg[k] === undefined || cfg[k] === "") cfg[k] = t[k];
   }
   function off(k) { return /^(0|off|no|false|hide)$/i.test(String(cfg[k] || "")); }
@@ -661,6 +663,24 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         "<g fill='none' stroke='%23ffffff' stroke-opacity='.13' stroke-width='3' stroke-linejoin='round'>" +
         "<path d='M104 78 L118 98 H111 L124 116 H114 L128 134 H80 L94 116 H84 L97 98 H90 Z'/></g>" +
         "<g fill='%23ffffff' fill-opacity='.18'><circle cx='96' cy='22' r='2.5'/><circle cx='14' cy='104' r='2'/><circle cx='70' cy='92' r='1.6'/></g>"],
+      // maple: faint falling maple leaves (turkey theme)
+      maple: [220, "<g fill='none' stroke='%23ffffff' stroke-opacity='.15' stroke-width='4' stroke-linejoin='round'>" +
+        "<path transform='translate(14 14) rotate(-20 35 35) scale(.7)' d='M50 5 L58 22 L66 18 L63 38 L78 26 L82 34 L94 32 L88 46 L96 50 L72 66 L76 76 L54 72 L54 95 L46 95 L46 72 L24 76 L28 66 L4 50 L12 46 L6 32 L18 34 L22 26 L37 38 L34 18 L42 22 Z'/>" +
+        "<path transform='translate(122 112) rotate(28 30 30) scale(.58)' d='M50 5 L58 22 L66 18 L63 38 L78 26 L82 34 L94 32 L88 46 L96 50 L72 66 L76 76 L54 72 L54 95 L46 95 L46 72 L24 76 L28 66 L4 50 L12 46 L6 32 L18 34 L22 26 L37 38 L34 18 L42 22 Z'/></g>"],
+      // harvest: faint Thanksgiving doodles (turkey theme): drumstick, cornucopia, pumpkin, pie, turkey tail, leaf
+      harvest: [240, "<g stroke='%23ffffff' stroke-opacity='.15' stroke-width='3' fill='none' stroke-linejoin='round' stroke-linecap='round'>" +
+        // drumstick
+        "<g transform='rotate(-35 40 40)'><ellipse cx='40' cy='32' rx='16' ry='22'/><path d='M40 54 V70'/><circle cx='35' cy='74' r='5'/><circle cx='45' cy='74' r='5'/></g>" +
+        // cornucopia
+        "<path d='M120 20 C150 18 178 34 186 62 C170 54 150 52 138 58 C134 42 128 30 120 20 Z'/><path d='M138 58 C150 50 170 52 186 62'/><circle cx='176' cy='70' r='6'/><circle cx='164' cy='72' r='5'/>" +
+        // pumpkin
+        "<g transform='translate(60 140)'><ellipse cx='0' cy='0' rx='22' ry='16'/><ellipse cx='0' cy='0' rx='9' ry='16'/><path d='M0 -16 C0 -24 4 -28 8 -30'/></g>" +
+        // pie slice
+        "<path d='M150 120 L196 142 C192 156 180 164 168 166 Z'/><path d='M158 134 L188 148'/>" +
+        // turkey tail fan
+        "<g transform='translate(120 210)'><path d='M0 0 C-26 -6 -34 -26 -26 -40 M0 0 C-12 -14 -12 -36 0 -46 M0 0 C12 -14 12 -36 0 -46 M0 0 C26 -6 34 -26 26 -40'/><circle cx='0' cy='2' r='6'/></g>" +
+        // leaf
+        "<g transform='rotate(25 210 210)'><path d='M210 190 C222 198 224 214 210 230 C196 214 198 198 210 190 Z'/><path d='M210 194 V236'/></g></g>"],
       houndstooth: [48, "<g " + W + " shape-rendering='crispEdges'><rect x='0' y='0' width='6' height='6'/><rect x='6' y='0' width='6' height='6'/><rect x='12' y='0' width='6' height='6'/><rect x='18' y='0' width='6' height='6'/><rect x='36' y='0' width='6' height='6'/><rect x='42' y='0' width='6' height='6'/><rect x='0' y='6' width='6' height='6'/><rect x='6' y='6' width='6' height='6'/><rect x='12' y='6' width='6' height='6'/><rect x='18' y='6' width='6' height='6'/><rect x='30' y='6' width='6' height='6'/><rect x='36' y='6' width='6' height='6'/><rect x='0' y='12' width='6' height='6'/><rect x='6' y='12' width='6' height='6'/><rect x='12' y='12' width='6' height='6'/><rect x='18' y='12' width='6' height='6'/><rect x='24' y='12' width='6' height='6'/><rect x='30' y='12' width='6' height='6'/><rect x='0' y='18' width='6' height='6'/><rect x='6' y='18' width='6' height='6'/><rect x='12' y='18' width='6' height='6'/><rect x='18' y='18' width='6' height='6'/><rect x='24' y='18' width='6' height='6'/><rect x='42' y='18' width='6' height='6'/><rect x='0' y='24' width='6' height='6'/><rect x='6' y='24' width='6' height='6'/><rect x='0' y='30' width='6' height='6'/><rect x='18' y='30' width='6' height='6'/><rect x='12' y='36' width='6' height='6'/><rect x='18' y='36' width='6' height='6'/><rect x='6' y='42' width='6' height='6'/><rect x='12' y='42' width='6' height='6'/></g>"]
     };
     var scrollDir = String(cfg.scroll || "").toLowerCase();
@@ -1990,7 +2010,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   ];
   var COLOR_KEYS = ["bg1", "bg2", "now", "next", "up1", "up2"];
   var OPT_ROWS = [
-    ["theme", "Theme", [["", "Default"], ["goth", "Goth"], ["xmas", "Christmas"]]],
+    ["theme", "Theme", [["", "Default"], ["goth", "Goth"], ["turkey", "Turkey"], ["holiday", "Holiday"]]],
     ["colors", "Colors", null],
     ["spotlight", "Spotlight", [["", "All night"], ["on", "Between songs"], ["off", "Off"]]],
     ["applause", "Applause", [["", "Off"], ["on", "On"]]],
@@ -2008,7 +2028,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["logo", "Logo link", "input"]
   ];
   var ed = {};
-  function themeKey(v) { var tn = String(v || "").toLowerCase().replace(/[^a-z]/g, ""); return tn === "gothclub" ? "goth" : /^(christmas|holiday|holidays)$/.test(tn) ? "xmas" : tn; }
+  function themeKey(v) { var tn = String(v || "").toLowerCase().replace(/[^a-z]/g, ""); return tn === "gothclub" ? "goth" : /^(xmas|christmas|holidays)$/.test(tn) ? "holiday" : /^(thanksgiving|fall|autumn)$/.test(tn) ? "turkey" : tn; }
   function curColors() { return COLOR_KEYS.map(function (k) { return String(ed[k] || "").toLowerCase(); }).join(","); }
   function choicesFor(row) {
     var key = row[0], list;
@@ -2021,12 +2041,13 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     list = row[2].slice();
     var t = THEMES[themeKey(ed.theme)];
     if (t && t[key] !== undefined && key !== "theme") list[0] = ["", "Theme's choice"];
-    var v = String(ed[key] || "");
+    var v = key === "theme" ? themeKey(ed.theme) : String(ed[key] || "");
     if (v && !list.some(function (c) { return c[0].toLowerCase() === v.toLowerCase(); })) list.unshift([v, v + " (custom)"]);
     return list;
   }
   function curVal(key) {
     if (key === "colors") { var c = curColors(); return c.replace(/,/g, "") ? c : ""; }
+    if (key === "theme") return themeKey(ed.theme);   // old names (xmas, christmas, thanksgiving) show as their theme
     return String(ed[key] || "");
   }
   function setVal(key, v) {
