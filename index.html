@@ -391,6 +391,7 @@
   #kjVols input { flex: 1; min-width: 0; accent-color: #5ef0ff; height: 22px; }
   #kjCtrlMsg { font-size: 13px; color: #ff7b7b; min-height: 0; margin-top: 4px; }
   #kjAlert .sep { opacity: .5; }
+  #kjPage .kr { display: flex; gap: 5px; align-items: center; }
   #kjPage .rt { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
   #kjPage .bs { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
   #kjPage .b { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 5px; background: rgba(255,255,255,.1); color: #fff; letter-spacing: .02em; }
@@ -1718,10 +1719,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     k = k && (transpose(k, 0) || k);
     var kt = k ? (o.pitch ? k + " → " + transpose(k, o.pitch) + " (" + signed(o.pitch) + ")" : k) : (o.pitch ? signed(o.pitch) + " from original" : at ? "unknown" : "");   // autotune always gets a key tag, even when KaraFun has no key
     if (kt) keyOnly = '<span class="b key' + (o.pitch ? " moved" : "") + (at ? " at" : "") + '">Key ' + esc(kt) + "</span>";
-    if (wantKey) return keyOnly;
+    if (wantKey) return (at ? '<span class="b at">AUTOTUNE</span>' : "") + keyOnly ? '<div class="kr">' + (at ? '<span class="b at">AUTOTUNE</span>' : "") + keyOnly + "</div>" : "";
     if (o.tempo) h += '<span class="b">Tempo ' + signed(o.tempo) + "%</span>";
     var ek = durKey(it); if (ek !== null && explicitCache[ek]) h += '<span class="b ex">EXPLICIT</span>';
-    if (at) h += '<span class="b at">AUTOTUNE</span>';
     return h ? '<div class="bs">' + h + "</div>" : "";
   }
   // Tap a singer to open the editor: name, key and tempo (with KJ controls on) and the autotune flag (always)
