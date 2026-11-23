@@ -2427,6 +2427,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
 
   // ---------------------------------------------------------------- demo mode
+  // Keys and lengths of the demo songs as KaraFun lists them (looked up Nov 2026; blank key = KaraFun doesn't list one)
+  var DEMO_INFO = { "Valerie": ["Eb", 220], "September": ["F#m", 222], "Picture": ["G", 301], "Espresso": ["Am", 175], "Shallow": ["G", 215],
+    "Man! I Feel Like a Woman!": ["Bb", 234], "Mr. Brightside": ["Db", 222], "Total Eclipse of the Heart": ["Ab", 276],
+    "Livin' la Vida Loca": ["C#m", 242], "Pink Pony Club": ["Gb", 261], "Wagon Wheel": ["", 301], "No Scrubs": ["G#m", 221],
+    "Rolling in the Deep": ["Cm", 229], "Sweet Caroline": ["", 213], "Bohemian Rhapsody": ["Bb", 362] };
   var DEMO_SONGS = [
     ["Maya", "Valerie", "Amy Winehouse"], ["Rachel", "September", "Earth, Wind & Fire"],
     ["Dana & Mike", "Picture", "Kid Rock & Sheryl Crow"], ["Priya", "Espresso", "Sabrina Carpenter", -2],
@@ -2455,9 +2460,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function demoItem() {
     var list = equityGap ? DEMO_EQ : /goth/i.test(String(cfg.theme || "")) ? DEMO_GOTH : DEMO_SONGS;
     var d = list[demoN % list.length], id = 9000 + demoN++;
-    durCache[id] = 185 + (id * 37) % 70;        // real song lengths (about 3–4 min), so the wait times add up
+    durCache[id] = 185 + (id * 37) % 70;        // about 3–4 min unless we know the real length below
     var o = { singer: d[0] }; if (d[3]) o.pitch = d[3]; if (d[4]) o.tempo = d[4];
-    keyCache[id] = ["C", "Bm", "Eb", "G", "A", "F#m", "D", "Bb", "E", "Am"][id % 10];   // made-up keys for the demo
+    var real = DEMO_INFO[d[1]];                                // real key and length from KaraFun's song pages
+    if (real) { if (real[0]) keyCache[id] = real[0]; durCache[id] = real[1]; }
     if (d[5] === "at") kjAT["demo" + id] = 1;                // demo: one singer flagged for autotune
     return { id: "demo" + id, song: { id: { type: 1, id: id }, title: d[1], artist: d[2], options: o } };
   }
