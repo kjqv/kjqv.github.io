@@ -352,7 +352,8 @@
   #kjPage .r .w { flex: 1; min-width: 0; }
   #kjPage .r .who { color: #fff; font-size: 18px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   #kjPage .r .what { color: #fff; font-size: 14px; opacity: .65; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
-  #kjPage .r.brk .who { font-weight: 600; font-style: italic; opacity: .7; }
+  #kjPage .r.brk { justify-content: center; align-items: baseline; gap: 10px; padding: 12px 0; }
+  #kjPage .r.brk .bl { font-size: 17px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.8); }
   #kjPage .r.ban .who, #kjPage .r.ban .what { color: #ff6b6b; text-decoration: line-through; opacity: 1; }
   #kjPage .tag { font-size: 10px; font-weight: 800; letter-spacing: .1em; color: #ff6b6b; border: 1px solid #ff6b6b; border-radius: 4px; padding: 1px 5px; flex: none; }
   #kjPage .now { padding: 9px 12px 10px; border-radius: 10px; background: rgba(0,229,255,.08); border: 1px solid rgba(0,229,255,.3); }
@@ -1717,7 +1718,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var o = optsOf(it, live), at = isAT(it), h = "", k = songKey(it);
     // Key: C (original), or C → Bb (−2) when it's been moved
     k = k && (transpose(k, 0) || k);
-    var kt = k ? (o.pitch ? k + " → " + transpose(k, o.pitch) + " (" + signed(o.pitch) + ")" : k) : (o.pitch ? signed(o.pitch) + " from original" : at ? "Key ?" : "");   // autotune always gets a key tag, even when KaraFun has no key
+    var kt = k ? (o.pitch ? transpose(k, o.pitch) + " " + signed(o.pitch) : k) : (o.pitch ? signed(o.pitch) + " from original" : at ? "Key ?" : "");   // autotune always gets a key tag, even when KaraFun has no key
     if (kt) keyOnly = '<span class="b key' + (o.pitch ? " moved" : "") + (at ? " at" : "") + '">' + esc(kt) + "</span>";
     var autoTag = at ? '<span class="b at" title="Autotune">AUTO</span>' : "";
     if (wantKey) return autoTag || keyOnly ? '<div class="kr">' + autoTag + keyOnly + "</div>" : "";
@@ -1867,6 +1868,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     kjLogSong(cur);
     function row(it, n) {
       var x = info(it), brk = isBreakItem(it), ban = isBanned(it);
+      if (brk) {   // breaks: one big centered line with when it starts
+        var sp = specialOf(it), lbl = sp.kind === "brb" ? (sp.mins ? sp.mins + " min break" : "Short break") : sp.kind === "dance" ? "Dance party" + (sp.mins ? " · " + sp.mins + " min" : "")
+          : sp.kind === "lastcall" ? "Last call" : (sp.mins ? sp.mins + " min break" : "Break");
+        return '<div class="r brk"><span class="bl">' + esc(lbl) + '</span><span class="ke" data-id="' + esc(String(it.id)) + '"></span></div>';
+      }
       var what = brk ? (x.title || "") : [x.title, x.artist].filter(Boolean).join(" · ");
       return '<div class="r' + (brk ? " brk" : "") + (ban ? " ban" : "") + '"' + (brk ? "" : ' data-edit="' + esc(String(it.id)) + '"') + '><span class="n">' + (n || "") + '</span><div class="w"><div class="who">' +
         esc(x.singer || (brk ? "" : "No name")) + (brk ? "" : sungTag(x.singer)) + '</div><div class="what">' + esc(what) + '</div>' + (brk ? "" : kjBadges(it, false)) + '</div>' +
@@ -1880,10 +1886,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         '</div>' + (isBreakItem(cur) ? "" : kjBadges(cur, true)) + '<div class="kbar"><i id="kjBar"></i></div></div>';
       $("kjNowCard").setAttribute("data-edit", isBreakItem(cur) ? "" : String(cur.id));
     } else $("kjNow").innerHTML = '<div class="empty">Nobody right now</div>';
-    var rest = queue.filter(function (it) {
-      if (cur && it.id === cur.id) return false;
-      var sp = specialOf(it); return !(sp && (sp.kind === "dance" || sp.kind === "lastcall"));   // DANCE PARTY / LAST CALL are for the crowd
-    });
+    var rest = queue.filter(function (it) { return !cur || it.id !== cur.id; });
     var n = 0;
     $("kjQueue").innerHTML = rest.length ? rest.map(function (it) { return row(it, isBreakItem(it) ? "" : ++n); }).join("") : '<div class="empty">Queue is empty</div>';
     $("kjCount").textContent = n ? "· " + n + (n === 1 ? " singer" : " singers") : "";
@@ -2062,13 +2065,13 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       else if (playing && curDur) t += curDur * 500;          // joined mid-song: guess halfway
       else t += (curDur || 240) * 1000;                       // not started yet
     }
-    var eta = {};
+    var eta = {}, breakEta = {};
     rest.forEach(function (it) {
       var bm = breakMins(it), sp = specialOf(it);
-      if (bm || (sp && sp.kind === "lastcall")) { t += bm * 60000; return; }          // a break: no changeover, no time shown for it
+      if (bm || (sp && sp.kind === "lastcall")) { breakEta[it.id] = t; t += bm * 60000; return; }   // a break: no changeover (its start time is for KJ mode only)
       t += gapSec * 1000; eta[it.id] = t; t += (durOf(it) || 240) * 1000;
     });
-    if (KJ) kjTimes(eta, now, cur, playing, curDur);
+    if (KJ) { var kjEta = {}; for (var bk in breakEta) kjEta[bk] = breakEta[bk]; for (var ek in eta) kjEta[ek] = eta[ek]; kjTimes(kjEta, now, cur, playing, curDur); }
     var breakCur = isBreakItem(cur);
     var show = etaOn && (!onBreak || breakCur);     // during a queued break, still show when the next person's up
     var hero = (playing || breakCur) ? rest[0] : null;
