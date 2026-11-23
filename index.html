@@ -424,6 +424,7 @@
   #kjNightList .ng.lots .nh b, #kjNightList .ng.lots .nh span { color: #ff9b5a; opacity: 1; }
   #kjNightList .ns { font-size: 13px; opacity: .65; margin-top: 2px; }
   #kjNightList .ns i { font-style: normal; display: inline-block; width: 64px; opacity: .7; font-variant-numeric: tabular-nums; }
+  #kjPage .b.ex { background: rgba(255,80,160,.18); color: #ff7ac0; }
   #kjPage .b.rep { background: rgba(255,255,255,.1); }
   #kjPage .b.rep.lots { background: rgba(255,155,90,.2); color: #ff9b5a; }
   #kjPage .empty { opacity: .5; font-size: 15px; padding: 10px 0; }
@@ -1704,6 +1705,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if (kt) keyOnly = '<span class="b key' + (o.pitch ? " moved" : "") + (at ? " at" : "") + '">Key ' + esc(kt) + "</span>";
     if (wantKey) return keyOnly;
     if (o.tempo) h += '<span class="b">Tempo ' + signed(o.tempo) + "%</span>";
+    var ek = durKey(it); if (ek !== null && explicitCache[ek]) h += '<span class="b ex">EXPLICIT</span>';
     if (at) h += '<span class="b at">AUTOTUNE</span>';
     var sc = it.song && !live ? sungCount(info(it).singer) : 0;
     if (sc) h += '<span class="b rep' + (sc >= 3 ? " lots" : "") + '">' + sc + " sung tonight</span>";
@@ -1921,7 +1923,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     return id.type === 1 ? id.id : "c" + id.id;
   }
   function durOf(it) { var k = durKey(it); return k !== null && durCache[k] ? durCache[k] : 0; }
-  var keyCache = {};
+  var keyCache = {}, explicitCache = {};
   function fetchDurations(items) {
     var songs = [], comm = [];
     items.forEach(function (it) {
@@ -1940,7 +1942,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
           if (!x.songId) return;
           var k = (x.isCommunity || comm.indexOf(String(x.songId)) !== -1 && songs.indexOf(x.songId) === -1) ? "c" + x.songId : x.songId;
           durCache[k] = x.duration || 0;
-          if (x.key && !/not set/i.test(x.key)) keyCache[k] = String(x.key);   // the song's original key, e.g. "C" or "Bm"
+          if (x.key && !/not set/i.test(x.key)) keyCache[k] = String(x.key);
+          if (x.isExplicit) explicitCache[k] = true;   // KaraFun marks explicit songs   // the song's original key, e.g. "C" or "Bm"
         });
         updateTimes(); tick();
       })
