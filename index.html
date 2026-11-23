@@ -794,11 +794,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   // A link with any look options replaces the saved look; a bare link (just code=) keeps it.
   // The preview never uses what this device saved.
   if (DEMO || OPTS.some(function (k) { return params.has(k); })) cfg = {};
-  OPTS.forEach(function (k) { if (params.has(k)) cfg[k] = params.get(k); });
-  // The plain preview (?demo with no options) shows off a bit: no clock, the rule under COMING UP,
-  // and a neon-blue sample logo that coin-flips with a matching QR card.
-  if (DEMO && !OPTS.some(function (k) { return params.has(k); }))
+  // The preview shows off a bit: the rule under COMING UP and a neon-blue sample logo that coin-flips with a
+  // matching QR card. Anything in the link (weather=, theme=...) goes on top; with weather the clock stays on too.
+  if (DEMO) {
     cfg = { clock: "off", line: "on", qr: "split", qrbg: "d17bff", logo: "https://kjqv.github.io/sample-logo-blue.png", spotlight: "loop", long: "top", mic: "off" };
+    if (params.has("weather")) delete cfg.clock;
+    if (params.has("theme")) { delete cfg.qrbg; delete cfg.line; delete cfg.clock; }   // let the theme pick those
+  }
+  OPTS.forEach(function (k) { if (params.has(k)) cfg[k] = params.get(k); });
   // Themes fill in any setting you didn't set yourself.
   var THEMES = {
     holiday: { bg1: "0b3d1f", bg2: "5a0b12", now: "3dff7a", next: "ff4d4d", up1: "9dffbe", up2: "ff6b6b",
