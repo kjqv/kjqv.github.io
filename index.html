@@ -425,8 +425,10 @@
   #kjNightList .ns { font-size: 13px; opacity: .65; margin-top: 2px; }
   #kjNightList .ns i { font-style: normal; display: inline-block; width: 64px; opacity: .7; font-variant-numeric: tabular-nums; }
   #kjPage .b.ex { background: rgba(255,80,160,.18); color: #ff7ac0; }
-  #kjPage .b.rep { background: rgba(255,255,255,.1); }
-  #kjPage .b.rep.lots { background: rgba(255,155,90,.2); color: #ff9b5a; }
+  #kjPage .cnt { display: inline-block; min-width: 20px; height: 20px; padding: 0 6px; margin-left: 6px; border-radius: 10px; vertical-align: 3px;
+    font-size: 12px; line-height: 20px; text-align: center; font-weight: 800; letter-spacing: 0; text-transform: none; color: #fff; background: rgba(255,255,255,.14); }
+  #kjPage .cnt.lots { background: #ff9b5a; color: #2a1200; }
+  #kjPage .r.ban .cnt { text-decoration: none; }
   #kjPage .empty { opacity: .5; font-size: 15px; padding: 10px 0; }
   #kjPage .foot { margin-top: 24px; font-size: 12px; opacity: .45; line-height: 1.5; }
   #nextLabel { font-size: 4.4vh; font-weight: 800; letter-spacing: .24em; color: #ffc27a; }
@@ -1707,8 +1709,6 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if (o.tempo) h += '<span class="b">Tempo ' + signed(o.tempo) + "%</span>";
     var ek = durKey(it); if (ek !== null && explicitCache[ek]) h += '<span class="b ex">EXPLICIT</span>';
     if (at) h += '<span class="b at">AUTOTUNE</span>';
-    var sc = it.song && !live ? sungCount(info(it).singer) : 0;
-    if (sc) h += '<span class="b rep' + (sc >= 3 ? " lots" : "") + '">' + sc + " sung tonight</span>";
     return h ? '<div class="bs">' + h + "</div>" : "";
   }
   // Tap a singer to open the editor: name, key and tempo (with KJ controls on) and the autotune flag (always)
@@ -1799,6 +1799,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     } catch (e) {} }
   }
   function sungCount(name) { var k = nameKey(name); return kjNight.filter(function (x) { return nameKey(x.name) === k; }).length; }
+  // Songs sung tonight, as a little number next to the name (orange at 3+)
+  function sungTag(name) { var n = name ? sungCount(name) : 0; return n ? ' <span class="cnt' + (n >= 3 ? " lots" : "") + '" title="Songs sung tonight">' + n + "</span>" : ""; }
   function renderNight() {
     var by = {}, order = [];
     kjNight.forEach(function (x) { var k = nameKey(x.name); if (!by[k]) { by[k] = { name: x.name, songs: [], line: 0 }; order.push(k); } by[k].songs.push(x); });
@@ -1825,13 +1827,13 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       var x = info(it), brk = isBreakItem(it), ban = isBanned(it);
       var what = brk ? (x.title || "") : [x.title, x.artist].filter(Boolean).join(" · ");
       return '<div class="r' + (brk ? " brk" : "") + (ban ? " ban" : "") + '"' + (brk ? "" : ' data-edit="' + esc(String(it.id)) + '"') + '><span class="n">' + (n || "") + '</span><div class="w"><div class="who">' +
-        esc(x.singer || (brk ? "" : "No name")) + '</div><div class="what">' + esc(what) + '</div>' + (brk ? "" : kjBadges(it, false)) + '</div>' +
+        esc(x.singer || (brk ? "" : "No name")) + (brk ? "" : sungTag(x.singer)) + '</div><div class="what">' + esc(what) + '</div>' + (brk ? "" : kjBadges(it, false)) + '</div>' +
         '<div class="rt">' + (ban ? '<span class="tag">BANNED</span>' : '<span class="ke" data-id="' + esc(String(it.id)) + '"></span>') +
         (brk ? "" : kjBadges(it, false, true)) + '</div></div>';
     }
     if (cur) {
       var c = info(cur);
-      $("kjNow").innerHTML = '<div class="now" id="kjNowCard"><div class="top"><div class="who">' + esc(c.singer || (isBreakItem(cur) ? "Break" : "No name")) +
+      $("kjNow").innerHTML = '<div class="now" id="kjNowCard"><div class="top"><div class="who">' + esc(c.singer || (isBreakItem(cur) ? "Break" : "No name")) + (isBreakItem(cur) ? "" : sungTag(c.singer)) +
         '</div><div class="rt"><span id="kjLeft"></span>' + (isBreakItem(cur) ? "" : kjBadges(cur, true, true)) + '</div></div><div class="what">' + esc([c.title, c.artist].filter(Boolean).join(" · ")) +
         '</div>' + (isBreakItem(cur) ? "" : kjBadges(cur, true)) + '<div class="kbar"><i id="kjBar"></i></div></div>';
       $("kjNowCard").setAttribute("data-edit", isBreakItem(cur) ? "" : String(cur.id));
