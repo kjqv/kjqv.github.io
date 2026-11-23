@@ -355,11 +355,15 @@
   #kjPage .r.brk .who { font-weight: 600; font-style: italic; opacity: .7; }
   #kjPage .r.ban .who, #kjPage .r.ban .what { color: #ff6b6b; text-decoration: line-through; opacity: 1; }
   #kjPage .tag { font-size: 10px; font-weight: 800; letter-spacing: .1em; color: #ff6b6b; border: 1px solid #ff6b6b; border-radius: 4px; padding: 1px 5px; flex: none; }
-  #kjPage .now { padding: 12px 14px; border-radius: 10px; background: rgba(0,229,255,.08); border: 1px solid rgba(0,229,255,.3); }
+  #kjPage .now { padding: 9px 12px 10px; border-radius: 10px; background: rgba(0,229,255,.08); border: 1px solid rgba(0,229,255,.3); }
   #kjPage .now .who { font-size: 22px; font-weight: 800; color: #5ef0ff; }
   body.caps #kjPage .now .who { text-transform: uppercase; letter-spacing: .02em; }   /* follows the Names setting */
   #kjPage .now .what { font-size: 15px; opacity: .75; margin-top: 2px; }
-  #kjPage .now .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  #kjPage .now .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  #kjPage .now .top .who { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #kjPage .now .rt { flex-direction: row; align-items: center; gap: 8px; }   /* time left and key on the name's line */
+  #kjPage .now .what { margin-top: 0; }
+  #kjPage .now .kbar { margin-top: 7px; }
   #kjPage .now .kbar { height: 4px; border-radius: 2px; background: rgba(94,240,255,.15); margin-top: 10px; overflow: hidden; }
   #kjPage .now .kbar i { display: block; height: 100%; width: 0; background: #5ef0ff; border-radius: 2px; transition: width 1s linear; }
   #kjPage .now.ending { animation: kjend 1s ease-in-out infinite; }
@@ -1798,7 +1802,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var m = 60000, t0 = new Date().setHours(23, 50, 0, 0);   // a sample night that ends around midnight
     kjNight = [["Rachel", "Dancing Queen", "ABBA", 88], ["Kevin", "Friends in Low Places", "Garth Brooks", 80],
       ["Priya", "Rolling in the Deep", "Adele", 55], ["Kevin", "Wagon Wheel", "Darius Rucker", 41],
-      ["Ashley", "Before He Cheats", "Carrie Underwood", 33], ["Kevin", "Tennessee Whiskey", "Chris Stapleton", 9],
+      ["Ashley", "Before He Cheats", "Carrie Underwood", 33], ["Ashley", "Jolene", "Dolly Parton", 170], ["Ashley", "Black Velvet", "Alannah Myles", 141],
+      ["Ashley", "Strawberry Wine", "Deana Carter", 104], ["Ashley", "Total Eclipse of the Heart", "Bonnie Tyler", 70], ["Ashley", "Barracuda", "Heart", 48],
+      ["Rachel", "Girls Just Want to Have Fun", "Cyndi Lauper", 26], ["Kevin", "Tennessee Whiskey", "Chris Stapleton", 9],
       // Mike has been busy: 11 songs so far
       ["Mike", "Born to Be Wild", "Steppenwolf", 178], ["Mike", "Paranoid", "Black Sabbath", 165], ["Mike", "Highway to Hell", "AC/DC", 151],
       ["Mike", "Back in Black", "AC/DC", 138], ["Mike", "Pour Some Sugar on Me", "Def Leppard", 124], ["Mike", "Here I Go Again", "Whitesnake", 110],
@@ -1821,7 +1827,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function ord(n) { var s = ["th", "st", "nd", "rd"], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
   function sungCount(name) { var k = nameKey(name); return kjNight.filter(function (x) { return nameKey(x.name) === k; }).length; }
   // Songs sung tonight, as a little number next to the name (orange at 3+)
-  function sungTag(name) { var n = name ? sungCount(name) : 0; return n ? ' <span class="cnt' + (n >= 3 ? " lots" : "") + '" title="Songs sung tonight">' + n + "</span>" : ""; }
+  // Green at 1 song, yellow around 6, red at 11+
+  function cntStyle(n) { var h = Math.max(0, 120 - (n - 1) * 12); return ' style="background:hsl(' + h + ',85%,52%);color:#141414"'; }
+  function sungTag(name) { var n = name ? sungCount(name) : 0; return n ? ' <span class="cnt"' + cntStyle(n) + ' title="Songs sung tonight">' + n + "</span>" : ""; }
   function renderNight() {
     var by = {}, order = [];
     kjNight.forEach(function (x) { var k = nameKey(x.name); if (!by[k]) { by[k] = { name: x.name, songs: [], line: 0 }; order.push(k); } by[k].songs.push(x); });
@@ -1841,13 +1849,13 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       $("kjNightList").innerHTML = tabs + (n ? kjNight.slice().reverse().map(function (x, i) {   // newest first
         var c = nth[n - 1 - i];   // this was their c-th song tonight
         return '<div class="nl"><span class="nn">' + (n - i) + '</span><span class="nt">' + esc(hhmm(x.at, true)) + '</span><div class="nw"><b>' + esc(x.name) +
-          (c >= 2 ? ' <span class="cnt' + (c >= 3 ? " lots" : "") + '">' + ord(c) + "</span>" : "") + '</b><div>' + esc(x.title) + (x.artist ? " - " + esc(x.artist) : "") + "</div></div></div>";
+          (c >= 2 ? ' <span class="cnt"' + cntStyle(c) + '>' + ord(c) + "</span>" : "") + '</b><div>' + esc(x.title) + (x.artist ? " - " + esc(x.artist) : "") + "</div></div></div>";
       }).join("") : '<div class="empty">Nothing sung yet</div>');
       return;
     }
     $("kjNightList").innerHTML = tabs + (order.length ? order.map(function (k) {
       var g = by[k], n = g.songs.length;
-      return '<div class="ng' + (n >= 3 ? " lots" : "") + '"><div class="nh"><b>' + esc(g.name) + '</b><span>' + n + " sung" + (g.line ? " · " + g.line + " in line" : "") + '</span></div>' +
+      return '<div class="ng"><div class="nh"><b>' + esc(g.name) + (n ? sungTag(g.name) : "") + '</b><span>' + n + " sung" + (g.line ? " · " + g.line + " in line" : "") + '</span></div>' +
         g.songs.map(function (x) { return '<div class="ns"><i>' + esc(hhmm(x.at, true)) + '</i>' + esc(x.title) + (x.artist ? " - " + esc(x.artist) : "") + "</div>"; }).join("") + "</div>";
     }).join("") : '<div class="empty">Nobody yet</div>');
   }
