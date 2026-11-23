@@ -2318,13 +2318,20 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function demoItem() {
     var list = equityGap ? DEMO_EQ : /goth/i.test(String(cfg.theme || "")) ? DEMO_GOTH : DEMO_SONGS;
     var d = list[demoN % list.length], id = 9000 + demoN++;
-    durCache[id] = 55 + (id * 7) % 30;          // short songs so the demo moves along
+    durCache[id] = 185 + (id * 37) % 70;        // real song lengths (about 3–4 min), so the wait times add up
     return { id: "demo" + id, song: { id: { type: 1, id: id }, title: d[1], artist: d[2], options: { singer: d[0] } } };
   }
+  // The demo only plays the last minute of each song so it keeps moving; the times still use the full length
+  var DEMO_PLAY = 60;
   function demoApply(state) {
     current = queue[0] || null; playerState = state; tempo = 0;
     equityNoteSinger(current);
-    trackTime(current, playerState, false); applauseCheck(); checkBreak(); render(); equitySoon();
+    trackTime(current, playerState, false);
+    if (state === 4 && current && !isBreakItem(current)) {
+      var d = durCache[current.song.id.id] || 0;
+      if (d > DEMO_PLAY) { tKnown = true; tPlayedMs = (d - DEMO_PLAY) * 1000; tSince = Date.now(); }
+    }
+    applauseCheck(); checkBreak(); render(); equitySoon();
   }
   function demoStep() {
     // advance: drop the current item, keep the line full
@@ -2337,7 +2344,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     demoApply(3);                                                                 // loaded, not playing yet
     setTimeout(function () {
       demoApply(4);
-      setTimeout(demoStep, (durCache[cur.song.id.id] || 60) * 1000);
+      setTimeout(demoStep, Math.min(DEMO_PLAY, durCache[cur.song.id.id] || 60) * 1000);
     }, (applauseSec ? applauseSec * 1000 + 6000 : 4000) + (spotMode ? 26000 : 0));
   }
   function startDemo() {
@@ -2352,7 +2359,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     eqPrev = queue.map(function (it) { return String(it.id); });
     setPill("Demo", false);
     demoApply(4);
-    setTimeout(demoStep, (durCache[queue[0].song.id.id] || 60) * 1000);
+    setTimeout(demoStep, Math.min(DEMO_PLAY, durCache[queue[0].song.id.id] || 60) * 1000);
   }
 
   function showView() {
