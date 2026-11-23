@@ -99,6 +99,8 @@ Anything you don't set uses the defaults: no logo, a deep purple-to-blue backgro
 | `code` | Your KaraFun remote control code | `code=123456` |
 | `logo` | A direct link to your logo image. A transparent PNG looks best | `logo=https://i.imgur.com/abc123.png` |
 | `spottime` | Spotlight timing: seconds of the card, then seconds of the normal screen (default `10-10`) | `spottime=8-20` |
+| `lite` | Simple GFX mode for old Fire Sticks and other slow devices: no glows, blurs or decorative animation. Automatic on the original Fire TV Stick and first Fire TV boxes; `on` forces it anywhere, `off` turns it off | `lite=on` |
+| `wipe` | How the spotlight card comes in: `down` (default), `up`, `left`, `right`, `doors`, `iris` (circle), `diamond`, `fade`, or `random` for a different one each time | `wipe=iris` |
 | `spin` | `on` makes your logo spin like a coin every 5 seconds (`qrswap=10` for every 10) | `spin=on` |
 | `logosize` | Logo size in percent, 40 to 100 (default 76, which leaves room between it and the boxes) | `logosize=100` |
 | `vignette` | How much the edges of the background darken, 1 to 100 (default 30; `on` is 60, `off` removes it) | `vignette=off` |
@@ -115,7 +117,7 @@ Anything you don't set uses the defaults: no logo, a deep purple-to-blue backgro
 | `clock` | Clock next to COMING UP. Follows the device's region (12- or 24-hour) unless you set `12` or `24`; `off` hides it | `clock=24` |
 | `eta` | Shows a calculated estimate of how long until each Coming Up singer is up (like "~12 min"), based on KaraFun's song lengths plus the `gap` between singers. On by default for Coming Up; `on` also shows it next to UP NEXT; `time` shows estimated clock times ("~11:48"); `off` hides them | `eta=on` or `eta=off` |
 | `gap` | Seconds to allow between singers for the estimates (default 60) | `gap=90` |
-| `long` | Song lines too long to fit: `alternate` (default, title and artist take turns) or `scroll` (slides sideways) | `long=scroll` |
+| `long` | Song lines too long to fit: `alternate` (default, title and artist take turns), `top` (slides sideways in Now Singing and Up Next, takes turns in Coming Up) or `scroll` (slides sideways everywhere) | `long=scroll` |
 | `caps` | Singer names in capitals (on by default); `off` shows names as typed | `caps=off` |
 | `numbers` | `off` hides the place numbers in Coming Up | `numbers=off` |
 | `line` | `on` adds a line under COMING UP (the clock sits above it) | `line=on` |
@@ -295,7 +297,7 @@ Any PNG or JPG hosted on the web works: point `logo=` (or `bgimg=`) at the image
 <summary><b>Fire Stick tips (and which Fire Stick to get)</b></summary>
 
 - **Check which Fire Stick you have.** Amazon's newest sticks run **Vega OS** instead of Fire OS: the **Fire TV Stick HD (2nd Gen, 2026)**, anything named **Select**, and the newest plain **Fire TV Stick 4K** (3rd gen). They can't install other apps, and the Silk browser drops back to the home screen after about 10 minutes no matter what the page does. Check under **Settings → My Fire TV → About**: a version that says **Fire OS** is fine; one that starts with **1** or **2** is Vega OS.
-- **For an always-on screen, use a Fire OS stick** (a Fire TV Stick 4K Max or 4K Plus is a good pick, and older sticks work too) with **[Fully Kiosk Browser](https://www.fully-kiosk.com)** *(not affiliated)* instead of Silk. Install the **Downloader** app by AFTVnews from the Amazon Appstore, use it to download Fully Kiosk from fully-kiosk.com, set the **Start URL** to your KJQV link, and turn on **Keep Screen On**. That gets around the sleep.
+- **For an always-on screen, use a Fire OS stick** (a Fire TV Stick 4K Max or 4K Plus is a good pick, and older sticks work too) with **[Fully Kiosk Browser](https://www.fully-kiosk.com)** *(not affiliated)* instead of Silk. Install the **Downloader** app by AFTVnews from the Amazon Appstore, use it to download Fully Kiosk from fully-kiosk.com, set the **Start URL** to your KJQV link, and turn on **Keep Screen On**. That gets around the sleep. On the original Fire TV Stick and the first Fire TV boxes, KJQV switches to **Simple GFX mode** by itself: no glows or decorative animation, so the old hardware keeps up (change it at the bottom of Options, under **Simple GFX mode**).
 - **Hide Silk's address bar:** once the page loads, press **down** on the remote.
 - **Stop the screensaver:** turn off **Ambient Experience**, or set **Settings → Display & Sounds → Screensaver → Start Time → Never**.
 - **Edges cut off?** The TV is cropping the picture. Try **Settings → Display & Sounds → Display → Calibrate Display** on the Fire Stick, or set the TV's picture size to "Just Scan" or "Fit to Screen".

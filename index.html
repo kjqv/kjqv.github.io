@@ -91,6 +91,18 @@
     transition: clip-path .8s cubic-bezier(.7,0,.3,1), -webkit-clip-path .8s cubic-bezier(.7,0,.3,1), opacity .8s, visibility 0s .8s; }
   #spot.on { visibility: visible; opacity: 1; -webkit-clip-path: inset(0 0 0 0); clip-path: inset(0 0 0 0);
     transition: clip-path .8s cubic-bezier(.7,0,.3,1), -webkit-clip-path .8s cubic-bezier(.7,0,.3,1), opacity .4s, visibility 0s; }
+  /* wipe=: how the spotlight card comes in. down (default), up, left, right, doors, iris, diamond, fade, random */
+  body.wipe-up #spot { -webkit-clip-path: inset(100% 0 0 0); clip-path: inset(100% 0 0 0); }
+  body.wipe-left #spot { -webkit-clip-path: inset(0 0 0 100%); clip-path: inset(0 0 0 100%); }
+  body.wipe-right #spot { -webkit-clip-path: inset(0 100% 0 0); clip-path: inset(0 100% 0 0); }
+  body.wipe-doors #spot { -webkit-clip-path: inset(0 50% 0 50%); clip-path: inset(0 50% 0 50%); }
+  body.wipe-up #spot.on, body.wipe-left #spot.on, body.wipe-right #spot.on, body.wipe-doors #spot.on { -webkit-clip-path: inset(0 0 0 0); clip-path: inset(0 0 0 0); }
+  body.wipe-iris #spot { -webkit-clip-path: circle(0% at 50% 50%); clip-path: circle(0% at 50% 50%); }
+  body.wipe-iris #spot.on { -webkit-clip-path: circle(75% at 50% 50%); clip-path: circle(75% at 50% 50%); }
+  body.wipe-diamond #spot { -webkit-clip-path: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%); clip-path: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%); }
+  body.wipe-diamond #spot.on { -webkit-clip-path: polygon(50% -60%, 160% 50%, 50% 160%, -60% 50%); clip-path: polygon(50% -60%, 160% 50%, 50% 160%, -60% 50%); }
+  body.wipe-fade #spot, body.wipe-fade #spot.on { -webkit-clip-path: none; clip-path: none; }
+  body.wipe-fade #spot { transition: opacity .9s, visibility 0s .9s; } body.wipe-fade #spot.on { transition: opacity .9s, visibility 0s; }
   #spot .slabel { font-size: 8vh; font-weight: 900; letter-spacing: .14em; color: #fff; opacity: .9; }
   #spot .sname { max-width: 100%; font-size: 24vh; line-height: 1.1; font-weight: 900; color: rgb(var(--next)); white-space: nowrap;
     padding: 0 .1em; animation: spotglow 2.4s ease-in-out infinite; }
@@ -438,6 +450,18 @@
   @media (max-width: 700px), (orientation: portrait) {
     #opts .grid { grid-template-columns: 1fr; } #opts .row button.ch { min-width: 40vw; }
   }
+  /* lite=on (automatic on the original Fire TV Stick and Fire TV boxes): no glows, blurs or decorative
+     motion, so slow devices keep up. Logo spin, dance colors, LAST CALL blink, applause and long-line scrolling stay. */
+  body.lite *, body.lite *::before, body.lite *::after { text-shadow: none !important; box-shadow: none !important;
+    filter: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+    transition-duration: 0s !important; -webkit-animation-name: none !important; animation-name: none !important; will-change: auto !important; }
+  body.lite #brand.spinning { -webkit-animation-name: coinspin !important; animation-name: coinspin !important; }
+  body.lite .rainbow { -webkit-animation-name: rainbowflash !important; animation-name: rainbowflash !important; }
+  body.lite .lastcall { -webkit-animation-name: lastcall !important; animation-name: lastcall !important; }
+  body.lite .scr { -webkit-animation-name: scr !important; animation-name: scr !important; }
+  body.lite #applause.on { -webkit-animation-name: applausein !important; animation-name: applausein !important; }
+  body.lite #list .who.brb { text-shadow: 0 0 .3vh #fff, 0 0 .3vh #fff !important; }   /* black text needs its white edge */
+  body.lite.ending #nowTime { -webkit-animation-name: endflash !important; animation-name: endflash !important; }
 </style>
 </head>
 <body>
@@ -599,7 +623,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var CFG_KEY = "kqv.cfg";
   var cfg = {};
   try { cfg = JSON.parse(load(CFG_KEY) || "{}") || {}; } catch (e) { cfg = {}; }
-  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette", "flicker", "away", "spottime"];
+  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette", "flicker", "away", "spottime", "lite", "wipe"];
   // A link with any look options replaces the saved look; a bare link (just code=) keeps it.
   // The preview never uses what this device saved.
   if (DEMO || OPTS.some(function (k) { return params.has(k); })) cfg = {};
@@ -607,7 +631,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   // The plain preview (?demo with no options) shows off a bit: no clock, the rule under COMING UP,
   // and a neon-blue sample logo that coin-flips with a matching QR card.
   if (DEMO && !OPTS.some(function (k) { return params.has(k); }))
-    cfg = { clock: "off", line: "on", qr: "split", qrbg: "5ee7ff", logo: "https://kjqv.github.io/sample-logo-blue.png", spotlight: "loop" };
+    cfg = { clock: "off", line: "on", qr: "split", qrbg: "5ee7ff", logo: "https://kjqv.github.io/sample-logo-blue.png", spotlight: "loop", long: "top" };
   // Themes fill in any setting you didn't set yourself.
   var THEMES = {
     holiday: { bg1: "0b3d1f", bg2: "5a0b12", now: "3dff7a", next: "ff4d4d", up1: "9dffbe", up2: "ff6b6b",
@@ -748,6 +772,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var nowC = hex(cfg.now), nextC = hex(cfg.next);
     if (nowC) document.documentElement.style.setProperty("--now", rgb(nowC).join(","));
     if (nextC) document.documentElement.style.setProperty("--next", rgb(nextC).join(","));
+    // lite: on by default for the original Fire TV Stick (AFTM) and the first Fire TV boxes (AFTB, AFTS)
+    var liteV = String(cfg.lite || "").toLowerCase();
+    document.body.classList.toggle("lite", /^(on|yes|true|1)$/.test(liteV) || (!liteV && /\bAFT(M|B|S)\b/.test(navigator.userAgent)));
     document.body.classList.toggle("noicons", off("icons"));
     document.body.classList.toggle("nopulse", off("pulse"));
     document.body.classList.toggle("nonumbers", off("numbers"));
@@ -1000,7 +1027,21 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     sp.style.backgroundRepeat = reps.join(", "); sp.style.backgroundPosition = pos.join(", ");
   }
   function nextRgb() { return (getComputedStyle(document.documentElement).getPropertyValue("--next") || "255,255,255").trim(); }
-  function setSpot(on) { if (on !== spotShown) { spotShown = on; $("spot").classList.toggle("on", on); } }
+  var WIPES = ["down", "up", "left", "right", "doors", "iris", "diamond", "fade"], wipeOpt = String(cfg.wipe || "down").toLowerCase();
+  if (wipeOpt !== "random" && WIPES.indexOf(wipeOpt) < 0) wipeOpt = "down";
+  function setWipe(w) { WIPES.forEach(function (k) { document.body.classList.toggle("wipe-" + k, k === w && k !== "down"); }); }
+  setWipe(wipeOpt);
+  function setSpot(on) {
+    if (on === spotShown) return;
+    spotShown = on;
+    if (on && wipeOpt === "random") {   // a different wipe each time it comes in
+      var cur = WIPES.filter(function (k) { return document.body.classList.contains("wipe-" + k); })[0] || "down";
+      var pick = WIPES.filter(function (k) { return k !== cur; });
+      setWipe(pick[Math.floor(Math.random() * pick.length)]);
+      void $("spot").offsetWidth;   // start from the new wipe's hidden shape
+    }
+    $("spot").classList.toggle("on", on);
+  }
   function fitSpot() {
     var el = $("spotName"), size = 24; el.style.fontSize = size + "vh";
     while (size > 6 && el.scrollWidth > el.clientWidth + 1) { size -= 0.5; el.style.fontSize = size + "vh"; }
@@ -1622,7 +1663,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     el.innerHTML = h;
     el.setAttribute("data-shown", el.textContent);
   }
+  // long=scroll slides long song lines sideways everywhere; long=top only in Now Singing / Up Next
   var scrollMode = String(cfg.long || "").toLowerCase() === "scroll";
+  var scrollTop = scrollMode || String(cfg.long || "").toLowerCase() === "top";
   // Wrap an element's content in a seamless sideways-scrolling loop.
   function makeScroll(el) {
     var inner = el.innerHTML, gapHtml = '<span style="display:inline-block;width:4em"></span>';
@@ -1663,21 +1706,29 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   // Song line for Now Singing / Up Next: "Title · Artist" (or just the title when the artist
   // is already the big name). Starts at full size and shrinks a little before cutting the artist.
   function songLine(el, x) {
+    el._x = x;
     var title = x.title || "", artist = x.singer ? (x.artist || "") : "";
     el.innerHTML = '<span class="ttl">' + esc(title) + "</span>" +
       (artist ? '<span class="art">' + esc("\u00a0\u00b7\u00a0" + artist) + "</span>" : "");
     el.style.fontSize = "";
     var base = parseFloat(getComputedStyle(el).fontSize) || 40, size = base;
     var need = function () { var w = 0; for (var i = 0; i < el.children.length; i++) w += el.children[i].scrollWidth; return w; };
-    while (size > base * 0.7 && need() > el.clientWidth + 1) { size -= base * 0.05; el.style.fontSize = size + "px"; }
+    while (!scrollTop && size > base * 0.7 && need() > el.clientWidth + 1) { size -= base * 0.05; el.style.fontSize = size + "px"; }
     el.classList.remove("scrolling");
-    if (scrollMode && need() > el.clientWidth + 1) {
+    if (scrollTop && need() > el.clientWidth + 1) {
       el.style.fontSize = "";
       el.innerHTML = '<span class="ttl" style="flex:none;max-width:none">' + el.firstChild.innerHTML + "</span>" +
         (el.children[1] ? '<span class="art" style="flex:none">' + el.children[1].innerHTML + "</span>" : "");
       makeScroll(el);
     }
+    el._w = el.clientWidth;
   }
+  // The box can get narrower after the line was laid out (the logo or QR code loads), so check once a second.
+  setInterval(function () {
+    ["nowBarSong", "heroSong"].forEach(function (id) {
+      var el = $(id); if (el._x && el.clientWidth && el.clientWidth !== el._w) songLine(el, el._x);
+    });
+  }, 1000);
 
   window.addEventListener("resize", function () { fitCache = {}; fitName(); renderList(); });
 
@@ -2037,6 +2088,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["qrtext", "QR caption", "input", "SCAN TO SING"],
     ["#", "Spotlight and breaks"],
     ["spotlight", "Spotlight", [["", "All night"], ["on", "Between songs"], ["off", "Off"]]],
+    ["wipe", "Spotlight wipe", [["", "Down"], ["up", "Up"], ["left", "Left"], ["right", "Right"], ["doors", "Doors"], ["iris", "Circle"], ["diamond", "Diamond"], ["fade", "Fade"], ["random", "Mix it up"]]],
     ["spottime", "Spotlight timing", [["", "10s card / 10s queue"], ["5-15", "5s card / 15s queue"], ["8-20", "8s card / 20s queue"], ["10-30", "10s card / 30s queue"], ["15-15", "15s card / 15s queue"], ["5-30", "5s card / 30s queue"]]],
     ["applause", "Applause", [["", "Off"], ["on", "On"]]],
     ["away", "When KaraFun's closed", [["", "Big logo"], ["music", "Music break"], ["dance", "Dance party"], ["off", "Keep the queue"]]],
@@ -2062,12 +2114,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["gap", "Time between singers", [["", "60 sec"], ["30", "30 sec"], ["45", "45 sec"], ["90", "90 sec"], ["120", "2 min"]]],
     ["title", "Song titles", [["", "On"], ["off", "Off"]]],
     ["artist", "Artists", [["", "On"], ["off", "Off"]]],
-    ["long", "Long song lines", [["", "Take turns"], ["scroll", "Slide sideways"]]],
+    ["long", "Long song lines", [["", "Take turns"], ["top", "Slide (top boxes)"], ["scroll", "Slide everywhere"]]],
     ["numbers", "Place numbers", [["", "On"], ["off", "Off"]]],
     ["clock", "Clock", [["", "On"], ["12", "12-hour"], ["24", "24-hour"], ["off", "Off"]]],
     ["line", "Line under COMING UP", [["", "Off"], ["on", "On"]]],
     ["flourish", "Glowing COMING UP", [["", "Off"], ["on", "On"]]],
-    ["drip", "Blood drips (goth)", [["", "Off"], ["on", "On"]]]
+    ["drip", "Blood drips (goth)", [["", "Off"], ["on", "On"]]],
+    ["#", "Old Fire Sticks"],
+    ["lite", "Simple GFX mode (for old Fire Sticks)", [["", "Auto"], ["on", "On"], ["off", "Off"]]]
   ];
   var ed = {};
   function themeKey(v) { var tn = String(v || "").toLowerCase().replace(/[^a-z]/g, ""); return tn === "gothclub" ? "goth" : /^(xmas|christmas|holidays)$/.test(tn) ? "holiday" : /^(thanksgiving|fall|autumn)$/.test(tn) ? "turkey" : tn; }
