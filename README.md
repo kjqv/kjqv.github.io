@@ -145,7 +145,7 @@ Anything you don't set uses the defaults: no logo, a deep purple-to-blue backgro
 | `dance` | DANCE PARTY flashes through rainbow colors by default; give it one color to use that instead | `dance=ff2ad4` |
 | `title` | `title=off` hides song titles in Coming Up | `title=off` |
 | `artist` | `artist=off` hides artist names in Coming Up | `artist=off` |
-| `songs` | `songs=off` keeps songs a surprise: only singer names in Up Next and Coming Up (Now Singing still shows the song once it starts) | `songs=off` |
+| `songs` | `songs=off` keeps songs a surprise: only singer names in Up Next and Coming Up (Now Singing shows it 15 seconds into the song; change that with `songreveal=` in seconds, `0` for right away) | `songs=off` |
 | `blank` | A singer name to treat as "no name" (shows the artist instead). Separate several with commas | `blank=Guest` |
 
 </details>
