@@ -179,6 +179,9 @@
   body.noicons #nowBar .mic, body.noicons #nowBar .wave { display: none; }
   body.nopulse #nowBar::after { animation: none; }
   body.nosongs #list .what { display: none; }
+  /* songs=off keeps everyone's song a surprise until they're on: no song in Up Next or on its spotlight card either
+     (Now Singing still shows it) */
+  body.nosongs #heroSong, body.nosongs #spot:not(.nowcard) #spotSong { display: none !important; }
   /* caps=on (default): singer names in capitals */
   body.caps #nowBarName, body.caps #heroName, body.caps #list .who, body.caps #applause .aname { text-transform: uppercase; }
   body.nonumbers #list .num { display: none; }
@@ -2844,6 +2847,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["count", "How many", [["", "8"], ["3", "3"], ["4", "4"], ["5", "5"], ["6", "6"], ["10", "10"], ["12", "12"], ["0", "Hide Coming Up"]]],
     ["eta", "Wait times", [["", "On"], ["on", "Also by Up Next"], ["time", "Clock times"], ["off", "Off"]]],
     ["gap", "Time between singers", [["", "60 sec"], ["30", "30 sec"], ["45", "45 sec"], ["90", "90 sec"], ["120", "2 min"]]],
+    ["songs", "Songs before they're sung", [["", "Show"], ["off", "Keep them a surprise"]]],
     ["title", "Song titles", [["", "On"], ["off", "Off"]]],
     ["artist", "Artists", [["", "On"], ["off", "Off"]]],
     ["long", "Long song lines", [["", "Take turns"], ["top", "Slide (top boxes)"], ["scroll", "Slide everywhere"]]],
