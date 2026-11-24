@@ -36,7 +36,7 @@
 - **Spotlight mode** (on by default; `spotlight=off` to turn it off): the screen wipes over to a big full-screen card: **NOW SINGING** while a song plays, **UP NEXT** near the end and between songs, switching back and forth with the normal screen. [See it in goth](https://kjqv.github.io/goth).
 - **Scan-to-sing QR code** (`qr=on`) so guests can join your KaraFun session and add songs. Use it in place of your logo, flip between your logo and the QR code like a coin every 5 seconds (`qr=split`), or show both, small (`qr=both`).
 - **Applause mode** (`applause=on`): a big "MAKE SOME NOISE FOR (name)!!!" when each singer finishes.
-- **[Equity mode](#equity-mode)** (`equity=on`, *experimental*, off by default): spaces out repeat singers so everyone gets a turn. Along with the banned-songs *move to the end* and *delete* settings, this is the only feature that changes your actual KaraFun queue: it reorders songs.
+- **[Equity mode](#equity-mode)** (`equity=on`, *experimental*, off by default): spaces out repeat singers so everyone gets a turn. This changes your actual KaraFun queue: it reorders songs.
 - **Planned breaks and announcements:** queue `BRB KJ 15`, `DANCE 10` or `LAST CALL` as a singer name and the screen shows a countdown, a DANCE PARTY or a flashing LAST CALL. Nothing to turn on.
 - **Idle screen** (`idle=5`): *paused for now while I rework it.* The setting is ignored, so the screen always shows the full queue.
 
@@ -58,7 +58,7 @@ The first time you open the page, it asks for the 6-digit **remote control code*
 - The code is saved only in that device's browser. It only appears on the screen if you turn on `qr=on`, which shows the same join QR code KaraFun gives your guests.
 - There's no account, no sign-up, no ads, no tracking, and no server of mine collecting anything. The whole app is one web page.
 - The page talks directly to KaraFun. The only other things it loads are your logo (from wherever you host it), a Google Font if you pick one, its own page from GitHub to check for updates, and, only if you turn on weather, [Open-Meteo](https://open-meteo.com) (free, no account) with your ZIP code's location.
-- By default it only **reads** the queue and never changes it: it doesn't add, remove or reorder songs, and it can't touch your KaraFun account or billing. The two exceptions, both off unless you turn them on, are [Equity mode](#equity-mode) (experimental), which moves songs around to space out repeat singers, and the [banned songs](#banned-songs) setting (experimental) for KaraFun's own queue, which can move banned songs to the end or (experimental) **delete** them. Nothing else ever adds, removes or reorders songs. It shows up as **KJQV** in KaraFun's list of connected guests.
+- By default it only **reads** the queue and never changes it: it doesn't add, remove or reorder songs, and it can't touch your KaraFun account or billing. The exceptions, all off unless you turn them on, are [Equity mode](#equity-mode) (experimental), which moves songs around to space out repeat singers, and the experimental [KJ mode](#kj-mode) controls on your phone. It shows up as **KJQV** in KaraFun's list of connected guests.
 - It's open source: everything is in one file, [index.html](index.html), that anyone can read.
 
 ## What you need
@@ -76,6 +76,47 @@ The first time you open the page, it asks for the 6-digit **remote control code*
 The code is saved on that device, so next time you just open the page. You can also bookmark it with your code built in: `?code=123456`.
 
 To open the small menu (**Full screen**, **Options**, **Change code**), tap or click the screen, or press any arrow or select/Enter on a TV remote or keyboard. It closes by itself after 10 seconds, so nothing gets in the way of the queue.
+
+## KJ mode: your phone as a KJ remote <i>(experimental)</i>
+<a id="kj-mode"></a>
+
+Open your usual link on your phone with `&kj=on` added (or `&kj=on&kjcontrols=on` for the controls). Instead of the TV screen you get an upright page just for you, the KJ. Try it with the made-up demo queue: **[kjqv.github.io/?demo&kj=on&kjcontrols=on](https://kjqv.github.io/?demo&kj=on&kjcontrols=on)**
+
+| The queue | Tap a singer | Change song | History |
+|---|---|---|---|
+| ![KJ mode](screenshots/kj-mode.png) | ![Edit a signup](screenshots/kj-edit.png) | ![Change song](screenshots/kj-change-song.png) | ![History](screenshots/kj-history.png) |
+
+**What you see**
+- **Now singing** with a progress bar and the time left (the name flashes in the last 10% of the song), then the whole queue with roughly when each person is up.
+- **Keys** from KaraFun on every signup. A moved key shows just the new key, colored by how far it moved: orange getting redder the further down, pink getting more violet the further up. Set *KJ view: show keys as* in Options (`keys=sharp` or `keys=flat`) to match your gear.
+- **Song counts:** a row of small dots by each name, one per song tonight, from green through yellow to red, so you know when someone's had plenty of turns.
+- **History** at the bottom: tonight's songs in order, or **By singer**. It's kept on your phone and resets at 6am. Restarts don't count as new songs.
+- An *EXPLICIT* tag on songs KaraFun marks explicit, and a green **AUTO** tag for singers flagged for autotune.
+
+**Tap a singer** to:
+- Flag them for **autotune** (just this song, or *Always for …*; you can also list names in Options → **Singers**).
+- Change their **name** (not while they're singing), **key** (up to 6 steps either way) and **tempo** (−50% to +50%).
+- **Change song…**: search KaraFun's catalog and swap a different song into their spot in line.
+- Set their **lead and backing vocal** levels. Tap the lock to keep them for the night; they're set again each time their song starts.
+
+**Controls** (off by default: Options → *KJ view: play, skip and restart*, or `kjcontrols=on`): play/pause, restart and skip at the top. Play is one tap; pause, restart and skip need a second tap so a bump doesn't stop the show. KaraFun's remote has no real restart, so restart adds a copy of the song right after the current one and skips to it.
+
+**Heads up: the controls change your real KaraFun queue.** They only work if KaraFun allows it. KJ mode joins KaraFun as **KJQV KJ** (the TV is plain **KJQV**); tap the dot next to the title to see its exact name and whether the controls are on, and make that participant an admin in KaraFun (see [Queue control](#queue-control)). KaraFun may treat KJ mode as a new participant after the page reloads (including when KJQV updates itself), so if the controls stop working, check the name and make it an admin again. Tap ⚠️ for a reminder of what's experimental, and ☰ for Options. Each device keeps its own settings.
+
+<details>
+<summary><b>HeadRush VX5 key presets <i>(experimental, off by default)</i></b></summary>
+
+The VX5 can't be told a key over USB, but since firmware 1.3 a computer can switch its presets. So save one preset per key, and KJ mode loads the right one when each song starts, or when you change the key of the song that's on. With `vx5=100` (Options → *KJ view: VX5 key presets*), the presets are:
+
+| Presets | Key |
+|---|---|
+| 100–111 | C, C#, D, D#, E, F, F#, G, G#, A, A#, B (major) |
+| 112–123 | Cm, C#m, Dm, D#m, Em, Fm, F#m, Gm, G#m, Am, A#m, Bm (minor) |
+| 124 | Chromatic (for songs KaraFun has no key for) |
+
+`vx5=1` uses presets 1–25 instead. Make one preset that sounds right, copy it to each slot with the VX5's copy feature, and change only the key on each copy. Set *KJ view: show keys as* to *Sharps only* so KJ mode matches the VX5's screen. This needs KJ mode open in **Chrome or Edge on a computer** with the VX5 plugged into it by USB (browsers on iPhone and iPad can't talk to MIDI gear); the browser asks once to allow MIDI. The connection dot's details show *VX5: preset 116 (Em)*, or what's wrong.
+
+</details>
 
 ## Make it your own
 
@@ -181,22 +222,11 @@ Off by default. Add `applause=on` and when a singer finishes, the screen shows a
 
 </details>
 
-<a id="banned-songs"></a>
+<a id="queue-control"></a>
 <details>
-<summary><b>Banned songs and KJ view <i>(experimental)</i></b></summary>
+<summary><b>Queue control <i>(for KJ mode and Equity, experimental)</i></b></summary>
 
-*Experimental: new, and not yet tested much on real nights.* List songs or artists you won't play in **Options → Text → Banned songs** (or `ban=` in the link), with commas between: `Wonderwall, Mr. Brightside, Nickelback`. Each one matches a song title or an artist, whole words, any capitalization. For one specific version, write `Title - Artist` (`Shallow - Lady Gaga`).
-
-When someone signs up for one:
-
-- **The TV leaves it out.** It doesn't show in Up Next or Coming Up, and the wait times skip it. (If you load it in KaraFun anyway, it shows like any other song.)
-- **A tiny red dot** shows in the bottom-left corner of the TV while one is in the queue. Only you know what it means. Turn it off with *Red dot on the TV* in Options (`banalert=off`).
-- **KJ view** (*experimental*): open your usual link on your phone with `&kj=on` added. Instead of the TV screen you get a simple upright page just for you: who's on stage and how much of their song is left, the whole queue with roughly when each person is up, banned songs crossed out in red, and a red alert at the top naming the singer and song (phones that allow it buzz). **What's been sung** (tap it at the bottom) is tonight's log: every song in order with the time it started (newest first, with *11th* next to someone on their 11th song), or **By singer** to see each person's songs and how many they still have in line, so you know when someone's had enough turns. Each singer's name also gets a little number for how many songs they've sung tonight, shown as a row of small blocks (one per song) that shift from green through yellow to red. It's logged on your phone while KJ mode is open and resets at 6am. It shows whether KJQV has queue control too. **Controls** (*experimental*, off by default; turn on *KJ view: play, skip, restart and levels* in Options, or `kjcontrols=on`): small play/pause, restart and skip buttons, plus the audio levels KaraFun reports, like KaraFun's own remote. Skip and restart need a second tap. Each signup shows the song's key from KaraFun, and when it's been moved, the new key too (*Key G → F (−2)*), plus any tempo change, and an *EXPLICIT* tag on songs KaraFun marks as explicit. Set *KJ view: show keys as* in Options (`keys=sharp` or `keys=flat`) to match your gear, e.g. an autotune pedal that only uses sharps. **Tap a singer** to flag them for **autotune** (a bright green tag, saved on your phone; tick *Always autotune for …* to flag that singer every time, or list names in Options → Text → *Singers who always want autotune*, `autotune=`) and, with the controls on, to change their name, key or tempo in KaraFun. KaraFun's remote has no real restart, so restart adds a copy of the song right after the current one and skips to it. The controls only work if KaraFun lets KJQV do those things (make it an admin). Each device keeps its own settings, so put the same banned list in the phone's Options too (there's an Options button at the top).
-- **Banned songs in KaraFun's own queue** (Options, or `banmove=`). Off by default (*Leave them*). Like Equity mode, the other two choices change your actual KaraFun queue:
-  - **Move to the end** (`banmove=on`): pushes banned songs to the bottom, so you can delete them when you get to them.
-  - **Delete** (`banmove=delete`, *experimental*): removes banned songs from KaraFun's queue as soon as they're signed up. This can't be undone, and the singer sees their song disappear from their phone. The KJ view lists what was deleted. It never deletes the song KaraFun has loaded.
-
-**Queue control (needed for Move, Delete and Equity mode, experimental).** KaraFun only lets a remote change the queue if you allow it. In KaraFun Pro: **Remote Control → Participants**, find **KJQV** (the TV screen) and make it an **admin**. Only do it for KJQV; turning on queue management for everyone under *Permissions* would let any guest move or delete songs. The KJ view's top bar shows *Queue control: on*, *checking…* or *OFF* with that reminder. If KaraFun refuses, KJQV stops trying. We haven't confirmed yet whether KaraFun keeps the admin grant when the TV reconnects, so check the KJ view after a restart.
+KaraFun only lets a remote change the queue if you allow it. In KaraFun Pro: **Remote Control → Participants**, find **KJQV** (the TV screen) and make it an **admin**. Only do it for KJQV; turning on queue management for everyone under *Permissions* would let any guest move or delete songs. KJ mode's connection dot (tap it) shows *Queue control: on*, *checking…* or *OFF* with that reminder. If KaraFun refuses, KJQV stops trying. We haven't confirmed yet whether KaraFun keeps the admin grant when the TV reconnects, so check the KJ view after a restart.
 
 </details>
 
@@ -204,7 +234,7 @@ When someone signs up for one:
 <details>
 <summary><b>Equity mode <i>(experimental)</i></b></summary>
 
-Off by default. **Heads up: this changes your real KaraFun queue** (the only other setting that does is the banned-songs *move to the end* / *delete*). It moves songs around (it never adds or removes any), and the new order shows up in KaraFun and on everyone's phones. Turn it on in the **Options** menu (Equity), or add `equity=on` to the link, and the screen spaces out repeat singers in KaraFun's queue, keeping at least 3 other singers between someone's songs. Set your own number with `equity=5`, or use `equity=scale` to have the spacing grow with the crowd: about a third of the people in line (5 singers → 1 between repeats, 15 singers → 5).
+Off by default. **Heads up: this changes your real KaraFun queue** (the KJ mode controls can too). It moves songs around (it never adds or removes any), and the new order shows up in KaraFun and on everyone's phones. Turn it on in the **Options** menu (Equity), or add `equity=on` to the link, and the screen spaces out repeat singers in KaraFun's queue, keeping at least 3 other singers between someone's songs. Set your own number with `equity=5`, or use `equity=scale` to have the spacing grow with the crowd: about a third of the people in line (5 singers → 1 between repeats, 15 singers → 5).
 
 - Same name = same singer. Give two Susans different names ("Susan B", "Susan K").
 - It never moves the song that's on or the one in Up Next.
@@ -333,7 +363,7 @@ Any PNG or JPG hosted on the web works: point `logo=` (or `bgimg=`) at the image
 <details>
 <summary><b>How it works</b></summary>
 
-KaraFun's public remote page (`karafun.com/<code>/`) embeds a short-lived WebSocket address for the session. This page fetches that (KaraFun allows cross-origin reads), loads KaraFun's own `WebKCS` client from their CDN, and listens for `remote.QueueEvent` and `remote.StatusEvent` as a listener. Normally it only listens; the only thing it ever sends is a move-in-queue request (`remote.MoveInQueueRequest`), and only when [Equity mode](#equity-mode) or the banned-songs *move to the end* setting is turned on, plus a delete request (`remote.RemoveFromQueueRequest`) only when the experimental banned-songs *delete* setting is on. It names itself **KJQV** so it shows up clearly in KaraFun's list of connected guests. It reconnects on its own if Wi-Fi drops or KaraFun restarts.
+KaraFun's public remote page (`karafun.com/<code>/`) embeds a short-lived WebSocket address for the session. This page fetches that (KaraFun allows cross-origin reads), loads KaraFun's own `WebKCS` client from their CDN, and listens for `remote.QueueEvent` and `remote.StatusEvent` as a listener. Normally it only listens. It only sends commands when you turn on an experimental feature ([Equity mode](#equity-mode) or the [KJ mode](#kj-mode) controls), and then only the queue and playback commands those need. It names itself **KJQV** (KJ mode: **KJQV KJ**) so it shows up clearly in KaraFun's list of connected guests. KJ mode also reads each song's key and length, and does its **Change song** search, with the same lookups KaraFun's own remote page uses. It reconnects on its own if Wi-Fi drops or KaraFun restarts.
 
 This relies on KaraFun's undocumented remote protocol, so a KaraFun update could break it.
 
