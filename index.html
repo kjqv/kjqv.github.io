@@ -1159,10 +1159,23 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     // The next song started: back to the normal screen (once the splash is done).
     if (playerState === 4 && afterApplause && !$("applause").classList.contains("on")) afterApplause = null;
   }
+  // Applause lines rotate so it's not the same every time. Your own (Text tab) can be several, split with |
+  var NOISE = ["Make some noise for", "Give it up for", "Put your hands together for", "How about a round of applause for",
+    "Let's hear it for", "Big love for", "Show some love for", "Raise the roof for"];
+  var THANKS = ["Thank you", "Nailed it", "What a performance", "Bravo", "Legendary", "Encore-worthy", "Absolute star"];
+  var SUBS = ["Next singer coming right up", "Stay tuned, the next star is on the way", "Up next in just a sec", "Keep that energy going"];
+  function phrase(key, list) {
+    var own = String(cfg[key] || "").split("|").map(function (x) { return x.replace(/\s+/g, " ").trim().slice(0, 40); }).filter(Boolean);
+    var pool = own.length ? own : list, last = phrase.last[key], p;
+    do { p = pool[Math.floor(Math.random() * pool.length)]; } while (pool.length > 1 && p === last);
+    phrase.last[key] = p; return p;
+  }
+  phrase.last = {};
   function showApplause(name) {
+    $("applausePre").textContent = phrase("noisetext", NOISE);
     $("applauseName").textContent = name + "!!!";
     $("applause").classList.add("on");
-    afterApplause = { name: name };
+    afterApplause = { name: name, thanks: phrase("thankstext", THANKS), sub: phrase("thankssub", SUBS) };
     clearTimeout(applauseTimer);
     applauseTimer = setTimeout(function () {
       $("applause").classList.remove("on");
@@ -2130,7 +2143,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         ? '<div class="' + (danceRainbowDefault ? "rainbow" : "") + '" style="' + (danceRainbowDefault ? "" : "color:" + danceColor + ";text-shadow:0 0 1.2vh " + danceColor + "88") + '">DANCE PARTY</div><span>' + esc(txt("backtext", "Karaoke's back soon")) + '</span>'
         : '<div>' + esc(txt("musictext", "MUSIC BREAK")) + '</div><span>' + esc(txt("backtext", "Karaoke's back soon")) + '</span>', true);
     } else if (afterApplause) {
-      setBreakMsg(esc(txt("thankstext", "Thank you")) + ", " + esc(afterApplause.name) + "!<span>" + esc(txt("thankssub", "Next singer coming right up")) + "</span>", false);
+      setBreakMsg(esc(afterApplause.thanks || "Thank you") + ", " + esc(afterApplause.name) + "!<span>" + esc(afterApplause.sub || "Next singer coming right up") + "</span>", false);
     } else {
       setBreakMsg("Short break<span>Back in a few</span>", false);
     }
@@ -2884,9 +2897,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["nexttext", "Up Next label", "input", "UP NEXT"],
     ["comingtext", "Coming Up heading", "input", "COMING UP"],
     ["#", "Applause"],
-    ["noisetext", "Applause line", "input", "Make some noise for"],
-    ["thankstext", "Thank-you line (before the name)", "input", "Thank you"],
-    ["thankssub", "Under the thank-you", "input", "Next singer coming right up"],
+    ["noisetext", "Applause line (several? split with |)", "input", "Make some noise for | Give it up for (blank: a mix)"],
+    ["thankstext", "Thank-you line, before the name (split with |)", "input", "Thank you | Nailed it (blank: a mix)"],
+    ["thankssub", "Under the thank-you (split with |)", "input", "Next singer coming right up (blank: a mix)"],
     ["#", "Empty queue and breaks"],
     ["emptytext", "Empty queue", "input", "Queue is empty"],
     ["signuptext", "Under it", "input", "Come sign up to sing!"],
@@ -2947,7 +2960,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     (optTab === "text" ? TEXT_ROWS : OPT_ROWS).forEach(function (row) {
       if (row[0] === "#") { html += '<div class="head">' + esc(row[1]) + '</div>'; return; }
       if (row[2] === "input") {
-        html += '<label class="row wide"><span>' + row[1] + '</span><input data-k="' + row[0] + '" maxlength="' + (row[0] === "weather" ? 10 : /^(logo|bgimg|ban|autotune)$/.test(row[0]) ? 1000 : /^(now|next|coming)text$/.test(row[0]) ? 20 : 40) + '" type="' + (/^(logo|bgimg)$/.test(row[0]) ? "url" : "text") +
+        html += '<label class="row wide"><span>' + row[1] + '</span><input data-k="' + row[0] + '" maxlength="' + (row[0] === "weather" ? 10 : /^(logo|bgimg|ban|autotune)$/.test(row[0]) ? 1000 : /^(noisetext|thankstext|thankssub)$/.test(row[0]) ? 300 : /^(now|next|coming)text$/.test(row[0]) ? 20 : 40) + '" type="' + (/^(logo|bgimg)$/.test(row[0]) ? "url" : "text") +
           '" placeholder="' + esc(row[3] || "") + '" value="' + esc(ed[row[0]] || "") + '"></label>';
         return;
       }
