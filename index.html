@@ -3419,7 +3419,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   // BPM (bpm=on, KJ view): KaraFun doesn't share tempo, so it's looked up by title + artist on Deezer's free public API
   // (as JSONP: Deezer's API doesn't allow ordinary browser requests) and remembered on this phone. 0 = Deezer doesn't know.
   var BPM_ON = /^(on|yes|1|true)$/i.test(String(cfg.bpm || ""));
-  var bpmCache = {}; try { bpmCache = JSON.parse(localStorage.getItem("kqv.bpm") || "{}") || {}; } catch (e) {}
+  var bpmCache = {}; if (!DEMO) try { bpmCache = JSON.parse(localStorage.getItem("kqv.bpm") || "{}") || {}; } catch (e) {}
   var bpmBusy = false, bpmQ = [];
   function jsonp(url) {
     return new Promise(function (ok, bad) {
@@ -3446,7 +3446,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if (!best) return 0;
       return jsonp(DZ + "track/" + best.id).then(function (t) { return t && t.bpm > 0 ? Math.round(t.bpm) : 0; });
     }).then(function (b) {
-      bpmCache[q.k] = b; try { localStorage.setItem("kqv.bpm", JSON.stringify(bpmCache)); } catch (e) {} render();
+      bpmCache[q.k] = b; if (!DEMO) try { localStorage.setItem("kqv.bpm", JSON.stringify(bpmCache)); } catch (e) {} render();   // the demo's made-up ids aren't saved
     }, function () {}).then(function () { bpmBusy = false; setTimeout(bpmPump, 150); });
   }
   function fetchDurations(items) {
