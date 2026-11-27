@@ -681,7 +681,8 @@
   #kjPage .cnt { display: inline-block; min-width: 20px; height: 20px; padding: 0 6px; margin-left: 6px; border-radius: 10px; vertical-align: 3px;
     font-size: 12px; line-height: 20px; text-align: center; font-weight: 800; letter-spacing: 0; text-transform: none; color: #fff; background: rgba(255,255,255,.14); }
   #kjPage .pips { display: inline-flex; gap: 3px; margin-left: 8px; vertical-align: 2px; font-size: 11px; font-weight: 800; align-items: center; }
-  #kjPage .pips i { display: block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .9; }   /* dots, so two of them never look like a pause sign */
+  #kjPage .pips em { font-style: normal; font-size: 10px; font-weight: 800; line-height: 1; padding: 1px 5px; border: 1.5px solid currentColor; border-radius: 8px; }
+  #kjPage .pips i { display: block; width: 7px; height: 7px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid currentColor; background: none; }   /* dots, so two of them never look like a pause sign */
   #kjPage .r.ban .cnt { text-decoration: none; }
   #kjPage .empty { opacity: .5; font-size: 15px; padding: 10px 0; }
   #kjPage .foot { margin-top: 24px; font-size: 12px; opacity: .45; line-height: 1.5; }
@@ -3260,8 +3261,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function sungTag(name) {
     var n = name ? sungCount(name) : 0; if (!n) return "";
     var h = cntHue(n), b = "", i;
-    for (i = 0; i < Math.min(n, 12); i++) b += "<i></i>";
-    return ' <span class="pips" style="color:hsl(' + h + ',55%,58%)" title="' + n + (n === 1 ? " song" : " songs") + ' sung tonight">' + b + (n > 12 ? "+" : "") + "</span>";
+    if (n > 6) b = "<em>" + n + "</em>";   // lots of songs: one outlined number instead of a long row of circles
+    else for (i = 0; i < n; i++) b += "<i></i>";
+    return ' <span class="pips" style="color:hsl(' + h + ',55%,58%)" title="' + n + (n === 1 ? " song" : " songs") + ' sung tonight">' + b + "</span>";
   }
   function renderNight() {
     var by = {}, order = [];
