@@ -507,7 +507,8 @@
   body.kjctl.kjcmd #kjCmd { display: block; }
   #kjPage header #kjCmdBtn { display: none; }
   body.kjctl #kjPage header #kjCmdBtn { display: inline-flex; }
-  body.kjcmd #kjPage header #kjCmdBtn { background: rgba(57,217,122,.2); border-color: #4dff95; }
+  #kjPage header #kjCmdBtn { color: #fff; }
+  body.kjcmd #kjPage header #kjCmdBtn { background: rgba(57,217,122,.2); border-color: #4dff95; color: #4dff95; }
   #kjCmd .cmdrow { display: flex; gap: 6px; }
   #kjMic { display: none; flex: none; width: 40px; border-radius: 10px; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.05); font-size: 17px; }
   body.kjmic #kjMic { display: block; }
@@ -876,7 +877,7 @@
 
 <!-- Options (only shown when someone opens it) -->
 <div id="kjPage"><div class="in">
-  <header><div class="hd"><div class="t"><span class="nm">KJQV</span><button id="kjWarn" aria-label="About experimental features" title="Experimental">⚠️</button><button id="kjDot" aria-label="Connection details" title="Connection"></button><button id="kjCmdBtn" aria-label="Type a command" title="Type a command">🗣</button></div>
+  <header><div class="hd"><div class="t"><span class="nm">KJQV</span><button id="kjWarn" aria-label="About experimental features" title="Experimental">⚠️</button><button id="kjDot" aria-label="Connection details" title="Connection"></button><button id="kjCmdBtn" aria-label="Quick actions" title="Quick actions"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></button></div>
     </div>
     <div class="hb"><div id="kjCtrls"><div class="btns"><button id="kjScanBtn" aria-label="Add signups from a photo of the sheet" title="Signup sheet: add from a photo"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/></svg></button><button id="kjPlay" aria-label="Play or pause" title="Play / pause"></button><button id="kjRestart" aria-label="Restart song" title="Restart song (tap twice)"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg></button><button id="kjSkip" aria-label="Skip song" title="Skip song (tap twice)"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M6 6l8.5 6L6 18zM16 6h2v12h-2z"/></svg></button><span id="kjArmMsg"></span></div></div><button id="kjOpts" aria-label="Options" title="Options"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div></header>
 <div id="kjInfo" class="st"><span id="kjConn" class="wait">○ Connecting to KaraFun…</span><span id="kjCtlSep"></span><span id="kjCtl"></span><span id="kjVx"></span></div>
@@ -2889,7 +2890,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     });
     // 🎤 speak a command (the phone's own speech recognition, where the browser has it). Says why when it can't.
     var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SR) {
+    var IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    if (IOS) {   // iPhone/iPad: in-page listening is unreliable (and fails from a home-screen icon), so use the keyboard's own dictation
+      document.body.classList.add("kjmic");
+      $("kjMic").onclick = function () {
+        var i = $("kjCmdIn"); i.value = ""; i.focus();
+        kjCmdShow('<div class="cp">Tap the 🎤 on your keyboard (bottom right), say it, then tap Go.</div>');
+      };
+    } else if (SR) {
       document.body.classList.add("kjmic");
       var rec = null, heard = "";
       $("kjMic").onclick = function () {
