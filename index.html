@@ -507,15 +507,12 @@
   #kjPage header #kjCmdBtn { color: #fff; }
   body.kjcmd #kjPage header #kjCmdBtn { background: rgba(57,217,122,.2); border-color: #4dff95; color: #4dff95; }
   #kjCmd .cmdrow { display: flex; gap: 6px; }
-  #kjMic { display: none; flex: none; width: 40px; border-radius: 10px; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.05); font-size: 17px; }
-  body.kjmic #kjMic { display: block; }
-  #kjMic.on { background: #d63c3c; border-color: #ff8a8a; animation: kjblink 1s ease-in-out infinite; }
   #kjCmdIn { flex: 1; min-width: 0; width: 100%; box-sizing: border-box; padding: 8px 11px; font-size: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,.18);
     background: rgba(255,255,255,.05); color: #fff; }
   #kjCmdIn:focus { outline: none; border-color: #4dff95; }
   /* tap chips: a name, then what to do with them (no typing needed) */
-  #kjChips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-  #kjChips button { font-size: 13px; padding: 6px 10px; border-radius: 16px; border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.06); color: #fff; }
+  #kjChips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  #kjChips button { font-size: 11px; line-height: 1.2; padding: 3px 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.06); color: #fff; }
   #kjChips button.nm { font-weight: 700; }
   #kjChips button.nm.sel { background: #4dff95; color: #0b0920; border-color: #4dff95; }
   #kjChips button.ac { border-color: rgba(57,217,122,.45); color: #4dff95; }
@@ -886,7 +883,7 @@
   <div id="kjWarnMsg"><b>⚠️ Experimental.</b> The controls change your real KaraFun queue. They need KJ mode to be an admin in KaraFun (tap the dot for its name).</div>
   <div id="kjAlert"><b>Banned song signed up</b><div id="kjBanList"></div></div>
   <div id="kjDeleted"></div>
-  <div id="kjCmd"><div class="cmdrow"><input id="kjCmdIn" type="text" placeholder="make Ember next · skip · Priya key down 2…" autocomplete="off" enterkeyhint="go"><button id="kjMic" aria-label="Say a command" title="Say a command">🎤</button></div>
+  <div id="kjCmd"><div class="cmdrow"><input id="kjCmdIn" type="text" placeholder="make Ember next · skip · Priya key down 2…" autocomplete="off" enterkeyhint="go"></div>
     <div id="kjChips"></div>
     <div id="kjCmdOut"></div></div>
   <div class="sec">NOW SINGING</div><div id="kjNow"></div>
@@ -2912,39 +2909,6 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if (n !== null) { kjChipName = nameKey(n) === nameKey(kjChipName) ? "" : n; $("kjCmdIn").value = kjChipName; kjCmdShow(""); kjChipsDraw(); return; }
       if (a) { $("kjCmdIn").value = (kjChipName ? kjChipName + " " : "") + a; kjCmdRun(); }
     });
-    // 🎤 speak a command (the phone's own speech recognition, where the browser has it). Says why when it can't.
-    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    var IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    if (IOS) {   // iPhone/iPad: in-page listening is unreliable (and fails from a home-screen icon), so use the keyboard's own dictation
-      document.body.classList.add("kjmic");
-      $("kjMic").onclick = function () {
-        var i = $("kjCmdIn"); i.value = ""; i.focus();
-        kjCmdShow('<div class="cp">Tap the 🎤 on your keyboard (bottom right), say it, then tap Go.</div>');
-      };
-    } else if (SR) {
-      document.body.classList.add("kjmic");
-      var rec = null, heard = "";
-      $("kjMic").onclick = function () {
-        if (rec) { try { rec.stop(); } catch (x) {} return; }
-        try { rec = new SR(); } catch (e) { rec = null; kjCmdShow('<div class="err">This browser can\'t listen here. Use the keyboard\'s 🎤 dictation key instead.</div>'); return; }
-        rec.lang = navigator.language || "en-US"; rec.interimResults = false; rec.continuous = false; rec.maxAlternatives = 1;
-        var btn = this; heard = ""; btn.classList.add("on"); kjCmdShow('<div class="cp">Listening… say something like "make Ember next"</div>');
-        rec.onresult = function (ev) { heard = ev.results[0][0].transcript || ""; $("kjCmdIn").value = heard; };
-        rec.onerror = function (ev) {
-          var why = { "not-allowed": "Microphone isn't allowed for this page. Allow it in Settings → Safari (or your browser) → Microphone.",
-            "service-not-allowed": "Speech recognition isn't available here (on iPhone it needs Siri turned on, and it may not work from a home-screen icon: try Safari).",
-            "no-speech": "Didn't hear anything. Tap 🎤 and speak right away.", "audio-capture": "No microphone found.", "network": "Speech recognition needs an internet connection." }[ev.error];
-          kjCmdShow('<div class="err">' + (why || "Couldn't listen (" + esc(ev.error || "unknown") + "). Try the keyboard's 🎤 dictation key.") + "</div>");
-          heard = "\u0000";
-        };
-        rec.onend = function () {
-          btn.classList.remove("on"); rec = null;
-          if (heard === "\u0000") return;
-          if (heard.trim()) kjCmdRun(); else kjCmdShow('<div class="err">Didn\'t catch anything. Tap 🎤 and try again, or use the chips below.</div>');
-        };
-        try { rec.start(); } catch (e) { btn.classList.remove("on"); rec = null; kjCmdShow('<div class="err">Couldn\'t start listening. Try the keyboard\'s 🎤 dictation key.</div>'); }
-      };
-    }
     $("kjCmdIn").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); kjCmdRun(); } });
     $("kjCmdOut").addEventListener("click", function (e) { var c = e.target.getAttribute && e.target.getAttribute("data-c");
       if (c === "yes") kjCmdDo(); else if (c === "no") { kjCmdPlan = null; kjCmdShow(""); } });
