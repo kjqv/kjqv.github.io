@@ -2056,7 +2056,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       kjArm.k = ""; b.classList.remove("arm"); $("kjArmMsg").textContent = "";
       return true;
     }
-    $("kjSkip").addEventListener("click", function () { if (armed("kjSkip", "skip")) { var w = current; kjLog("Skipped " + who(w), kjSend("remote.NextRequest", {}, "skipping")); } });
+    $("kjSkip").addEventListener("click", function () { if (armed("kjSkip", "skip")) { var w = current, L = songLeft(); kjMySkip = Date.now(); kjLog("⏭ Skipped " + who(w) + leftTxt(L), kjSend("remote.NextRequest", {}, "skipping")); } });
     // Restart (experimental): KaraFun's remote has no restart, so put a copy of this song right after it and skip to it
     $("kjRestart").addEventListener("click", function () {
       if (!armed("kjRestart", "restart")) return;
@@ -3196,6 +3196,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       actSeen = { cur: cid, st: st, ids: ids, pi: pi, te: te }; return;
     }
     var o = actSeen, n0 = kjActs.length;
+    if (cid !== o.cur && o.cur && o.left != null && Date.now() - kjMySkip > 15000) {   // the last song stopped early (skipped in KaraFun or elsewhere)
+      var gone = o.left - (o.st === 4 ? (Date.now() - o.leftAt) / 1000 : 0);
+      if (gone > 15) actNote("⏭ Stopped " + o.who + leftTxt(gone));
+    }
     if (cid !== o.cur && cur) actNote("▶ Now: " + who(cur) + (isBreakItem(cur) ? " (break)" : ""), who(cur) + "#now");
     else if (cur && cid === o.cur) {
       if (o.st === 4 && st === 5) actNote("⏸ Paused " + who(cur));
@@ -3205,7 +3209,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     }
     for (var id in ids) if (!o.ids[id] && id !== cid) actNote("＋ Signed up: " + ids[id], ids[id]);
     for (var id2 in o.ids) if (!ids[id2] && id2 !== cid && id2 !== o.cur) actNote("− Removed: " + o.ids[id2], o.ids[id2]);
-    actSeen = { cur: cid, st: st, ids: ids, pi: pi, te: te };
+    actSeen = { cur: cid, st: st, ids: ids, pi: pi, te: te, who: cur ? who(cur) : "", left: songLeft(), leftAt: Date.now() };
     if (kjActs.length !== n0) actSave();
   }
   function actDraw() {
@@ -3409,6 +3413,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   // If the page loads mid-song we don't know how far in it is, so no timer until the next song.
   var firstStatus = true, tempo = 0;
   var tSong = null, tKnown = false, tPlayedMs = 0, tSince = 0, tDur = 0;
+  // Seconds left in the song that's on (null when unknown), for the Action log: "Skipped … with 1:23 left"
+  function songLeft() {
+    var cur = current; if (!cur || isBreakItem(cur) || !tKnown) return null;
+    var d = durOf(cur); if (!d) return null;
+    return d - (tPlayedMs + (tSince ? Date.now() - tSince : 0)) / 1000;
+  }
+  function leftTxt(L) { return L != null && L > 3 ? " with " + mss(L) + " left" : ""; }
+  var kjMySkip = 0;
   var durCache = {};
   function songIdOf(it) { return it && it.song && it.song.id && it.song.id.type === 1 ? it.song.id.id : null; }
   // Lengths for everything in the queue (one request), used for the estimated start times.
