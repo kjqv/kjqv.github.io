@@ -509,7 +509,7 @@
   #kjPage header #kjCmdBtn { color: #fff; }
   body.kjcmd #kjPage header #kjCmdBtn { background: rgba(57,217,122,.2); border-color: #4dff95; color: #4dff95; }
   #kjCmd .cmdrow { display: flex; gap: 6px; }
-  #kjCmdIn { flex: 1; min-width: 0; width: 100%; box-sizing: border-box; padding: 8px 11px; font-size: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,.18);
+  #kjCmdIn { flex: 1; min-width: 0; width: 100%; box-sizing: border-box; padding: 8px 11px; font-size: 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,.18);
     background: rgba(255,255,255,.05); color: #fff; }
   #kjCmdIn:focus { outline: none; border-color: #4dff95; }
   /* tap chips: a name, then what to do with them (no typing needed) */
@@ -886,8 +886,8 @@
   <div id="kjAlert"><b>Banned song signed up</b><div id="kjBanList"></div></div>
   <div id="kjDeleted"></div>
   <div id="kjCmd"><div class="cmdrow"><input id="kjCmdIn" type="text" placeholder="make Ember next · skip · Priya key down 2…" autocomplete="off" enterkeyhint="go"></div>
-    <div id="kjChips"></div>
-    <div id="kjCmdOut"></div></div>
+    <div id="kjCmdOut"></div>
+    <div id="kjChips"></div></div>
   <div class="sec">NOW SINGING</div><div id="kjNow"></div>
   <div id="kjVols"></div><div id="kjCtrlMsg"></div>
   <div class="sec qh">QUEUE <span id="kjCount"></span></div><div id="kjQueue"></div>
@@ -2901,6 +2901,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if (!kjRmTap("sheet:" + kjEdit.id, this, "Remove")) return;
       var id = kjEdit.id; kjCloseEdit(); kjRemove(id);
     };
+    // Keep the popup inside what's visible: under the ⚡, and above the iPhone keyboard when typing
+    function kjCmdPlace() {
+      if (!document.body.classList.contains("kjcmd")) return;
+      var vv = window.visualViewport, top = vv ? vv.offsetTop : 0, h = vv ? vv.height : window.innerHeight;
+      var hb = $("kjCmdBtn").getBoundingClientRect(), y = hb.bottom > 0 && hb.bottom < h * .4 ? hb.bottom + 8 : 8;
+      $("kjCmd").style.top = (top + y) + "px"; $("kjCmd").style.maxHeight = Math.max(140, h - y - 10) + "px";
+    }
+    if (window.visualViewport) { visualViewport.addEventListener("resize", kjCmdPlace); visualViewport.addEventListener("scroll", kjCmdPlace); }
     function kjCmdClose() { document.body.classList.remove("kjcmd"); kjCmdPlan = null; kjCmdShow(""); }
     document.addEventListener("pointerdown", function (e) {   // tap anywhere outside the popup to close it
       if (!document.body.classList.contains("kjcmd") || !e.target.closest || e.target.closest("#kjCmd, #kjCmdBtn")) return;
@@ -2908,7 +2916,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     }, true);
     $("kjCmdBtn").onclick = function () {
       var on = document.body.classList.toggle("kjcmd");
-      if (on) { var hb = $("kjCmdBtn").getBoundingClientRect(); $("kjCmd").style.top = Math.max(8, hb.bottom + 8) + "px"; }
+      if (on) kjCmdPlace();
       kjChipName = ""; if (on) kjChipsDraw(); else { kjCmdPlan = null; kjCmdShow(""); }   // chips first; tap the box to type
     };
     $("kjChips").addEventListener("click", function (e) {
