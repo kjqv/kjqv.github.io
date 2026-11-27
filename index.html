@@ -2320,7 +2320,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var DEMO_SHEET = [{ singer: "Kevin", title: "Friends in Low Places", artist: "Garth Brooks", done: true }, { singer: "Rachel", title: "Dancing Queen", artist: "ABBA" },
     { singer: "Tasha", title: "Before He Cheats", artist: "Carrie Underwood" }, { singer: "Shane", title: "Dead or Alive", artist: "Bon Jovi" },
     { singer: "Dana", title: "Total Eclips of the Heart", artist: "Bonnie Tyler" }, { singer: "Jo", title: "Wagon Wheel", artist: "Darius Rucker" },
-    { singer: "Kev", title: "Sweet Caroline", artist: "Neil Diamond" }, { singer: "Gloria", title: "I Will Survive", artist: "" },
+    { singer: "Kev", title: "My Buddy's Garage Band Song", artist: "The Tuesdays" }, { singer: "Gloria", title: "I Will Survive", artist: "" },
     { singer: "Big Mike", title: "Livin on a Prayer", artist: "Bon Jovi" }, { singer: "Tasha", title: "Bohemian Rapsody", artist: "Queen" },
     { singer: "Maya", title: "Valerie", artist: "Amy Winehouse" }];
   function scanSearch(q) {
@@ -2443,7 +2443,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       : shrinkPhoto(file).then(scanRead));
   }
   // Pasted Live Text: one signup per line, split on dashes, bars, tabs or " by "
-  var DEMO_PASTE = "Signups\nKevin - Friends in Low Places\nRachel – Dancing Queen – ABBA\nTasha - Before He Cheats\nShane - Dead or Alive - Bon Jovi\nDana | Total Eclips of the Heart\nJo - Wagon Wheel\nKev - Sweet Caroline\nBig Mike - Livin on a Prayer by Bon Jovi\nMaya - Valerie - Amy Winehouse";
+  var DEMO_PASTE = "Signups\nKevin - Friends in Low Places\nRachel – Dancing Queen – ABBA\nTasha - Before He Cheats\nShane - Dead or Alive - Bon Jovi\nDana | Total Eclips of the Heart\nJo - Wagon Wheel\nKev - My Buddy's Garage Band Song - The Tuesdays\nBig Mike - Livin on a Prayer by Bon Jovi\nMaya - Valerie - Amy Winehouse";
   function pasteParse(t) {
     return String(t || "").split(/\r?\n/).map(function (l) {
       l = l.replace(/^\s*(?:\d+[.)]?|[-•*✓✔x]\s)\s*/i, "").trim();
