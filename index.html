@@ -510,7 +510,7 @@
   #kjPage header #kjCmdBtn, #kjPage header #kjKeyBtn { display: none; }
   #kjPage header #kjKeyBtn { color: rgba(255,255,255,.8); }
   #kjPage header #kjKeyBtn.has { color: #4dff95; }   /* green once a key is saved */
-  body.kjctl #kjPage header #kjKeyBtn { display: inline-flex; }
+  body.kjctl.kjhaskey #kjPage header #kjKeyBtn { display: inline-flex; }
   body.kjctl #kjPage header #kjCmdBtn { display: inline-flex; }
   #kjPage header #kjCmdBtn { color: #fff; }
   body.kjcmd #kjPage header #kjCmdBtn { background: rgba(57,217,122,.2); border-color: #4dff95; color: #4dff95; }
@@ -551,6 +551,13 @@
   #kjScan .acts .go { background: #2a8f5a; border-color: #39d97a; }
   #kjScan .acts .go:disabled { opacity: .35; }
   #kjScanForget { display: block; margin: 22px auto 0; font-size: 12px !important; font-weight: 400 !important; border: 0 !important; background: none !important; opacity: .5; text-decoration: underline; }
+  #kjPaste { display: none; } body.kjpastemode #kjPaste { display: block; }
+  #kjPasteIn { width: 100%; box-sizing: border-box; padding: 10px 12px; font-size: 16px; line-height: 1.4; border-radius: 10px; border: 1px solid rgba(255,255,255,.3);
+    background: rgba(255,255,255,.07); color: #fff; font-family: inherit; resize: vertical; }
+  #kjPaste .pb { display: flex; gap: 8px; justify-content: flex-end; margin: 8px 0 10px; }
+  #kjPaste .pb button { font-size: 14px; font-weight: 700; padding: 8px 14px; border-radius: 9px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: #fff; }
+  #kjPaste .pb button.go { background: #2a8f5a; border-color: #39d97a; }
+  #kjPaste p.sm { font-size: 12px; opacity: .6; }
   #kjScanBody .msg { font-size: 14px; opacity: .75; padding: 10px 0; }
   #kjScanBody .row { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
   #kjScanBody .row input[type=checkbox] { width: 20px; height: 20px; margin-top: 6px; flex: none; accent-color: #39d97a; }
@@ -906,6 +913,10 @@
   <div id="kjScan"><div class="sh" id="kjScanTitle">Signups from a photo</div>
     <div id="kjScanKey"><p id="kjKeyNote"></p><p>Reading handwriting (and quick actions it doesn't recognize) uses Claude, with your own Anthropic API key (about a cent a photo, billed to you). It's saved only on this phone and only ever sent to Anthropic.</p>
       <input id="kjScanKeyIn" type="password" placeholder="sk-ant-…" autocomplete="off"><button id="kjScanKeySave">Save key</button></div>
+    <div id="kjPaste"><p>In <b>Photos</b>, open the picture of the sheet, press and hold on the writing, tap <b>Copy All</b>, then paste it here. One signup per line works best: <i>Name – Song – Artist</i>.</p>
+      <textarea id="kjPasteIn" rows="7" placeholder="Ember – Goodbye Earl – The Chicks&#10;Jamo – Wanted Dead or Alive&#10;Bonny + Russell – Doin' It"></textarea>
+      <div class="pb"><button id="kjPasteBtn">Paste</button><button id="kjPasteGo" class="go">Find the songs</button></div>
+      <p class="sm">Live Text doesn't see cross-outs, so untick anyone who's done (anyone already in the queue or sung tonight is caught for you). Prefer Claude reading the photo itself? Options → <i>KJ view: signup sheet</i>.</p></div>
     <div id="kjScanBody"></div>
     <div class="acts"><button id="kjScanCancel">Cancel</button><button id="kjScanAdd" class="go">Add to queue</button></div>
     <button id="kjScanForget">Forget my API key</button></div>
@@ -2227,6 +2238,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   // Snap the paper signup sheet; Claude (with the KJ's own API key, kept only on this phone, never in a link)
   // reads singer / song / artist off it; KJ mode finds each song in KaraFun's catalog; you check the list and
   // tap Add, which appends them to the real KaraFun queue in sheet order.
+  var SCAN_CLAUDE = /^(on|yes|1|true|claude)$/i.test(String(cfg.photoscan || ""));
   var SCAN_MODEL = "claude-sonnet-5-5", SCAN_KEY = "kqv.claudekey", scanRows = [], scanVisible = [], scanAdded = [];
   function scanKey() { return load(SCAN_KEY) || ""; }
   // Tonight's sheet lines that didn't get added (not in KaraFun, or left unticked), kept on this phone till 6am
@@ -2248,19 +2260,19 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     }).join("") : "";
   }
   var scanKeyOnly = false;
-  function keyBtnDraw() { $("kjKeyBtn").classList.toggle("has", !!scanKey()); $("kjKeyBtn").title = scanKey() ? "Claude API key: saved" : "Claude API key: not set"; }
+  function keyBtnDraw() { document.body.classList.toggle("kjhaskey", SCAN_CLAUDE || !!scanKey()); $("kjKeyBtn").classList.toggle("has", !!scanKey()); $("kjKeyBtn").title = scanKey() ? "Claude API key: saved" : "Claude API key: not set"; }
   function keyOpen() {   // the 🔑 in the header: add, change or forget the key, nothing else
     scanKeyOnly = true; document.body.classList.add("kjscan", "kjscankey", "kjkeyonly"); scanMsg(""); $("kjScanTitle").textContent = "Claude API key";
     $("kjKeyNote").innerHTML = scanKey() ? "<b>✓ A key is saved on this phone.</b> Paste a new one to replace it." : "<b>No key saved yet.</b>";
     $("kjScanForget").style.display = scanKey() ? "" : "none";
   }
   function scanOpen() {
-    scanKeyOnly = false; $("kjKeyNote").innerHTML = ""; $("kjScanTitle").textContent = "Signups from a photo";
+    scanKeyOnly = false; $("kjKeyNote").innerHTML = ""; $("kjScanTitle").textContent = "Signups from a photo"; document.body.classList.remove("kjpastemode");
     document.body.classList.add("kjscan");
     document.body.classList.toggle("kjscankey", !scanKey() && !DEMO);
     $("kjScanForget").style.display = scanKey() ? "" : "none";
   }
-  function scanClose() { document.body.classList.remove("kjscan", "kjscankey", "kjkeyonly"); scanRows = []; scanVisible = []; scanShow = 5; scanShowSkipped = false; $("kjScanBody").innerHTML = ""; $("kjScanFile").value = ""; }
+  function scanClose() { document.body.classList.remove("kjscan", "kjscankey", "kjkeyonly", "kjpastemode"); if ($("kjPasteIn")) $("kjPasteIn").value = ""; scanRows = []; scanVisible = []; scanShow = 5; scanShowSkipped = false; $("kjScanBody").innerHTML = ""; $("kjScanFile").value = ""; }
   function scanMsg(t) { $("kjScanBody").innerHTML = '<div class="msg">' + t + "</div>"; $("kjScanAdd").disabled = true; }
   function shrinkPhoto(file) {   // phones take huge photos; ~1600px is plenty to read handwriting and keeps it fast and cheap
     return new Promise(function (ok, bad) {
@@ -2427,8 +2439,29 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function scanPhoto(file) {
     if (!file) return;
     scanOpen(); scanMsg("Reading the sheet…");
-    var got = DEMO && !scanKey() ? new Promise(function (ok) { setTimeout(function () { ok(JSON.parse(JSON.stringify(DEMO_SHEET))); }, 900); })
-      : shrinkPhoto(file).then(scanRead);
+    scanRun(DEMO && !scanKey() ? new Promise(function (ok) { setTimeout(function () { ok(JSON.parse(JSON.stringify(DEMO_SHEET))); }, 900); })
+      : shrinkPhoto(file).then(scanRead));
+  }
+  // Pasted Live Text: one signup per line, split on dashes, bars, tabs or " by "
+  var DEMO_PASTE = "Signups\nKevin - Friends in Low Places\nRachel – Dancing Queen – ABBA\nTasha - Before He Cheats\nShane - Dead or Alive - Bon Jovi\nDana | Total Eclips of the Heart\nJo - Wagon Wheel\nKev - Sweet Caroline\nBig Mike - Livin on a Prayer by Bon Jovi\nMaya - Valerie - Amy Winehouse";
+  function pasteParse(t) {
+    return String(t || "").split(/\r?\n/).map(function (l) {
+      l = l.replace(/^\s*(?:\d+[.)]?|[-•*✓✔x]\s)\s*/i, "").trim();
+      if (!l || /^(signups?|sign up|name|singer)s?\b.*$/i.test(l) && !/[-–—|\t]/.test(l)) return null;
+      if (/^(name|singer)\b.*\b(song|title)\b/i.test(l)) return null;   // a header row
+      var p = l.split(/\s+[-–—|:]\s+|\t+|\s*[–—|]\s*/).map(function (x) { return x.trim(); }).filter(Boolean);
+      if (p.length < 2) { var by = l.match(/^(.+?)\s+by\s+(.+)$/i); if (!by) return null; p = ["", by[1], by[2]]; }
+      var title = p[1], artist = p.slice(2).join(" ");
+      var b2 = !artist && title.match(/^(.+?)\s+by\s+(.+)$/i); if (b2) { title = b2[1]; artist = b2[2]; }
+      return { singer: p[0], title: title, artist: artist, done: false };
+    }).filter(Boolean);
+  }
+  function pasteOpen() {
+    scanKeyOnly = false; $("kjKeyNote").innerHTML = ""; $("kjScanTitle").textContent = "Signups from the sheet";
+    document.body.classList.add("kjscan", "kjpastemode"); $("kjScanForget").style.display = "none";
+    $("kjScanBody").innerHTML = ""; $("kjScanAdd").disabled = true;
+  }
+  function scanRun(got) {
     got.then(function (rows) {
       scanRows = (rows || []).filter(function (r) { return r && (r.singer || r.title); }).map(function (r) {
         return { singer: String(r.singer || "").trim().slice(0, 60), title: String(r.title || "").trim(), artist: String(r.artist || "").trim(), done: !!r.done };
@@ -2473,9 +2506,25 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     next();
   }
   if (KJ) {
-    if (/^(on|yes|1|true)$/i.test(String(cfg.photoscan || "")) || DEMO) document.body.classList.add("kjphoto");   // off unless you turn it on
+    // Signup sheet reader: pasted Live Text by default (free, no key); photoscan=on reads the photo with Claude (your key); photoscan=off hides it
+    if (!/^(off|no|0|false)$/i.test(String(cfg.photoscan || ""))) document.body.classList.add("kjphoto");
+    if (SCAN_CLAUDE || scanKey()) document.body.classList.add("kjhaskey");
     if (/^tiny$/i.test(cfg.kjrows || "")) document.body.classList.add("kjtiny"); else if (/^roomy$/i.test(cfg.kjrows || "")) document.body.classList.add("kjroomy");
-    $("kjScanBtn").onclick = function () { if (!scanKey() && !DEMO) { scanOpen(); scanMsg(""); return; } $("kjScanFile").click(); };
+    $("kjScanBtn").onclick = function () {
+      if (!SCAN_CLAUDE) { pasteOpen(); return; }
+      if (!scanKey() && !DEMO) { scanOpen(); scanMsg(""); return; } $("kjScanFile").click();
+    };
+    $("kjPasteBtn").onclick = function () {   // the phone asks once whether KJQV may read the clipboard
+      if (!navigator.clipboard || !navigator.clipboard.readText) { $("kjPasteIn").focus(); return; }
+      navigator.clipboard.readText().then(function (t) { if (t) $("kjPasteIn").value = t; }, function () { $("kjPasteIn").focus(); });
+    };
+    $("kjPasteGo").onclick = function () {
+      var t = $("kjPasteIn").value.trim();
+      if (!t && DEMO) t = DEMO_PASTE;
+      var rows = pasteParse(t);
+      if (!rows.length) { scanMsg("Paste the sheet's text first (Photos → press on the writing → Copy All)."); return; }
+      document.body.classList.remove("kjpastemode"); scanRun(Promise.resolve(rows));
+    };
     $("kjScanFile").onchange = function () { scanPhoto(this.files && this.files[0]); };
     $("kjScanKeySave").onclick = function () {
       var k = $("kjScanKeyIn").value.trim(); if (!/^sk-/.test(k)) { $("kjScanKeyIn").focus(); return; }
@@ -4194,7 +4243,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["kjcontrols", "KJ view: play, skip and restart", [["", "Off"], ["on", "On (experimental)"]]],
     ["keys", "KJ view: show keys as", [["", "Default (# + b)"], ["sharp", "Sharps only (#)"], ["flat", "Flats only (b)"]]],
     ["vx5", "KJ view: VX5 key presets (laptop + USB)", [["", "Off"], ["100", "Presets 100–124"], ["1", "Presets 1–25"]]],
-    ["photoscan", "KJ view: signups from a photo (your own Claude API key)", [["", "Off"], ["on", "On"]]],
+    ["photoscan", "KJ view: signup sheet", [["", "Paste from Live Text (free)"], ["on", "Photo read by Claude (your API key)"], ["off", "Off"]]],
     ["kjrows", "KJ view: queue size", [["", "Compact (about 10 on screen)"], ["tiny", "Tiny (about 15, one line each)"], ["roomy", "Roomy (bigger text)"]]],
     ["#", "Old Fire Sticks"],
     ["lite", "Simple GFX mode (for old Fire Sticks)", [["", "Auto"], ["on", "On"], ["off", "Off"]]]
