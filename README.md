@@ -89,17 +89,25 @@ Open your usual link on your phone with `&kj=on` added (or `&kj=on&kjcontrols=on
 **What you see**
 - **Now singing** with a progress bar and the time left (the name flashes in the last 10% of the song), then the whole queue with roughly when each person is up.
 - **Keys** from KaraFun on every signup. A moved key shows just the new key, colored by how far it moved: orange getting redder the further down, pink getting more violet the further up. Set *KJ view: show keys as* in Options (`keys=sharp` or `keys=flat`) to match your gear.
+- **Queue size** (Options → *KJ view: queue size*): **Compact** by default (about 10 or more on screen), **Tiny** (one line per signup) or **Roomy** (bigger text).
 - **Song counts:** a row of small dots by each name, one per song tonight, from green through yellow to red, so you know when someone's had plenty of turns.
 - **History** at the bottom: tonight's songs in order, or **By singer**. It's kept on your phone and resets at 6am. Restarts don't count as new songs.
 - An *EXPLICIT* tag on songs KaraFun marks explicit, and a green **AUTO** tag for singers flagged for autotune.
 
-**Tap a singer** to:
+**Swipe a signup left** to remove it. **Tap a singer** to:
 - Flag them for **autotune** (just this song, or *Always for …*; you can also list names in Options → **Singers**).
 - Change their **name** (not while they're singing), **key** (up to 6 steps either way) and **tempo** (−50% to +50%).
 - **Change song…**: search KaraFun's catalog and swap a different song into their spot in line.
+- **Remove** them: swipe a signup left (like an iPhone list) and tap the red **Remove**, then **Remove?** to confirm. Or tap it and use **Remove** on the edit screen.
 - Set their **lead and backing vocal** levels. Tap the lock to keep them for the night; they're set again each time their song starts.
 
 **Signups from a photo** (off by default: Options → *KJ view: signups from a photo*). Tap the signup-sheet (clipboard) button at the top, take a photo of your paper signup sheet (or pick one you already took), and KJ mode reads each singer, song and artist, finds the songs in KaraFun, and shows you the list to check. When a song isn't an exact match it shows a % guess (*Dead or Alive · Bon Jovi* → *Wanted Dead or Alive*, 96%): a clear best guess (80%+) is picked for you in yellow, anything less waits for you to choose from KaraFun's closest songs or search. Lines crossed off on the left, already in the queue, or already sung tonight (History) are skipped and folded away, and new signups show 5 at a time. Untick anything you don't want and tap **Add**. Lines that don't get added (not in KaraFun, or left unticked) go on a **Not added from photos** list under History for the night, and anything KaraFun doesn't have gets a **▶ YouTube karaoke** search link, and they join the end of the queue in sheet order. Reading handwriting uses Claude with **your own Anthropic API key** (about a cent per photo, billed to you). KJ mode asks for it the first time, keeps it only on that phone, never puts it in a link, and only ever sends it to Anthropic, so sharing your KJQV link never shares your key. The demo shows the whole flow with a made-up sheet and no key.
+
+**Rearrange the queue:** with the controls on, press and hold a signup (or swipe it right) to pick it up, drag it to its new spot, and KJ mode asks *Move Rachel · September from #1 to #4?* Tap **Move** (or **Cancel**). Only that signup moves, and nothing changes in KaraFun until you confirm.
+
+**Action log** (tiny, under History): how the night is running, so you can check in from the patio. It shows everything that happens in KaraFun, whoever did it (songs starting, pauses and resumes, new and removed signups, key and tempo changes), plus everything you do in KJ mode (moves, edits, song swaps, skips, restarts). A photo add writes a 📋 line for the sheet, then one 📋 line per signup: Added (with what was written when it wasn't an exact match), Not added and why, or Skipped and why. Anything KaraFun refuses shows in red. Kept on that phone until 6am.
+
+**Commands** (🗣 next to the title, with the controls on): type or say what you want instead of tapping around. *make Ember next*, *move Ember to 3*, *Ember up 2*, *remove Ember*, *skip*, *pause*, *play*, *restart*, *Priya key down 2*, *Priya key original*, *Priya tempo +10*, *autotune Mike*. No typing needed: tap a singer's name chip, then an action chip (**next**, **last**, **remove**, **key −1**, **key +1**, or **skip**/**pause**/**play**/**restart** with no name). It shows what it's about to do (*Move Ember · Dancing Queen to next (from #4)*) and waits for **Do it**. Names match loosely (first name, part of a name, or the song). Tap 🎤 to say it (where the phone's browser supports speech), or use your keyboard's dictation. If you've saved a Claude API key for photo signups, anything it doesn't recognize goes to Claude to work out.
 
 **Controls** (off by default: Options → *KJ view: play, skip and restart*, or `kjcontrols=on`): play/pause, restart and skip at the top. Play is one tap; pause, restart and skip need a second tap so a bump doesn't stop the show. KaraFun's remote has no real restart, so restart adds a copy of the song right after the current one and skips to it.
 
@@ -134,7 +142,7 @@ The VX5 can't be told a key over USB, but since firmware 1.3 a computer can swit
 
 Tip: try any of these on the sample queue first, like `https://kjqv.github.io/?demo&theme=goth`. The preview doesn't save anything.
 
-Anything you don't set uses the defaults: no logo, a deep purple-to-blue background with softly darkened edges, cyan Now Singing, violet Up Next, and yellow-to-red Coming Up names.
+Anything you don't set uses the defaults: no logo, a deep purple-to-blue background with softly darkened edges, green Now Singing, violet Up Next, and yellow-to-red Coming Up names.
 
 <details>
 <summary><b>Every setting you can add to the address (tap to open)</b></summary>
@@ -152,7 +160,7 @@ Anything you don't set uses the defaults: no logo, a deep purple-to-blue backgro
 | `flicker` | The Now Singing name flickers a little, like old neon (on by default); `off` keeps it steady | `flicker=off` |
 | `bg1`, `bg2` | Background fade colors, top-left to bottom-right | `bg1=0b3d2e&bg2=1f7a5a` |
 | `up1`, `up2` | Coming Up name colors, from next in line to last | `up1=00e5ff&up2=0055ff` |
-| `now` | Now Singing color (default cyan) | `now=39ff88` |
+| `now` | Now Singing color (default green) | `now=00e5ff` |
 | `next` | Up Next color (default violet) | `next=fcff00` |
 | `count` | How many people show in Coming Up, 0 to 12 (default 8). `0` hides Coming Up | `count=6` |
 | `icons` | `icons=off` hides the mic and sound bars next to the current singer | `icons=off` |

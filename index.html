@@ -26,7 +26,7 @@
     --blue: #1f7cf0;
     --indigo: #4a1dff;
     --purple: #a03ae6;
-    --now: 0,229,255;    /* Now Singing color (r,g,b) */
+    --now: 77,255,149;   /* Now Singing color (r,g,b): green */
     --next: 209,123,255; /* Up Next color (r,g,b) */
     --accent: rgb(var(--next));
     --accent2: #3fd4d4;
@@ -357,10 +357,10 @@
   @media (max-width: 370px) { #kjPage .t { font-size: 16px; } }
   #kjPage .t .sep { opacity: .35; font-weight: 400; margin: 0 2px; }
   /* ⚠️ and the connection dot: two small outlined chips, like the key badges */
-  #kjPage header #kjWarn, #kjPage header #kjDot { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
+  #kjPage header #kjWarn, #kjPage header #kjDot, #kjPage header #kjCmdBtn { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
     height: 24px; min-width: 24px; padding: 0 4px; margin-left: 5px; vertical-align: middle; position: relative; top: -2px; cursor: pointer;
     border: 1px solid rgba(255,255,255,.22); border-radius: 7px; background: rgba(255,255,255,.06); font-size: 13px; line-height: 1; }
-  #kjPage header #kjDot { margin-left: 4px; }
+  #kjPage header #kjDot, #kjPage header #kjCmdBtn { margin-left: 4px; }
   #kjWarnMsg { display: none; margin-top: 10px; padding: 10px 12px; border-radius: 10px; font-size: 13px; line-height: 1.45;
     background: rgba(255,207,90,.1); border: 1px solid rgba(255,207,90,.4); color: rgba(255,255,255,.85); }
   #kjWarnMsg b { color: #ffcf5a; } body.kjwarn #kjWarnMsg { display: block; }
@@ -377,17 +377,69 @@
   #kjDeleted { background: #26243f; } body.kjdeleted #kjDeleted { display: block; }
   #kjAlert b, #kjDeleted b { display: block; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 4px; }
   #kjPage .sec { margin: 20px 0 8px; font-size: 12px; font-weight: 800; letter-spacing: .14em; opacity: .55; }
-  #kjPage .r { display: flex; align-items: baseline; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
-  #kjPage .r .n { width: 22px; flex: none; text-align: right; font-size: 14px; opacity: .5; }
+  #kjPage .r { display: flex; align-items: baseline; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
+  /* rearrange (with KJ controls on): tap ⇅ Rearrange, then drag rows; Done turns it off */
+  #kjPage .sec.qh { display: flex; align-items: center; gap: 6px; }
+  /* moving one signup: swipe it right, drag it, then confirm */
+  body.kjmoving #kjQueue .r.moving { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: none; cursor: grab;
+    background: rgba(255,255,255,.07); border: 2px solid #fff; border-radius: 10px; box-shadow: 0 8px 26px rgba(0,0,0,.55); position: relative; z-index: 3; }
+  body.kjmoving #kjQueue .r:not(.moving) { opacity: .55; }
+  body.kjmoving #kjQueue, body.kjctl #kjQueue .r { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }   /* holding a row: no copy/select menu */
+  #kjMoveBar { display: none; position: fixed; left: 10px; right: 10px; bottom: 14px; z-index: 40; padding: 10px 12px; border-radius: 12px;
+    background: #14123a; border: 1px solid #4dff95; box-shadow: 0 8px 30px rgba(0,0,0,.6); font-size: 14px; }
+  body.kjmoving #kjMoveBar { display: block; }
+  #kjMoveBar .mb { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+  #kjMoveBar button { font-size: 14px; font-weight: 700; padding: 7px 14px; border-radius: 9px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: #fff; }
+  #kjMoveBar button.go { background: #2a8f5a; border-color: #39d97a; }
+  #kjMoveBar button.go:disabled { opacity: .35; }
+  #kjQueue .r .rm-unused { display: none; flex: none; align-self: center; width: 30px; height: 30px; padding: 0; border-radius: 8px; font-size: 13px;
+    border: 1px solid rgba(255,107,107,.4); background: rgba(255,107,107,.08); color: #ff8a8a; cursor: pointer; }
+
+  /* swipe a signup left to show Remove (with KJ controls on) */
+  #kjQueue { overflow-x: hidden; overflow-x: clip; }   /* clip, so the hidden Remove buttons can never scroll the list sideways */
+  body.kjctl #kjQueue .r { position: relative; touch-action: pan-y; }
+  #kjQueue .r.snap { transition: transform .18s ease-out; }
+  #kjQueue .swdel { display: none; position: absolute; top: 4px; bottom: 4px; right: -96px; width: 88px; border: 0; border-radius: 10px;
+    background: #d63c3c; color: #fff; font-size: 14px; font-weight: 800; }
+  body.kjctl:not(.kjmoving) #kjQueue .swdel { display: block; }
+  #kjQueue .swre { display: none; position: absolute; top: 4px; bottom: 4px; left: -96px; width: 88px; border-radius: 10px; align-items: center; justify-content: center;
+    background: #4dff95; color: #0b0920; font-size: 12px; font-weight: 800; text-align: center; line-height: 1.2; padding: 0 6px; box-sizing: border-box; }
+  body.kjctl:not(.kjmoving) #kjQueue .swre { display: flex; }
+  #kjQueue .r .rm.arm { width: auto; padding: 0 8px; background: #c83c3c; color: #fff; border-color: #ff8a8a; font-weight: 800; font-size: 11px; }
+  #kjSheetRemove { margin-right: auto; color: #ff8a8a !important; border-color: rgba(255,107,107,.45) !important; background: rgba(255,107,107,.08) !important; }
+  #kjSheetRemove.arm { background: #c83c3c !important; color: #fff !important; }
+  body.kjsheetlive #kjSheetRemove { display: none; }
+  #kjPage .r.dragging { background: rgba(57,217,122,.12); border-radius: 10px; box-shadow: 0 8px 26px rgba(0,0,0,.55); position: relative; z-index: 3; transform: scale(1.02); transition: transform .12s; }
+  #kjPage .r .n { width: 20px; flex: none; text-align: right; font-size: 12px; opacity: .5; }
   #kjPage .r .w { flex: 1; min-width: 0; }
-  #kjPage .r .who { color: #fff; font-size: 18px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  #kjPage .r .what { color: rgba(255,255,255,.92); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
+  #kjPage .r .who { color: #fff; font-size: 15px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #kjPage .r .what { color: rgba(255,255,255,.92); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px; }
+  /* each signup is its own box */
+  #kjQueue .r { border: 1px solid rgba(255,255,255,.11); border-bottom-color: rgba(255,255,255,.11); border-radius: 10px; background: rgba(255,255,255,.035);
+    margin: 0 0 6px; padding: 7px 10px 7px 4px; }
+  #kjQueue .r.brk { background: none; border-style: dashed; }
+  body.kjtiny #kjQueue .r { margin-bottom: 4px; padding: 4px 8px 4px 2px; border-radius: 8px; }
+  body.kjroomy #kjQueue .r { margin-bottom: 8px; padding: 10px 12px 10px 4px; }
+  #kjQueue .ke { font-size: 12px; } #kjQueue .rt { gap: 3px; } #kjQueue .b { font-size: 10px; padding: 1px 5px; }
+  /* Roomy: the old bigger rows */
+  body.kjroomy #kjPage .r { gap: 12px; padding: 10px 0; } body.kjroomy #kjPage .r .n { width: 22px; font-size: 14px; }
+  body.kjroomy #kjPage .r .who { font-size: 18px; } body.kjroomy #kjPage .r .what { font-size: 14px; margin-top: 2px; }
+  body.kjroomy #kjQueue .ke { font-size: 14px; } body.kjroomy #kjQueue .rt { gap: 5px; } body.kjroomy #kjQueue .b { font-size: 12px; padding: 2px 7px; }
+  /* Tiny: one line per signup (name, then the song), the time and key at the right */
+  body.kjtiny #kjQueue .r { padding: 4px 0; align-items: center; gap: 8px; }
+  body.kjtiny #kjQueue .r .w { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+  body.kjtiny #kjQueue .r .who { font-size: 13px; flex: none; max-width: 45%; }
+  body.kjtiny #kjQueue .r .what { font-size: 11px; margin: 0; flex: 1; min-width: 0; }
+  body.kjtiny #kjQueue .r .rt { flex-direction: row; align-items: center; gap: 5px; }
+  body.kjtiny #kjQueue .r .n { font-size: 10px; width: 16px; }
+  body.kjtiny #kjQueue .ke { font-size: 11px; } body.kjtiny #kjQueue .b { font-size: 9px; padding: 0 4px; }
+  body.kjtiny #kjQueue .r .w > .bdg, body.kjtiny #kjQueue .pips { display: none; }
   #kjPage .r.brk { justify-content: center; align-items: baseline; gap: 10px; padding: 12px 0; }
   #kjPage .r.brk .bl { font-size: 17px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.8); }
   #kjPage .r.ban .who, #kjPage .r.ban .what { color: #ff6b6b; text-decoration: line-through; opacity: 1; }
   #kjPage .tag { font-size: 10px; font-weight: 800; letter-spacing: .1em; color: #ff6b6b; border: 1px solid #ff6b6b; border-radius: 4px; padding: 1px 5px; flex: none; }
-  #kjPage .now { padding: 9px 12px 10px; border-radius: 10px; background: rgba(0,229,255,.08); border: 1px solid rgba(0,229,255,.3); }
-  #kjPage .now .who { font-size: 22px; font-weight: 800; color: #5ef0ff; }
+  #kjPage .now { padding: 9px 12px 10px; border-radius: 10px; background: rgba(57,217,122,.09); border: 1px solid rgba(57,217,122,.4); }   /* green: on stage */
+  #kjPage .now .who { font-size: 22px; font-weight: 800; color: #4dff95; }
   body.caps #kjPage .now .who { text-transform: uppercase; letter-spacing: .02em; }   /* follows the Names setting */
   #kjPage .now .what { font-size: 15px; color: rgba(255,255,255,.92); margin-top: 2px; }
   /* like the TV: song title bright, artist at half strength */
@@ -399,15 +451,15 @@
   #kjPage .now .what .st { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   #kjPage .now .what .kr { flex: none; }
   #kjPage .now .kbar { margin-top: 7px; }
-  #kjPage .now .kbar { height: 4px; border-radius: 2px; background: rgba(94,240,255,.15); margin-top: 10px; overflow: hidden; }
-  #kjPage .now .kbar i { display: block; height: 100%; width: 0; background: #5ef0ff; border-radius: 2px; transition: width 1s linear; }
+  #kjPage .now .kbar { height: 4px; border-radius: 2px; background: rgba(57,217,122,.16); margin-top: 10px; overflow: hidden; }
+  #kjPage .now .kbar i { display: block; height: 100%; width: 0; background: #4dff95; border-radius: 2px; transition: width 1s linear; }
   #kjPage .now.ending { animation: kjend 1s ease-in-out infinite; }
   #kjPage .now.ending #kjLeft, #kjPage .now.ending .kbar i { color: #ffcf5a; background-color: #ffcf5a; }
   #kjPage .now.ending #kjLeft { background: none; }
   #kjPage .now.ending .who { animation: kjname 1s ease-in-out infinite; }
-  @keyframes kjname { 0%, 100% { color: #ffcf5a; } 50% { color: #5ef0ff; opacity: .55; } }
-  @keyframes kjend { 0%, 100% { border-color: rgba(255,207,90,.9); background: rgba(255,207,90,.12); } 50% { border-color: rgba(255,207,90,.25); background: rgba(0,229,255,.06); } }
-  #kjLeft { flex: none; font-size: 15px; font-weight: 700; color: #5ef0ff; font-variant-numeric: tabular-nums; }
+  @keyframes kjname { 0%, 100% { color: #ffcf5a; } 50% { color: #4dff95; opacity: .55; } }
+  @keyframes kjend { 0%, 100% { border-color: rgba(255,207,90,.9); background: rgba(255,207,90,.12); } 50% { border-color: rgba(255,207,90,.25); background: rgba(57,217,122,.07); } }
+  #kjLeft { flex: none; font-size: 15px; font-weight: 700; color: #4dff95; font-variant-numeric: tabular-nums; }
   #kjPage .ke { flex: none; font-size: 14px; opacity: .7; font-variant-numeric: tabular-nums; }
   #kjCtrls { position: relative; }
   #kjCtrls { display: none; }
@@ -423,7 +475,7 @@
   #kjVols .v { display: flex; align-items: center; gap: 10px; padding: 2px 0; font-size: 12px; }
   #kjVols .v span { width: 110px; flex: none; opacity: .75; }
   #kjVols .v b { width: 34px; flex: none; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; opacity: .8; }
-  #kjVols input { flex: 1; min-width: 0; accent-color: #5ef0ff; height: 22px; }
+  #kjVols input { flex: 1; min-width: 0; accent-color: #4dff95; height: 22px; }
   #kjCtrlMsg { font-size: 13px; color: #ff7b7b; min-height: 0; margin-top: 4px; }
   #kjAlert .sep { opacity: .5; }
   #kjPage .kr { display: flex; gap: 5px; align-items: center; }
@@ -449,6 +501,31 @@
   #kjSheet .f input { flex: 1; font-size: 16px; padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); color: #fff; }
   #kjSheet .f button { width: 40px; height: 36px; font-size: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); color: #fff; }
   #kjSheet .f button:disabled { opacity: .25; }
+  /* command box: type what you want, check it, tap Do it */
+  #kjCmd { display: none; margin: 10px 0 2px; }
+  body.kjctl.kjcmd #kjCmd { display: block; }
+  #kjPage header #kjCmdBtn { display: none; }
+  body.kjctl #kjPage header #kjCmdBtn { display: inline-flex; }
+  body.kjcmd #kjPage header #kjCmdBtn { background: rgba(57,217,122,.2); border-color: #4dff95; }
+  #kjCmd .cmdrow { display: flex; gap: 6px; }
+  #kjMic { display: none; flex: none; width: 40px; border-radius: 10px; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.05); font-size: 17px; }
+  body.kjmic #kjMic { display: block; }
+  #kjMic.on { background: #d63c3c; border-color: #ff8a8a; animation: kjblink 1s ease-in-out infinite; }
+  #kjCmdIn { flex: 1; min-width: 0; width: 100%; box-sizing: border-box; padding: 8px 11px; font-size: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,.18);
+    background: rgba(255,255,255,.05); color: #fff; }
+  #kjCmdIn:focus { outline: none; border-color: #4dff95; }
+  /* tap chips: a name, then what to do with them (no typing needed) */
+  #kjChips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  #kjChips button { font-size: 13px; padding: 6px 10px; border-radius: 16px; border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.06); color: #fff; }
+  #kjChips button.nm { font-weight: 700; }
+  #kjChips button.nm.sel { background: #4dff95; color: #0b0920; border-color: #4dff95; }
+  #kjChips button.ac { border-color: rgba(57,217,122,.45); color: #4dff95; }
+  #kjChips .sep { flex-basis: 100%; height: 0; }
+  #kjCmdOut:not(:empty) { margin-top: 6px; padding: 8px 10px; border-radius: 10px; background: rgba(57,217,122,.07); border: 1px solid rgba(57,217,122,.3); font-size: 13px; }
+  #kjCmdOut .cp { margin: 2px 0; } #kjCmdOut .err { color: #ffcf5a; }
+  #kjCmdOut .cb { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
+  #kjCmdOut button { font-size: 13px; font-weight: 700; padding: 5px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: #fff; }
+  #kjCmdOut button.go { background: #2a8f5a; border-color: #39d97a; }
   /* Signups from a photo */
   #kjCtrls .btns #kjScanBtn { display: none; }
   body.kjctl.kjphoto #kjCtrls .btns #kjScanBtn { display: flex; }
@@ -471,14 +548,14 @@
   #kjScanBody .row .wrote { font-size: 12px; opacity: .55; margin: 4px 0; }
   #kjScanBody .pick { font-size: 14px; font-weight: 700; margin-top: 2px; }
   #kjScanBody .pick .art, #kjScanBody .opt .art { opacity: .55; font-weight: 400; }
-  #kjScanBody .pick .chg { font-size: 12px !important; font-weight: 400 !important; padding: 0 0 0 6px !important; border: 0 !important; background: none !important; color: #5ef0ff !important; text-decoration: underline; }
+  #kjScanBody .pick .chg { font-size: 12px !important; font-weight: 400 !important; padding: 0 0 0 6px !important; border: 0 !important; background: none !important; color: #4dff95 !important; text-decoration: underline; }
   #kjScanBody .lbl { font-size: 12px; color: #ffcf5a; margin: 4px 0 2px; }
   #kjScanBody .pick.guess { color: #ffcf5a; }
   #kjScanBody .pct { font-size: 11px; font-weight: 800; color: #ffcf5a; background: rgba(255,207,90,.14); border-radius: 6px; padding: 1px 6px; margin-left: auto; flex: none; white-space: nowrap; }
   #kjScanBody .pick .pct { margin-left: 4px; }
   #kjScanBody .opt { display: flex; gap: 8px; align-items: center; padding: 6px 0; font-size: 14px; }
   #kjScanBody .opt input { width: 18px; height: 18px; flex: none; accent-color: #39d97a; }
-  #kjScanBody .srch { width: 100%; box-sizing: border-box; margin-top: 6px; padding: 7px 10px; font-size: 15px; border-radius: 8px; border: 1px solid rgba(94,240,255,.4); background: rgba(255,255,255,.06); color: #fff; }
+  #kjScanBody .srch { width: 100%; box-sizing: border-box; margin-top: 6px; padding: 7px 10px; font-size: 15px; border-radius: 8px; border: 1px solid rgba(57,217,122,.4); background: rgba(255,255,255,.06); color: #fff; }
   #kjScanBody .row select { width: 100%; padding: 6px; font-size: 14px; border-radius: 8px; background: #1a1636; color: #fff; border: 1px solid rgba(255,255,255,.2); }
   #kjScanBody .row .note { font-size: 12px; color: #ffcf5a; margin-top: 4px; }
   #kjScanBody .row.off { opacity: .5; }
@@ -491,7 +568,7 @@
   body.kjsheetlive #kjChange, body.kjfind #kjChange { display: none; }
   #kjFind { display: none; margin: 8px 0 6px; }
   body.kjfind #kjFind { display: block; }
-  #kjFindQ { width: 100%; box-sizing: border-box; padding: 10px 12px; font-size: 16px; border-radius: 10px; border: 1px solid rgba(94,240,255,.5);
+  #kjFindQ { width: 100%; box-sizing: border-box; padding: 10px 12px; font-size: 16px; border-radius: 10px; border: 1px solid rgba(57,217,122,.5);
     background: rgba(255,255,255,.07); color: #fff; }
   #kjFindR { max-height: 34vh; overflow-y: auto; margin-top: 6px; }
   #kjFindR .r { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 4px; border: 0; border-bottom: 1px solid rgba(255,255,255,.08);
@@ -505,7 +582,7 @@
   #kjSheetAT { width: 100%; margin-top: 10px; padding: 11px; font-size: 15px; font-weight: 800; border-radius: 10px; color: #fff;
     border: 1px solid rgba(57,255,106,.5); background: rgba(57,255,106,.08); }
   #kjSheetAT.on { background: #39ff6a; color: #052b10; }
-  #kjSheet .f.vox input { flex: 1; min-width: 0; accent-color: #5ef0ff; padding: 0; border: 0; background: none; }
+  #kjSheet .f.vox input { flex: 1; min-width: 0; accent-color: #4dff95; padding: 0; border: 0; background: none; }
   #kjSheet .f.vox b { min-width: 34px; text-align: right; }
   #kjSheet .f.tmp b { min-width: 58px; font-size: 14px; }
   #kjSheet .f.tmp .rs { width: 36px; height: 36px; flex: none; border: 0; background: none; font-size: 19px; color: rgba(255,255,255,.55); }
@@ -515,11 +592,11 @@
     color: rgba(255,255,255,.4); opacity: 1; }
   #kjSheet .f.vox .lk input { position: absolute; opacity: 0; width: 0; height: 0; }
   #kjSheet .f.vox .lk .lkc { display: none; }
-  #kjSheet .f.vox .lk.on { color: #5ef0ff; }
+  #kjSheet .f.vox .lk.on { color: #4dff95; }
   #kjSheet .f.vox .lk.on .lkc { display: block; } #kjSheet .f.vox .lk.on .lko { display: none; }
   #kjSheet .atrow { display: flex; gap: 8px; margin-top: 10px; }
   #kjSheet .atrow button { flex: 1; min-width: 0; margin: 0 !important; padding: 9px 6px !important; font-size: 13px !important; }
-  #kjPage .b.vx { background: rgba(94,240,255,.14); color: #8ff4ff; }
+  #kjPage .b.vx { background: rgba(57,217,122,.14); color: #9dffbe; }
   #kjSheetAlways { width: 100%; margin-top: 6px; padding: 8px; font-size: 13px; font-weight: 600; border-radius: 8px; color: rgba(255,255,255,.75);
     border: 1px dashed rgba(57,255,106,.4); background: none; }
   #kjSheetAlways.on { color: #39ff6a; border-style: solid; }
@@ -528,7 +605,7 @@
   body:not(.kjctl) #kjSheet .ctl, body.kjctl #kjSheet .noctl { display: none; }
   #kjSheet .acts { display: flex; gap: 10px; margin-top: 14px; }
   #kjSheet .acts button { flex: 1; padding: 11px; font-size: 15px; font-weight: 700; border-radius: 10px; color: #fff; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); }
-  #kjSheet #kjSheetSave { background: #5ef0ff; color: #001a20; border-color: #5ef0ff; }
+  #kjSheet #kjSheetSave { background: #4dff95; color: #001a20; border-color: #4dff95; }
   #kjNightBox { margin-top: 22px; border: 1px solid rgba(255,255,255,.28); border-radius: 12px; background: rgba(255,255,255,.04); overflow: hidden; }
   #kjNightHead { cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 12px 14px; font-size: 13px; }
   #kjNightHead b { font-weight: 800; letter-spacing: .14em; color: rgba(255,255,255,.85); }
@@ -537,6 +614,19 @@
   #kjNightList:not(:empty) { padding: 4px 14px 10px; border-top: 1px solid rgba(255,255,255,.15); }
   #kjNightList { filter: grayscale(1); opacity: .72; }
   /* Not added from photos: tonight's sheet lines that didn't make it into KaraFun */
+  /* Actions: what KJ mode did to KaraFun tonight, as a small diagnostic log */
+  #kjActBox { margin-top: 10px; border: 1px solid rgba(255,255,255,.1); border-radius: 8px; background: rgba(0,0,0,.25); overflow: hidden;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  #kjActHead { cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 4px 10px; font-size: 8px; opacity: .6; }
+  #kjActHead b { font-weight: 700; letter-spacing: .12em; }
+  #kjActHead .chev { margin-left: auto; }
+  #kjActList:not(:empty) { padding: 2px 10px 6px; border-top: 1px solid rgba(255,255,255,.06); max-height: 40vh; overflow-y: auto; }
+  #kjActList .a { display: flex; gap: 6px; padding: 1px 0; font-size: 8px; line-height: 1.35; opacity: .7; white-space: pre-wrap; word-break: break-word; }
+  #kjActList .a .tm { flex: none; opacity: .5; }
+  #kjActList .mv { font-weight: 800; padding: 0 3px; border-radius: 3px; }
+  #kjActList .mv.up { color: #39d97a; background: rgba(57,217,122,.14); } #kjActList .mv.down { color: #ff6b6b; background: rgba(255,107,107,.14); }
+  #kjActList .a.ev { opacity: .5; } #kjActList .a.bad { color: #ff8a8a; }
+  #kjActList .none { font-size: 8px; opacity: .5; padding: 4px 0; }
   #kjMissBox { display: none; margin-top: 12px; border: 1px solid rgba(255,207,90,.35); border-radius: 12px; background: rgba(255,207,90,.04); overflow: hidden; }
   body.kjmiss #kjMissBox { display: block; }
   #kjMissHead { cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 12px 14px; font-size: 13px; }
@@ -556,7 +646,7 @@
   #kjNightList .ns { font-size: 13px; opacity: .65; margin-top: 2px; }
   #kjNightList .ntabs { display: flex; gap: 6px; margin: 2px 0 6px; }
   #kjNightList .ntabs button { font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 14px; color: #fff; border: 1px solid rgba(255,255,255,.18); background: none; }
-  #kjNightList .ntabs button.on { background: rgba(94,240,255,.18); border-color: rgba(94,240,255,.5); }
+  #kjNightList .ntabs button.on { background: rgba(57,217,122,.18); border-color: rgba(57,217,122,.5); }
   #kjNightList .nl { display: flex; align-items: baseline; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
   #kjNightList .nn { width: 22px; flex: none; text-align: right; font-size: 12px; opacity: .45; }
   #kjNightList .nt { width: 66px; flex: none; font-size: 12px; opacity: .55; font-variant-numeric: tabular-nums; }
@@ -785,16 +875,19 @@
 
 <!-- Options (only shown when someone opens it) -->
 <div id="kjPage"><div class="in">
-  <header><div class="hd"><div class="t"><span class="nm">KJQV</span><button id="kjWarn" aria-label="About experimental features" title="Experimental">⚠️</button><button id="kjDot" aria-label="Connection details" title="Connection"></button></div>
+  <header><div class="hd"><div class="t"><span class="nm">KJQV</span><button id="kjWarn" aria-label="About experimental features" title="Experimental">⚠️</button><button id="kjDot" aria-label="Connection details" title="Connection"></button><button id="kjCmdBtn" aria-label="Type a command" title="Type a command">🗣</button></div>
     </div>
     <div class="hb"><div id="kjCtrls"><div class="btns"><button id="kjScanBtn" aria-label="Add signups from a photo of the sheet" title="Signup sheet: add from a photo"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/></svg></button><button id="kjPlay" aria-label="Play or pause" title="Play / pause"></button><button id="kjRestart" aria-label="Restart song" title="Restart song (tap twice)"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg></button><button id="kjSkip" aria-label="Skip song" title="Skip song (tap twice)"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M6 6l8.5 6L6 18zM16 6h2v12h-2z"/></svg></button><span id="kjArmMsg"></span></div></div><button id="kjOpts" aria-label="Options" title="Options"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div></header>
 <div id="kjInfo" class="st"><span id="kjConn" class="wait">○ Connecting to KaraFun…</span><span id="kjCtlSep"></span><span id="kjCtl"></span><span id="kjVx"></span></div>
   <div id="kjWarnMsg"><b>⚠️ Experimental.</b> The controls change your real KaraFun queue. They need KJ mode to be an admin in KaraFun (tap the dot for its name).</div>
   <div id="kjAlert"><b>Banned song signed up</b><div id="kjBanList"></div></div>
   <div id="kjDeleted"></div>
+  <div id="kjCmd"><div class="cmdrow"><input id="kjCmdIn" type="text" placeholder="make Ember next · skip · Priya key down 2…" autocomplete="off" enterkeyhint="go"><button id="kjMic" aria-label="Say a command" title="Say a command">🎤</button></div>
+    <div id="kjChips"></div>
+    <div id="kjCmdOut"></div></div>
   <div class="sec">NOW SINGING</div><div id="kjNow"></div>
   <div id="kjVols"></div><div id="kjCtrlMsg"></div>
-  <div class="sec">QUEUE <span id="kjCount"></span></div><div id="kjQueue"></div>
+  <div class="sec qh">QUEUE <span id="kjCount"></span></div><div id="kjQueue"></div>
   <input id="kjScanFile" type="file" accept="image/*" hidden>
   <div id="kjSheetBg"></div>
   <div id="kjScan"><div class="sh">Signups from a photo</div>
@@ -816,10 +909,12 @@
     <div class="atrow"><button id="kjSheetAT"></button><button id="kjSheetAlways"></button></div>
     <div class="note ctl">Name, key and tempo change the signup in KaraFun; locked vocal levels are set each time this singer's song starts (experimental).</div>
     <div class="note noctl">Turn on KJ controls in Options to change the name, key or tempo here.</div>
-    <div class="acts"><button id="kjSheetCancel">Cancel</button><button id="kjSheetSave">Save</button></div></div>
+    <div class="acts"><button id="kjSheetRemove" class="ctl" title="Remove from the queue">Remove</button><button id="kjSheetCancel">Cancel</button><button id="kjSheetSave">Save</button></div></div>
   <div id="kjNightBox"><div id="kjNightHead" role="button"></div><div id="kjNightList"></div></div>
+  <div id="kjActBox"><div id="kjActHead" role="button"></div><div id="kjActList"></div></div>
   <div id="kjMissBox"><div id="kjMissHead" role="button"></div><div id="kjMissList"></div></div>
-  <div class="foot">Tap an entry for options. <b>KJQV KJ</b> needs admin permissions in KaraFun's Remote Control for the controls to work. KJQV is unofficial and not affiliated with KaraFun.</div>
+  <div id="kjMoveBar"><div id="kjMoveTxt"></div><div class="mb"><button id="kjMoveNo">Cancel</button><button id="kjMoveYes" class="go">Move</button></div></div>
+  <div class="foot">Tap an entry for options. Swipe it left to remove it. Press and hold it (or swipe right) to move it. <b>KJQV KJ</b> needs admin permissions in KaraFun's Remote Control for the controls to work. KJQV is unofficial and not affiliated with KaraFun.</div>
 </div></div>
 <div id="opts" class="hidden" role="dialog" aria-label="Options"><div class="in">
   <div class="top"><h2>Options</h2><div class="tb"><button id="optSaveTop">Save</button><button id="optX" aria-label="Close without saving" title="Close without saving">✕</button></div></div>
@@ -959,7 +1054,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var CFG_KEY = "kqv.cfg";
   var cfg = {};
   try { cfg = JSON.parse(load(CFG_KEY) || "{}") || {}; } catch (e) { cfg = {}; }
-  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette", "flicker", "away", "spottime", "lite", "wipe", "nowtext", "nexttext", "comingtext", "noisetext", "thankstext", "thankssub", "emptytext", "signuptext", "lastcalltext", "musictext", "backtext", "ban", "banalert", "banmove", "kjcontrols", "keys", "autotune", "weather", "songreveal", "vx5", "photoscan"];
+  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette", "flicker", "away", "spottime", "lite", "wipe", "nowtext", "nexttext", "comingtext", "noisetext", "thankstext", "thankssub", "emptytext", "signuptext", "lastcalltext", "musictext", "backtext", "ban", "banalert", "banmove", "kjcontrols", "keys", "autotune", "weather", "songreveal", "vx5", "photoscan", "kjrows"];
   // A link with any look options replaces the saved look; a bare link (just code=) keeps it.
   // The preview never uses what this device saved.
   if (DEMO || OPTS.some(function (k) { return params.has(k); })) cfg = {};
@@ -1913,8 +2008,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       var playing = playerState === 4;   // paused (5) or stopped → Play resumes / starts
       if (playing && !armed("kjPlay", "pause")) return;   // play is one tap; pausing needs a second tap
       var p = kjSend(playing ? "remote.PauseRequest" : "remote.PlayRequest", {}, playing ? "pausing" : "playing");
+      if (p && p.then) p.then(null, function () { kjLog((playing ? "Pause" : "Play") + " (KaraFun refused)"); });
       // Flip the button as soon as KaraFun accepts it (its next status update confirms or corrects it)
-      function flip() { playerState = playing ? 5 : 4; kjControls(); }
+      function flip() { playerState = playing ? 5 : 4; kjControls(); if (DEMO) render(); }
       if (DEMO) flip(); else if (p && p.then) p.then(flip, function () {});
     });
     // Skip and Restart need a second tap within 3 seconds
@@ -1929,17 +2025,18 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       kjArm.k = ""; b.classList.remove("arm"); $("kjArmMsg").textContent = "";
       return true;
     }
-    $("kjSkip").addEventListener("click", function () { if (armed("kjSkip", "skip")) kjSend("remote.NextRequest", {}, "skipping"); });
+    $("kjSkip").addEventListener("click", function () { if (armed("kjSkip", "skip")) { var w = current; kjLog("Skipped " + who(w), kjSend("remote.NextRequest", {}, "skipping")); } });
     // Restart (experimental): KaraFun's remote has no restart, so put a copy of this song right after it and skip to it
     $("kjRestart").addEventListener("click", function () {
       if (!armed("kjRestart", "restart")) return;
       var cur = current;
       if (!cur || !cur.song || !cur.song.id || isBreakItem(cur)) { $("kjCtrlMsg").textContent = "No song to restart."; return; }
-      if (DEMO) { tPlayedMs = 0; tSince = Date.now(); tKnown = true; render(); return; }
+      if (DEMO) { tPlayedMs = 0; tSince = Date.now(); tKnown = true; kjLog("Restarted " + who(cur), undefined, [who(cur), who(cur) + "#now"]); render(); return; }
       var idx = -1; queue.forEach(function (it, n) { if (it.id === cur.id) idx = n; });
       var req = { song: { type: cur.song.id.type, id: cur.song.id.id }, position: idx >= 0 ? idx + 1 : 0 };
       if (cur.song.options) req.options = cur.song.options;
       var p = kjSend("remote.AddToQueueRequest", req, "adding the song again");
+      kjLog("Restarted " + who(cur), p, [who(cur), who(cur) + "#now"]);
       if (p && p.then) p.then(function () { setTimeout(function () { kjSend("remote.NextRequest", {}, "skipping to the restart"); }, 400); });
     });
     // Levels start folded away; this phone remembers if you open them
@@ -2111,7 +2208,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   // Snap the paper signup sheet; Claude (with the KJ's own API key, kept only on this phone, never in a link)
   // reads singer / song / artist off it; KJ mode finds each song in KaraFun's catalog; you check the list and
   // tap Add, which appends them to the real KaraFun queue in sheet order.
-  var SCAN_MODEL = "claude-sonnet-5-5", SCAN_KEY = "kqv.claudekey", scanRows = [], scanVisible = [];
+  var SCAN_MODEL = "claude-sonnet-5-5", SCAN_KEY = "kqv.claudekey", scanRows = [], scanVisible = [], scanAdded = [];
   function scanKey() { return load(SCAN_KEY) || ""; }
   // Tonight's sheet lines that didn't get added (not in KaraFun, or left unticked), kept on this phone till 6am
   function missKey() { return nightKey().replace("kqv.night.", "kqv.miss."); }
@@ -2279,6 +2376,20 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         (scanShowSkipped ? '<div class="skiplist">' + skipped.map(function (i) { return scanRowHTML(scanRows[i], i); }).join("") + "</div>" : "") : "");
     scanCount();
   }
+  // One block for the log: every line on the sheet and what happened to it
+  function scanSummary() {
+    var lines = [], na = 0, sk = 0;
+    scanRows.forEach(function (r, i) {
+      var m = r.matches && r.pick !== undefined ? r.matches[r.pick] : null, wrote = [r.title, r.artist].filter(Boolean).join(" · ");
+      var add = m && scanAdded.indexOf(r.singer + " · " + m.title) >= 0;
+      if (add) lines.push("Added " + r.singer + " · " + m.title + (scanExact(r, m) ? "" : " (wrote \"" + (r.title || "?") + "\")"));
+      else if (r.skip) { sk++; lines.push("Skipped " + r.singer + " · " + (r.title || "?") + " (" + r.skip.toLowerCase() + ")"); }
+      else if (scanVisible.indexOf(i) >= 0) { na++; lines.push("Not added " + r.singer + " · " + (r.title || "?") + " (" + (r.matches && r.matches.length ? "left unticked" : "not in KaraFun") + ")"); }
+    });
+    var later = scanRows.length - scanAdded.length - na - sk;
+    return ["📋 Photo sheet read: " + scanRows.length + " lines · " + scanAdded.length + " added · " + na + " not added · " + sk + " skipped" +
+      (later > 0 ? " · " + later + " not reviewed" : "")].concat(lines.map(function (l) { return "📋 " + l.trim(); }));
+  }
   function scanTodo() {
     return scanRows.filter(function (r, i) { return r.on && r.matches && r.pick !== undefined && r.matches[r.pick] && (scanVisible.indexOf(i) >= 0 || (r.skip && scanShowSkipped)); });
   }
@@ -2304,32 +2415,39 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
   function scanAdd() {
     var todo = scanTodo();
+    scanAdded = [];
+    todo.forEach(function (r) { actMine.push([r.singer + " · " + r.matches[r.pick].title, Date.now()]); });
     scanVisible.forEach(function (i) {
       var r = scanRows[i]; if (todo.indexOf(r) >= 0) return;
       var found = r.matches && r.matches.length;
       kjMiss.push({ singer: r.singer, title: r.title, artist: r.artist, why: found ? "Left unticked" : "Not in KaraFun", at: Date.now() });
     });
     missSave();
-    if (!todo.length) { scanClose(); return; }
+    if (!todo.length) { if (scanVisible.length) kjLogLines(scanSummary()); scanClose(); return; }
     $("kjScanAdd").disabled = true;
     var done = 0;
     var next = function () {
-      if (!todo.length) { scanClose(); $("kjCtrlMsg").textContent = "Added " + done + (done === 1 ? " signup" : " signups") + " from the photo."; return; }
+      if (!todo.length) {
+        kjLogLines(scanSummary(), scanAdded.slice());
+        scanClose(); $("kjCtrlMsg").textContent = "Added " + done + (done === 1 ? " signup" : " signups") + " from the photo."; return;
+      }
       var r = todo.shift(), m = r.matches[r.pick || 0];
       if (m.key) keyCache[m.songId] = m.key; if (m.duration) durCache[m.songId] = m.duration;
       $("kjScanAdd").textContent = "Adding " + (done + 1) + "…";
       if (DEMO) {
         var at = queue.length; queue.forEach(function (it, n) { if (it.tail && at === queue.length) at = n; });
         queue.splice(at, 0, { id: "scan" + Date.now() + done, song: { id: { type: 1, id: m.songId }, title: m.title, artist: m.artist, options: { singer: r.singer } } });
-        done++; render(); setTimeout(next, 120); return;
+        done++; scanAdded.push(r.singer + " · " + m.title); render(); setTimeout(next, 120); return;
       }
       var p = kjSend("remote.AddToQueueRequest", { song: { type: 1, id: m.songId }, options: { singer: r.singer } }, "adding " + r.singer);
+      if (p && p.then) p.then(function () { scanAdded.push(r.singer + " · " + m.title); }, function () {});
       if (p && p.then) p.then(function () { done++; next(); }, function () { scanDraw(); }); else next();
     };
     next();
   }
   if (KJ) {
     if (/^(on|yes|1|true)$/i.test(String(cfg.photoscan || "")) || DEMO) document.body.classList.add("kjphoto");   // off unless you turn it on
+    if (/^tiny$/i.test(cfg.kjrows || "")) document.body.classList.add("kjtiny"); else if (/^roomy$/i.test(cfg.kjrows || "")) document.body.classList.add("kjroomy");
     $("kjScanBtn").onclick = function () { if (!scanKey() && !DEMO) { scanOpen(); scanMsg(""); return; } $("kjScanFile").click(); };
     $("kjScanFile").onchange = function () { scanPhoto(this.files && this.files[0]); };
     $("kjScanKeySave").onclick = function () {
@@ -2432,10 +2550,375 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     });
     $("kjSheetAlways").textContent = kjEdit.fromOpts ? "Always (Options)" : (kjEdit.always ? "✓ " : "") + "Always for " + (nm || "this singer");
   }
+  // ---------------------------------------------------------------- drag to reorder the queue
+  var kjDrag = null;
+  var kjNoClick = false;
+  function kjDragStart(e) {   // only in Rearrange mode (⇅ by QUEUE): grab a row and drag it
+    if (!kjMoving || (e.button && e.button !== 0)) return;
+    if (e.target.closest && e.target.closest(".rm")) return;   // the ✕ is a button, not a handle
+    var row = e.target.closest && e.target.closest("#kjQueue .r[data-qid]"); if (!row || row.getAttribute("data-qid") !== kjMoving.id) return;
+    e.preventDefault();
+    kjDrag = { row: row, id: row.getAttribute("data-qid"), from: Array.prototype.indexOf.call($("kjQueue").children, row) };
+    row.classList.add("dragging");
+  }
+  function kjDragMove(e) {
+    if (!kjDrag) return;
+    e.preventDefault();
+    var row = kjDrag.row, list = $("kjQueue");
+    var others = Array.prototype.filter.call(list.children, function (r) { return r !== row && r.classList.contains("r"); });
+    var y = e.clientY, placed = false;
+    for (var i = 0; i < others.length; i++) {
+      var b = others[i].getBoundingClientRect();
+      if (y < b.top + b.height / 2) { if (row.nextSibling !== others[i]) list.insertBefore(row, others[i]); placed = true; break; }
+    }
+    if (!placed && list.lastChild !== row) list.appendChild(row);
+    // white where it started; greener the further up (sooner), redder the further down (later)
+    var now = Array.prototype.indexOf.call(list.children, row), d = (kjMoving ? kjMoving.from : kjDrag.from) - now;
+    if (!d) { row.style.borderColor = ""; row.style.background = ""; }
+    else { var f = Math.min(Math.abs(d), 5) / 5, h = d > 0 ? 130 : 0, l = 100 - 45 * f;
+      row.style.borderColor = "hsl(" + h + ",90%," + l + "%)"; row.style.background = "hsla(" + h + ",90%,50%," + (.06 + .14 * f) + ")"; }
+    if (y < 70) window.scrollBy(0, -12); else if (y > window.innerHeight - 70) window.scrollBy(0, 12);   // scroll while dragging near the edges
+  }
+  function kjDragEnd() {
+    if (!kjDrag) return;
+    var d = kjDrag; kjDrag = null;
+    kjNoClick = true; setTimeout(function () { kjNoClick = false; }, 350);   // letting go isn't a tap
+    d.row.classList.remove("dragging");
+    var to = Array.prototype.indexOf.call($("kjQueue").children, d.row);
+    kjMoving.to = to; kjMoveText();
+  }
+  // ---------------------------------------------------------------- move one signup: swipe right, drag, confirm
+  var kjMoving = null;   // { id, from, to }
+  function kjMoveStart(row) {
+    var kids = Array.prototype.slice.call($("kjQueue").children);
+    kjMoving = { id: row.getAttribute("data-qid"), from: kids.indexOf(row), to: kids.indexOf(row) };
+    row.classList.add("moving"); document.body.classList.add("kjmoving");
+    if (navigator.vibrate) try { navigator.vibrate(15); } catch (x) {}
+    kjMoveText();
+  }
+  function kjMoveText() {
+    var m = kjMoving; if (!m) return;
+    var it = queue.filter(function (q) { return String(q.id) === m.id; })[0], w = it ? (isBreakItem(it) ? "the break" : who(it)) : "this signup";
+    $("kjMoveTxt").innerHTML = m.to === m.from ? "Drag <b>" + esc(w) + "</b> to a new spot." : "Move <b>" + esc(w) + "</b> from #" + (m.from + 1) + " to #" + (m.to + 1) + "?";
+    $("kjMoveYes").disabled = m.to === m.from;
+  }
+  function kjMoveEnd(go) {
+    var m = kjMoving; kjMoving = null; document.body.classList.remove("kjmoving");
+    if (go && m && m.to !== m.from) kjMove(m.id, m.to); else render();   // Cancel puts everything back
+  }
+  // Move a signup to spot "to" in the line after the current song (0 = next up)
+  function kjMove(id, to) {
+    // KaraFun counts positions in the whole queue, which starts with the song that's on
+    var cur = current, rest = queue.filter(function (it) { return !cur || String(it.id) !== String(cur.id); });
+    var item = rest.filter(function (it) { return String(it.id) === String(id); })[0];
+    if (!item) { render(); return; }
+    var from = rest.indexOf(item); to = Math.max(0, Math.min(rest.length - 1, to));
+    if (from === to) return;
+    var d = { id: String(id), from: from };
+    rest.splice(rest.indexOf(item), 1); rest.splice(to, 0, item);
+    // where the playing song sits in KaraFun's queue, matched by id (the status and the queue are separate objects)
+    var ci = -1; if (cur) queue.forEach(function (q, n) { if (ci < 0 && String(q.id) === String(cur.id)) ci = n; });
+    var off = ci >= 0 ? ci + 1 : 0;
+    var target = off + to;
+    queue = (off ? queue.slice(0, off) : []).concat(rest);   // show it right away; KaraFun's next update confirms
+    render();
+    var steps = d.from - to, mtxt = "Moved " + who(item) + " " + (steps > 0 ? "up " + steps : "down " + (-steps)) + " (now #" + (to + 1) + ")";
+    if (DEMO) kjLog(mtxt); else kjLog(mtxt, kjSend("remote.MoveInQueueRequest", { queueItemId: d.id, to: target }, "moving that signup"));
+  }
+  // ---------------------------------------------------------------- remove a signup (two taps, like skip)
+  var kjRmArm = { id: "", until: 0, el: null };
+  function kjRmTap(id, el, label) {   // first tap arms it ("Remove?"), a second tap within 3 seconds removes
+    if (kjRmArm.id !== id || Date.now() > kjRmArm.until) {
+      if (kjRmArm.el) { kjRmArm.el.classList.remove("arm"); kjRmArm.el.textContent = kjRmArm.label; }
+      kjRmArm = { id: id, until: Date.now() + 3000, el: el, label: label };
+      el.classList.add("arm"); el.textContent = "Remove?";
+      setTimeout(function () { if (kjRmArm.el === el && Date.now() >= kjRmArm.until) { el.classList.remove("arm"); el.textContent = label; kjRmArm = { id: "", until: 0, el: null }; } }, 3100);
+      return false;
+    }
+    kjRmArm = { id: "", until: 0, el: null };
+    return true;
+  }
+  function kjRemove(id) {
+    var it = queue.filter(function (q) { return String(q.id) === String(id); })[0]; if (!it) return;
+    var w = isBreakItem(it) ? "a break" : who(it);
+    if (DEMO) kjLog("Removed " + w, undefined, [w]);
+    else kjLog("Removed " + w, kjSend("remote.RemoveFromQueueRequest", { queueItemId: String(id) }, "removing that signup"), [w]);
+    queue = queue.filter(function (q) { return q !== it; });   // gone right away; KaraFun's next update confirms
+    render();
+  }
+  // ---------------------------------------------------------------- swipe left to remove (Apple style)
+  var kjSwipe = null, KJ_SW = 96;
+  function swClose(anim) {
+    if (!kjSwipe) return;
+    var r = kjSwipe.row; kjSwipe = null;
+    r.classList.add("snap"); r.style.transform = "";
+    setTimeout(function () { r.classList.remove("snap"); render(); }, anim ? 200 : 0);
+  }
+  function swDown(e) {
+    if (!document.body.classList.contains("kjctl") || kjMoving) return;
+    if (e.target.closest && e.target.closest(".swdel")) return;
+    var row = e.target.closest && e.target.closest("#kjQueue .r[data-qid]");
+    if (kjSwipe && kjSwipe.open && kjSwipe.row !== row) { swClose(true); kjNoClick = true; setTimeout(function () { kjNoClick = false; }, 350); return; }
+    if (!row) return;
+    var base = kjSwipe && kjSwipe.row === row && kjSwipe.open ? -KJ_SW : 0;
+    var sw = kjSwipe = { row: row, x: e.clientX, y: e.clientY, base: base, on: false, open: base !== 0, dx: base, down: true };
+    // press and hold (without moving) picks the song up to move it, and you can keep dragging right away
+    if (!base) sw.hold = setTimeout(function () {
+      if (kjSwipe !== sw || sw.on || !sw.down) return;
+      kjSwipe = null; kjMoveStart(row);
+      kjDrag = { row: row, id: row.getAttribute("data-qid"), from: Array.prototype.indexOf.call($("kjQueue").children, row) };
+      row.classList.add("dragging");
+    }, 450);
+  }
+  function swMove(e) {
+    var s = kjSwipe; if (!s || s.done || !s.down) return;   // only while a finger (or button) is down
+    var dx = e.clientX - s.x, dy = e.clientY - s.y;
+    if (s.hold && Math.abs(dx) + Math.abs(dy) > 8) { clearTimeout(s.hold); s.hold = 0; }   // moved: not a press-and-hold
+    if (!s.on) {
+      if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { s.done = true; if (!s.open) kjSwipe = null; return; }   // a scroll
+      if (Math.abs(dx) < 10) return;
+      s.on = true;
+    }
+    s.dx = Math.max(-KJ_SW - 20, Math.min(s.open ? 0 : KJ_SW + 20, s.base + dx));   // left: Remove, right: Rearrange
+    s.row.style.transform = "translateX(" + s.dx + "px)";
+  }
+  function swUp(e) {
+    var s = kjSwipe; if (!s) return;
+    if (e && e.target && e.target.closest && e.target.closest(".swdel")) return;   // tapping Remove: leave it open for the click
+    s.done = false; s.down = false; if (s.hold) { clearTimeout(s.hold); s.hold = 0; }
+    if (!s.on) {   // a tap: on an open row it just closes it, like iPhone lists
+      if (s.open) { swClose(true); kjNoClick = true; setTimeout(function () { kjNoClick = false; }, 350); } else kjSwipe = null;
+      return;
+    }
+    s.on = false;
+    kjNoClick = true; setTimeout(function () { kjNoClick = false; }, 350);   // that was a swipe, not a tap
+    if (s.dx > KJ_SW / 2) {   // swiped right far enough: pick this one up to move it
+      var row = s.row; kjSwipe = null; row.style.transform = ""; kjMoveStart(row); return;
+    }
+    if (s.dx < -KJ_SW / 2) {
+      s.row.classList.add("snap"); s.row.style.transform = "translateX(" + -KJ_SW + "px)"; s.open = true;
+      setTimeout(function () { s.row.classList.remove("snap"); }, 200);
+    } else swClose(true);
+  }
+  // ---------------------------------------------------------------- command box ("make ember next")
+  function isCur(it) { return !!(it && current && String(it.id) === String(current.id)); }
+  function kjRest() { var cur = current; return queue.filter(function (it) { return (!cur || String(it.id) !== String(cur.id)) && !isBreakItem(it); }); }
+  // Words of a name, ignoring "and", "&", "+" and the like, so "Bonny and Russel" ~ "Bonny + Russell"
+  function nameWords(n) { return nameKey(n).split(" ").filter(function (w) { return w && !/^(and|n|the|with|ft|feat)$/.test(w); }); }
+  function wordMatch(a, b) { return a === b ? 1 : (b.indexOf(a) === 0 || a.indexOf(b) === 0) && Math.min(a.length, b.length) >= 3 ? .92 : dice(a, b); }
+  // How well typed words fit a signup's name (every typed word has to be there, allowing small spelling slips)
+  function nameFit(typed, singer) {
+    var q = nameWords(typed), w = nameWords(singer); if (!q.length || !w.length) return 0;
+    var sc = q.map(function (x) { return Math.max.apply(null, w.map(function (y) { return wordMatch(x, y); })); });
+    var avg = sc.reduce(function (a, b) { return a + b; }, 0) / sc.length, worst = Math.min.apply(null, sc);
+    return worst < .6 ? 0 : avg - (w.length > q.length ? .02 * (w.length - q.length) : 0);   // a closer word count wins ties ("mike" → Mike, not Dana & Mike)
+  }
+  function kjFindSinger(name) {   // best match for a typed name among upcoming signups (then the current one), or by song title
+    var all = kjRest().concat(current && !isBreakItem(current) ? [current] : []), best = null, bs = .74;
+    all.forEach(function (it) { var f = nameFit(name, info(it).singer); if (f > bs) { bs = f; best = it; } });
+    if (best) return best;
+    var n = nameKey(name); if (n.length < 3) return null;
+    return all.filter(function (it) { return nameKey(info(it).title).indexOf(n) >= 0; })[0] || null;
+  }
+  // "Bonny and Russell" as one duet signup, or as two people
+  function kjFindSingers(name) {
+    var one = kjFindSinger(name); if (one) return [one];
+    var parts = String(name).split(/\s+(?:and|&|\+|n)\s+|\s*[,&+]\s*/i).filter(Boolean);
+    if (parts.length < 2) return [];
+    var got = parts.map(kjFindSinger);
+    return got.every(Boolean) ? got.filter(function (it, i) { return got.indexOf(it) === i; }) : [];
+  }
+  var WORDNUM = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, first: 1, second: 2, third: 3, fourth: 4, fifth: 5, next: 1, last: 99 };
+  function num(t) { t = String(t || "").toLowerCase(); return WORDNUM[t] !== undefined ? WORDNUM[t] : parseInt(t, 10); }
+  // Plain-English commands → a list of actions: { do, id, to, n, pitch, tempo, on, text }
+  function kjParse(t) {
+    t = String(t || "").trim().replace(/[.!?]+$/, ""); var low = t.toLowerCase(), m, it;
+    var pos = function (it) { return kjRest().indexOf(it); };
+    if (/^(skip|next song|skip (it|this|the song|this song))$/.test(low)) return current ? [{ do: "skip", text: "Skip " + who(current) }] : null;
+    if (/^(pause|stop)( it| the song)?$/.test(low)) return [{ do: "pause", text: "Pause " + who(current) }];
+    if (/^(play|resume|go|unpause)( it| the song)?$/.test(low)) return [{ do: "play", text: "Play " + who(current) }];
+    if (/^restart( it| the song| this song)?$/.test(low)) return current ? [{ do: "restart", text: "Restart " + who(current) }] : null;
+    if ((m = low.match(/^(?:make |put |move |bump |let )?(.+?) (?:sing |go |be |up )?(?:next|up next|to the top|to the front|first)$/))) {
+      var them = kjFindSingers(m[1]).filter(function (x) { return pos(x) >= 0; });
+      if (them.length) return them.map(function (x, i) { return { do: "move", id: x.id, to: i, text: "Move " + who(x) + " to " + (i ? "#" + (i + 1) : "next") + " (from #" + (pos(x) + 1) + ")" }; });
+    }
+    if ((m = low.match(/^(?:make |put |move |bump )?(.+?) (?:sing |go )?(?:last|to the end|to the bottom)$/))) {
+      it = kjFindSinger(m[1]); if (it && pos(it) >= 0) return [{ do: "move", id: it.id, to: 999, text: "Move " + who(it) + " to the end" }];
+    }
+    if ((m = low.match(/^(?:move |put |bump )?(.+?) (?:to |at )?(?:#|number |spot |position )?(\d+|one|two|three|four|five|six)(?:st|nd|rd|th)?$/))) {
+      it = kjFindSinger(m[1]); var p = num(m[2]); if (it && pos(it) >= 0 && p > 0) return [{ do: "move", id: it.id, to: p - 1, text: "Move " + who(it) + " to #" + p + " (from #" + (pos(it) + 1) + ")" }];
+    }
+    if ((m = low.match(/^(?:move |bump )?(.+?) (up|down) (\d+|one|two|three|four|five|six)(?: spots?| places?)?$/))) {
+      it = kjFindSinger(m[1]); var k = num(m[3]); if (it && pos(it) >= 0 && k > 0) { var to = pos(it) + (m[2] === "up" ? -k : k);
+        return [{ do: "move", id: it.id, to: to, text: "Move " + who(it) + " " + m[2] + " " + k + " (to #" + (Math.max(0, to) + 1) + ")" }]; }
+    }
+    if ((m = low.match(/^(?:remove|delete|drop|cancel|scratch) (.+)$/))) {
+      it = kjFindSinger(m[1]); if (it && pos(it) >= 0) return [{ do: "remove", id: it.id, text: "Remove " + who(it) }];
+    }
+    if ((m = low.match(/^(.+?)(?:'s)? key (up|down|\+|-|−)\s*(\d+|one|two|three|four|five|six)?$/)) || (m = low.match(/^(?:key )?(up|down) (\d+|one|two|three|four|five|six)? ?(?:for|on) (.+)$/)) && (m = [m[0], m[3], m[1], m[2]])) {
+      it = kjFindSinger(m[1]); var st = num(m[3] || 1) * (/up|\+/.test(m[2]) ? 1 : -1);
+      if (it) { var o = optsOf(it, isCur(it)), np = Math.max(-KEY_MAX, Math.min(KEY_MAX, (o.pitch || 0) + st));
+        var k0 = songKey(it); k0 = k0 && k0 !== "Not set" ? (transpose(k0, 0) || k0) : "";
+        var kt = k0 ? transpose(k0, o.pitch || 0) + " → " + transpose(k0, np) + " (" + (np ? signed(np) : "original") + ")" : (o.pitch ? signed(o.pitch) : "original") + " → " + (np ? signed(np) : "original");
+        return [{ do: "opts", id: it.id, pitch: np, text: who(it) + ": key " + kt }]; }
+    }
+    if ((m = low.match(/^(.+?)(?:'s)? key (?:to )?(original|normal|reset)$/))) {
+      it = kjFindSinger(m[1]); if (it) return [{ do: "opts", id: it.id, pitch: 0, text: who(it) + ": key back to original" }];
+    }
+    if ((m = low.match(/^(.+?)(?:'s)? tempo (?:to )?([+\-−]?\d+)%?$/))) {
+      it = kjFindSinger(m[1]); var tp = Math.max(-50, Math.min(50, parseInt(m[2].replace("−", "-"), 10) || 0));
+      if (it) return [{ do: "opts", id: it.id, tempo: tp, text: who(it) + ": tempo " + (tp ? signed(tp) + "%" : "normal") }];
+    }
+    if ((m = low.match(/^(?:autotune|auto) (?:on |off )?(?:for )?(.+?)( off)?$/))) {
+      it = kjFindSinger(m[1]); if (it) { var on = !m[2] && !/ off /.test(" " + low + " "); return [{ do: "at", id: it.id, on: on, text: (on ? "Autotune on for " : "Autotune off for ") + who(it) }]; }
+    }
+    return null;
+  }
+  // Not a command it knows: ask Claude (only if you've saved a key for photo signups) to turn it into the same actions
+  function kjAskClaude(t) {
+    var rest = kjRest(), list = rest.map(function (it, i) { var x = info(it); return (i + 1) + ". " + (x.singer || "?") + " — " + (x.title || "") + " (id " + it.id + ")"; }).join("\n");
+    var prompt = "You control a karaoke queue for the KJ. Now singing: " + (current ? who(current) : "nobody") + ".\nUp next, in order:\n" + (list || "(empty)") +
+      "\n\nThe KJ typed: \"" + t + "\"\nReply with only JSON: {\"actions\":[...]} using these, by id: " +
+      '{"do":"move","id":"…","to":N} (N = new spot, 1 = next up), {"do":"remove","id":"…"}, {"do":"skip"}, {"do":"pause"}, {"do":"play"}, {"do":"restart"}, ' +
+      '{"do":"opts","id":"…","pitch":-6..6} (key steps from original), {"do":"opts","id":"…","tempo":-50..50}. If it\'s unclear or impossible, reply {"actions":[],"say":"why"}.';
+    return fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-api-key": scanKey(), "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+      body: JSON.stringify({ model: SCAN_MODEL, max_tokens: 800, messages: [{ role: "user", content: prompt }] })
+    }).then(function (r) { return r.json().then(function (j) {
+      if (!r.ok) throw new Error((j && j.error && j.error.message) || ("Claude said " + r.status));
+      var tx = ((j.content || []).filter(function (c) { return c.type === "text"; })[0] || {}).text || "", a = tx.indexOf("{"), b = tx.lastIndexOf("}");
+      var out = JSON.parse(tx.slice(a, b + 1)); if (!out.actions || !out.actions.length) throw new Error(out.say || "Claude wasn't sure what to do");
+      var byId = function (id) { return queue.filter(function (q) { return String(q.id) === String(id); })[0]; };
+      return out.actions.map(function (x) {
+        var it = byId(x.id), o = it ? optsOf(it, isCur(it)) : {};
+        if (x.do === "move" && it) return { do: "move", id: it.id, to: (x.to || 1) - 1, text: "Move " + who(it) + " to #" + (x.to || 1) };
+        if (x.do === "remove" && it) return { do: "remove", id: it.id, text: "Remove " + who(it) };
+        if (x.do === "opts" && it) return { do: "opts", id: it.id, pitch: x.pitch, tempo: x.tempo, text: who(it) + ": " + (x.pitch !== undefined ? "key " + (x.pitch ? signed(x.pitch) : "original") : "tempo " + (x.tempo ? signed(x.tempo) + "%" : "normal")) };
+        if (/^(skip|pause|play|restart)$/.test(x.do)) return { do: x.do, text: x.do.charAt(0).toUpperCase() + x.do.slice(1) + " " + who(current) };
+        return null;
+      }).filter(Boolean);
+    }); });
+  }
+  // Tap chips: upcoming singers, then actions. Pick a name, tap an action, and it shows the usual "Do it" check.
+  var kjChipName = "";
+  function kjChipsDraw() {
+    var rest = kjRest().slice(0, 8), seen = {};
+    var names = rest.map(function (it) { return info(it).singer || ""; }).filter(function (n) { var k = nameKey(n); if (!k || seen[k]) return false; seen[k] = 1; return true; });
+    var acts = kjChipName ? [["next", "next"], ["last", "last"], ["remove", "remove"], ["key down 1", "key −1"], ["key up 1", "key +1"]]
+      : [["skip", "skip"], ["pause", "pause"], ["play", "play"], ["restart", "restart"]];
+    $("kjChips").innerHTML = names.map(function (n) { return '<button class="nm' + (nameKey(n) === nameKey(kjChipName) ? " sel" : "") + '" data-n="' + esc(n) + '">' + esc(n) + "</button>"; }).join("") +
+      '<span class="sep"></span>' + acts.map(function (a) { return '<button class="ac" data-a="' + a[0] + '">' + a[1] + "</button>"; }).join("");
+  }
+  var kjCmdPlan = null;
+  function kjCmdShow(html) { $("kjCmdOut").innerHTML = html; }
+  function kjCmdRun() {
+    var t = $("kjCmdIn").value.trim(); if (!t) { kjCmdShow(""); return; }
+    var plan = kjParse(t);
+    var show = function (p) {
+      kjCmdPlan = p;
+      kjCmdShow(p.map(function (a) { return '<div class="cp">→ ' + esc(a.text) + "</div>"; }).join("") +
+        '<div class="cb"><button data-c="no">Cancel</button><button class="go" data-c="yes">Do it</button></div>');
+    };
+    if (plan) { show(plan); return; }
+    if (!scanKey() || DEMO) { kjCmdShow('<div class="err">Didn\'t catch that' + (/next|move|remove|key|tempo|skip/.test(t.toLowerCase()) ? " (no signup by that name?)" : "") +
+      ". Try: make Ember next · Ember to 3 · remove Ember · skip · Ember key down 2</div>"); return; }
+    kjCmdShow('<div class="cp">Asking Claude…</div>');
+    kjAskClaude(t).then(show, function (e) { kjCmdShow('<div class="err">' + esc(e.message || String(e)) + "</div>"); });
+  }
+  function kjCmdDo() {
+    var p = kjCmdPlan; kjCmdPlan = null; if (!p) return;
+    p.forEach(function (a) {
+      var it = a.id !== undefined ? queue.filter(function (q) { return String(q.id) === String(a.id); })[0] : null;
+      if (a.do === "move") kjMove(a.id, a.to);
+      else if (a.do === "remove") kjRemove(a.id);
+      else if (a.do === "skip") pressBtn("kjSkip");   // the same as tapping the button twice
+      else if (a.do === "pause") { if (playerState === 4) pressBtn("kjPlay"); }
+      else if (a.do === "play") { if (playerState !== 4) $("kjPlay").click(); }
+      else if (a.do === "restart") pressBtn("kjRestart");
+      else if (a.do === "opts" && it) kjApplyOpts(it, a.pitch, a.tempo, a.text);
+      else if (a.do === "at" && it) { if (a.on) kjAT[it.id] = 1; else delete kjAT[it.id]; saveAT(); kjLog(a.text); render(); }
+    });
+    $("kjCmdIn").value = ""; kjCmdShow(""); kjChipName = ""; setTimeout(kjChipsDraw, 50);
+  }
+  function pressBtn(id) { kjArm = { k: id, until: Date.now() + 3000 }; $(id).classList.add("arm"); $(id).click(); }   // already "tapped once"
+  // Key/tempo for one signup (live song changes right away; others change their signup)
+  function kjApplyOpts(it, pitch, tempo2, text) {
+    var live = isCur(it), o = JSON.parse(JSON.stringify((it.song && it.song.options) || {}));
+    if (pitch !== undefined) o.pitch = Math.max(-KEY_MAX, Math.min(KEY_MAX, pitch));
+    if (tempo2 !== undefined) o.tempo = Math.max(-50, Math.min(50, tempo2));
+    if (DEMO) { it.song.options = o; if (live) { if (pitch !== undefined) kjPitch = o.pitch; if (tempo2 !== undefined) tempo = o.tempo; } kjLog(text, undefined, [who(it)]); render(); return; }
+    if (live) { if (pitch !== undefined) kjSend("remote.PitchRequest", { pitch: o.pitch }, "changing the key"); if (tempo2 !== undefined) kjSend("remote.TempoRequest", { tempo: o.tempo }, "changing the tempo"); }
+    kjLog(text, kjSend("remote.SetQueueItemOptionsRequest", { queueItemId: String(it.id), options: o }, "changing this signup"), [who(it)]);
+  }
   var KEY_MAX = 6;   // KaraFun only handles −6…+6 key steps; going past that breaks its own controls
   function kjCloseEdit() { kjEdit = null; document.body.classList.remove("kjsheet", "kjfind", "kjsheetlive"); }
   if (KJ) {
+    $("kjQueue").addEventListener("pointerdown", kjDragStart);
+    document.addEventListener("pointerdown", swDown); document.addEventListener("pointermove", swMove); document.addEventListener("pointerup", swUp);
+    document.addEventListener("pointercancel", function () { if (kjSwipe && kjSwipe.on) swClose(true); });
+    document.addEventListener("pointermove", kjDragMove, { passive: false });
+    document.addEventListener("pointerup", kjDragEnd); document.addEventListener("pointercancel", kjDragEnd);
+    document.addEventListener("touchmove", function (e) { if (kjDrag) e.preventDefault(); }, { passive: false });   // hold the page still while dragging
+    $("kjQueue").addEventListener("contextmenu", function (e) { if (document.body.classList.contains("kjctl")) e.preventDefault(); });
+    $("kjMoveYes").onclick = function () { kjMoveEnd(true); };
+    $("kjMoveNo").onclick = function () { kjMoveEnd(false); };
+    $("kjQueue").addEventListener("click", function (e) {
+      var sd = e.target.closest && e.target.closest(".swdel");
+      if (sd) { e.stopPropagation(); var rid = sd.getAttribute("data-rm");   // swiped open: tap Remove, then "Remove?" again
+        if (kjRmTap("sw:" + rid, sd, "Remove")) { kjSwipe = null; kjRemove(rid); } return; }
+      var b = e.target.closest && e.target.closest(".rm"); if (!b) return;
+      e.stopPropagation();
+      if (kjRmTap(b.getAttribute("data-rm"), b, "✕")) kjRemove(b.getAttribute("data-rm"));
+    });
+    $("kjSheetRemove").onclick = function () {
+      if (!kjEdit || kjEdit.live) return;
+      if (!kjRmTap("sheet:" + kjEdit.id, this, "Remove")) return;
+      var id = kjEdit.id; kjCloseEdit(); kjRemove(id);
+    };
+    $("kjCmdBtn").onclick = function () {
+      var on = document.body.classList.toggle("kjcmd");
+      kjChipName = ""; if (on) kjChipsDraw(); else { kjCmdPlan = null; kjCmdShow(""); }   // chips first; tap the box to type
+    };
+    $("kjChips").addEventListener("click", function (e) {
+      var b = e.target.closest && e.target.closest("button"); if (!b) return;
+      var n = b.getAttribute("data-n"), a = b.getAttribute("data-a");
+      if (n !== null) { kjChipName = nameKey(n) === nameKey(kjChipName) ? "" : n; $("kjCmdIn").value = kjChipName; kjCmdShow(""); kjChipsDraw(); return; }
+      if (a) { $("kjCmdIn").value = (kjChipName ? kjChipName + " " : "") + a; kjCmdRun(); }
+    });
+    // 🎤 speak a command (the phone's own speech recognition, where the browser has it). Says why when it can't.
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SR) {
+      document.body.classList.add("kjmic");
+      var rec = null, heard = "";
+      $("kjMic").onclick = function () {
+        if (rec) { try { rec.stop(); } catch (x) {} return; }
+        try { rec = new SR(); } catch (e) { rec = null; kjCmdShow('<div class="err">This browser can\'t listen here. Use the keyboard\'s 🎤 dictation key instead.</div>'); return; }
+        rec.lang = navigator.language || "en-US"; rec.interimResults = false; rec.continuous = false; rec.maxAlternatives = 1;
+        var btn = this; heard = ""; btn.classList.add("on"); kjCmdShow('<div class="cp">Listening… say something like "make Ember next"</div>');
+        rec.onresult = function (ev) { heard = ev.results[0][0].transcript || ""; $("kjCmdIn").value = heard; };
+        rec.onerror = function (ev) {
+          var why = { "not-allowed": "Microphone isn't allowed for this page. Allow it in Settings → Safari (or your browser) → Microphone.",
+            "service-not-allowed": "Speech recognition isn't available here (on iPhone it needs Siri turned on, and it may not work from a home-screen icon: try Safari).",
+            "no-speech": "Didn't hear anything. Tap 🎤 and speak right away.", "audio-capture": "No microphone found.", "network": "Speech recognition needs an internet connection." }[ev.error];
+          kjCmdShow('<div class="err">' + (why || "Couldn't listen (" + esc(ev.error || "unknown") + "). Try the keyboard's 🎤 dictation key.") + "</div>");
+          heard = "\u0000";
+        };
+        rec.onend = function () {
+          btn.classList.remove("on"); rec = null;
+          if (heard === "\u0000") return;
+          if (heard.trim()) kjCmdRun(); else kjCmdShow('<div class="err">Didn\'t catch anything. Tap 🎤 and try again, or use the chips below.</div>');
+        };
+        try { rec.start(); } catch (e) { btn.classList.remove("on"); rec = null; kjCmdShow('<div class="err">Couldn\'t start listening. Try the keyboard\'s 🎤 dictation key.</div>'); }
+      };
+    }
+    $("kjCmdIn").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); kjCmdRun(); } });
+    $("kjCmdOut").addEventListener("click", function (e) { var c = e.target.getAttribute && e.target.getAttribute("data-c");
+      if (c === "yes") kjCmdDo(); else if (c === "no") { kjCmdPlan = null; kjCmdShow(""); } });
+    $("kjActHead").onclick = function () { kjActOpen = !kjActOpen; actDraw(); };
+    setTimeout(actDraw, 0);   // the log loads further down the page
     $("kjPage").addEventListener("click", function (e) {
+      if (kjNoClick || kjMoving) return;   // moving a signup, not editing
       var r = e.target.closest && e.target.closest("[data-edit]");
       if (r && r.getAttribute("data-edit") && !(e.target.closest && e.target.closest("button"))) kjOpenEdit(r.getAttribute("data-edit"));
     });
@@ -2486,27 +2969,37 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         var nopts = JSON.parse(JSON.stringify((E.item.song && E.item.song.options) || {}));
         nopts.singer = E.singer; nopts.pitch = E.pitch; nopts.tempo = E.tempo; delete nopts.tracks; delete nopts.mod;
         if (E.at) kjATPending = { sid: E.newSong.songId, name: nameKey(E.singer) };
+        var ctxt = "Changed " + E.singer + "'s song: " + (info(E.item).title || "?") + " → " + E.newSong.title;
+        var ckeys = [E.singer + " · " + E.newSong.title, who(E.item)];
         if (DEMO) {
+          kjLog(ctxt, undefined, ckeys);
           E.item.song = { id: { type: 1, id: E.newSong.songId }, title: E.newSong.title, artist: E.newSong.artist, options: nopts };
           if (E.at) kjAT[E.item.id] = 1;
         } else {
           var pos = -1; queue.forEach(function (it, n) { if (String(it.id) === String(E.id)) pos = n; });
           var oldId = String(E.id);
           var pa = kjSend("remote.AddToQueueRequest", { song: { type: 1, id: E.newSong.songId }, position: pos >= 0 ? pos : 0, options: nopts }, "adding the new song");
+          kjLog(ctxt, pa, ckeys);
           if (pa && pa.then) pa.then(function () { kjSend("remote.RemoveFromQueueRequest", { queueItemId: oldId }, "removing the old song"); });
         }
         changed = false;
       }
       if (ctl && changed) {
+        var bits = [], k0 = songKey(E.item); k0 = k0 && k0 !== "Not set" ? (transpose(k0, 0) || k0) : "";
+        if (E.singer !== E.origSinger) bits.push("renamed from " + (E.origSinger || "No name"));
+        if (E.pitch !== E.orig.pitch) bits.push("key " + (k0 ? transpose(k0, E.orig.pitch) + " → " + transpose(k0, E.pitch) + " (" + signed(E.pitch) + ")" : signed(E.orig.pitch || 0) + " → " + signed(E.pitch)));
+        if (E.tempo !== E.orig.tempo) bits.push("tempo " + (E.tempo ? signed(E.tempo) + "%" : "normal"));
+        var etxt = (E.singer || "No name") + " · " + (info(E.item).title || "") + ": " + bits.join(", ");
         var opts = JSON.parse(JSON.stringify((E.item.song && E.item.song.options) || {}));
         opts.singer = E.singer; opts.pitch = E.pitch; opts.tempo = E.tempo;
-        if (DEMO) { E.item.song.options = opts; if (E.live) { kjPitch = E.pitch; tempo = E.tempo; } }
+        var ekeys = [who(E.item), E.singer + " · " + (info(E.item).title || "")];
+        if (DEMO) { E.item.song.options = opts; if (E.live) { kjPitch = E.pitch; tempo = E.tempo; } kjLog(etxt, undefined, ekeys); }
         else {
           if (E.live) {   // the song that's on: change it live
             if (E.pitch !== E.orig.pitch) kjSend("remote.PitchRequest", { pitch: E.pitch }, "changing the key");
             if (E.tempo !== E.orig.tempo) kjSend("remote.TempoRequest", { tempo: E.tempo }, "changing the tempo");
           }
-          kjSend("remote.SetQueueItemOptionsRequest", { queueItemId: String(E.id), options: opts }, "changing this signup");
+          kjLog(etxt, kjSend("remote.SetQueueItemOptionsRequest", { queueItemId: String(E.id), options: opts }, "changing this signup"), ekeys);
         }
       }
       kjCloseEdit(); render();
@@ -2515,6 +3008,62 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   // ---- Tonight: who's sung what (KJ mode). Logged on this phone while KJ mode is open; a "night" runs until 6am.
   function nightKey() { var d = new Date(Date.now() - 6 * 3600000); return "kqv.night." + d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); }
   var kjNight = []; try { kjNight = JSON.parse(localStorage.getItem(nightKey()) || "[]") || []; } catch (e) {}
+  // ---- Actions: everything KJ mode changed in KaraFun tonight (kept on this phone till 6am)
+  function actKey() { return nightKey().replace("kqv.night.", "kqv.acts."); }
+  var kjActs = []; try { kjActs = JSON.parse(localStorage.getItem(actKey()) || "[]") || []; } catch (e) {}
+  var kjActOpen = false;
+  function who(it) { var x = info(it || {}); return (x.singer || "No name") + (x.title ? " · " + x.title : ""); }
+  function actSave() { if (kjActs.length > 300) kjActs.splice(0, kjActs.length - 300); if (!DEMO) save(actKey(), JSON.stringify(kjActs)); actDraw(); }
+  // keys: the "Singer · Song" lines this action covers, so the watcher below doesn't log them a second time
+  function kjLog(text, p, keys) {   // logged as soon as you do it; marked if KaraFun says no
+    var a = { at: Date.now(), t: text, k: keys || [] }; kjActs.push(a); actSave();
+    if (p && p.then) p.then(null, function () { a.t += " (KaraFun refused)"; a.bad = 1; actSave(); });
+  }
+  // Several lines at once (a photo sheet), each its own entry, reading top to bottom under the first line
+  function kjLogLines(lines, keys) {
+    var at = Date.now();
+    lines.slice().reverse().forEach(function (t, i) { kjActs.push({ at: at, t: t, k: keys || [], sub: i < lines.length - 1 }); });
+    actSave();
+  }
+  // Everything that happens in KaraFun, however it happened (KJ mode, KaraFun's app, guests' phones), so the log
+  // shows how the night is running: songs starting, pauses, new and removed signups, key/tempo changes on the live song
+  var actSeen = null, actStart = Date.now();
+  var actMine = [];   // [key, time]: things KJ mode is about to do (e.g. a photo's signups), so they aren't logged twice
+  function actNote(t, k) {
+    if (k) { var since = Date.now() - 20000;   // you just did this from KJ mode: it's already in the log
+      if (kjActs.some(function (a) { return a.at > since && !a.now && a.k && a.k.indexOf(k) >= 0; })) return;
+      if (actMine.some(function (m) { return m[1] > since - 40000 && m[0] === k; })) return; }
+    kjActs.push({ at: Date.now(), t: t, now: 1 });
+  }
+  function actSongChange(cur) {
+    var cid = cur ? String(cur.id) : "", st = playerState, pi = kjPitch || 0, te = tempo || 0;
+    var ids = {}; queue.forEach(function (it) { if (!isBreakItem(it)) ids[String(it.id)] = who(it); });
+    if (!actSeen) {   // start watching once the queue has arrived, so what's already there isn't "new"
+      if (!queue.length && Date.now() - actStart < 8000) return;
+      actSeen = { cur: cid, st: st, ids: ids, pi: pi, te: te }; return;
+    }
+    var o = actSeen, n0 = kjActs.length;
+    if (cid !== o.cur && cur) actNote("▶ Now: " + who(cur) + (isBreakItem(cur) ? " (break)" : ""), who(cur) + "#now");
+    else if (cur && cid === o.cur) {
+      if (o.st === 4 && st === 5) actNote("⏸ Paused " + who(cur));
+      else if (o.st === 5 && st === 4) actNote("▶ Resumed " + who(cur));
+      if (pi !== o.pi) { var k = songKey(cur); k = k && k !== "Not set" ? transpose(k, pi) + " " : ""; actNote("Key → " + k + "(" + (pi ? signed(pi) : "original") + ") on " + who(cur), who(cur)); }
+      if (te !== o.te) actNote("Tempo → " + (te ? signed(te) + "%" : "normal") + " on " + who(cur), who(cur));
+    }
+    for (var id in ids) if (!o.ids[id] && id !== cid) actNote("＋ Signed up: " + ids[id], ids[id]);
+    for (var id2 in o.ids) if (!ids[id2] && id2 !== cid && id2 !== o.cur) actNote("− Removed: " + o.ids[id2], o.ids[id2]);
+    actSeen = { cur: cid, st: st, ids: ids, pi: pi, te: te };
+    if (kjActs.length !== n0) actSave();
+  }
+  function actDraw() {
+    if (!$("kjActBox")) return;
+    $("kjActHead").innerHTML = "<b>ACTION LOG</b><span>" + kjActs.length + '</span><span class="chev">' + (kjActOpen ? "▴" : "▾") + "</span>";
+    $("kjActList").innerHTML = !kjActOpen ? "" : kjActs.length ? kjActs.slice().reverse().map(function (a) {
+      var mv = /^Moved (.+) (up|down) (\d+) \(now #(\d+)\)(.*)$/.exec(a.t), body = esc(a.t);
+      if (mv) body = '<span class="mv ' + mv[2] + '">' + (mv[2] === "up" ? "▲" : "▼") + mv[3] + "</span> " + esc(mv[1]) + " → #" + mv[4] + esc(mv[5]);   // green up, red down
+      return '<div class="a' + (a.bad ? " bad" : a.now ? " ev" : a.sub ? " sub" : "") + '"><span class="tm">' + new Date(a.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + "</span><span>" + body + "</span></div>";
+    }).join("") : '<div class="none">Nothing yet tonight. Moves, adds, key/tempo changes, skips and restarts show up here.</div>';
+  }
   var kjNightOpen = false, kjNightView = "log";
   if (DEMO) {   // a made-up night so far
     var m = 60000, t0 = new Date().setHours(23, 50, 0, 0);   // a sample night that ends around midnight
@@ -2592,19 +3141,19 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function renderKJ() {
     var cur = current || null;
     var playing = !!cur && (playerState === 4 || playerState === 5);
-    kjLogSong(cur);
+    kjLogSong(cur); actSongChange(cur);
     function row(it, n) {
       var x = info(it), brk = isBreakItem(it), ban = isBanned(it);
       if (brk) {   // breaks: one big centered line with when it starts
         var sp = specialOf(it), lbl = sp.kind === "brb" ? (sp.mins ? sp.mins + " min break" : "Short break") : sp.kind === "dance" ? "Dance party"
           : sp.kind === "lastcall" ? "Last call" : (sp.mins ? sp.mins + " min break" : "Break");
-        return '<div class="r brk"><span class="bl">' + esc(lbl) + '</span>' + (sp.kind === "lastcall" ? '<span class="ke" data-id="' + esc(String(it.id)) + '"></span>' : "") + '</div>';   // only LAST CALL shows when
+        return '<div class="r brk" data-qid="' + esc(String(it.id)) + '"><span class="bl">' + esc(lbl) + '</span>' + (sp.kind === "lastcall" ? '<span class="ke" data-id="' + esc(String(it.id)) + '"></span>' : "") + '<span class="swre">Move</span><button class="swdel" data-rm="' + esc(String(it.id)) + '">Remove</button></div>';   // only LAST CALL shows when
       }
       var what = brk ? esc(x.title || "") : songHTML(x.title, x.artist);
-      return '<div class="r' + (brk ? " brk" : "") + (ban ? " ban" : "") + '"' + (brk ? "" : ' data-edit="' + esc(String(it.id)) + '"') + '><span class="n">' + (n || "") + '</span><div class="w"><div class="who">' +
+      return '<div class="r' + (brk ? " brk" : "") + (ban ? " ban" : "") + '" data-qid="' + esc(String(it.id)) + '"' + (brk ? "" : ' data-edit="' + esc(String(it.id)) + '"') + '><span class="n">' + (n || "") + '</span><div class="w"><div class="who">' +
         esc(x.singer || (brk ? "" : "No name")) + (brk ? "" : sungTag(x.singer)) + '</div><div class="what">' + what + '</div>' + (brk ? "" : kjBadges(it, false)) + '</div>' +
         '<div class="rt">' + (ban ? '<span class="tag">BANNED</span>' : '<span class="ke" data-id="' + esc(String(it.id)) + '"></span>') +
-        (brk ? "" : kjBadges(it, false, true)) + '</div></div>';
+        (brk ? "" : kjBadges(it, false, true)) + '</div>' + '<span class="swre">Move</span><button class="swdel" data-rm="' + esc(String(it.id)) + '">Remove</button></div>';
     }
     if (cur) {
       var c = info(cur);
@@ -2613,8 +3162,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         (isBreakItem(cur) ? "" : kjBadges(cur, true, true)) + '</div>' + (isBreakItem(cur) ? "" : kjBadges(cur, true)) + '<div class="kbar"><i id="kjBar"></i></div></div>';
       $("kjNowCard").setAttribute("data-edit", isBreakItem(cur) ? "" : String(cur.id));
     } else $("kjNow").innerHTML = '<div class="empty">Nobody right now</div>';
-    var rest = queue.filter(function (it) { return !cur || it.id !== cur.id; });
+    var rest = queue.filter(function (it) { return !cur || String(it.id) !== String(cur.id); });
     var n = 0;
+    if (kjDrag || kjSwipe || kjMoving) { renderNight(); return; }   // you're dragging or have swiped a row: leave the list alone
     $("kjQueue").innerHTML = rest.length ? rest.map(function (it) { return row(it, isBreakItem(it) ? "" : ++n); }).join("") : '<div class="empty">Queue is empty</div>';
     $("kjCount").textContent = n ? "· " + n + (n === 1 ? " singer" : " singers") : "";
     renderNight();
@@ -3526,6 +4076,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["keys", "KJ view: show keys as", [["", "Default (# + b)"], ["sharp", "Sharps only (#)"], ["flat", "Flats only (b)"]]],
     ["vx5", "KJ view: VX5 key presets (laptop + USB)", [["", "Off"], ["100", "Presets 100–124"], ["1", "Presets 1–25"]]],
     ["photoscan", "KJ view: signups from a photo (your own Claude API key)", [["", "Off"], ["on", "On"]]],
+    ["kjrows", "KJ view: queue size", [["", "Compact (about 10 on screen)"], ["tiny", "Tiny (about 15, one line each)"], ["roomy", "Roomy (bigger text)"]]],
     ["#", "Old Fire Sticks"],
     ["lite", "Simple GFX mode (for old Fire Sticks)", [["", "Auto"], ["on", "On"], ["off", "Off"]]]
   ];
