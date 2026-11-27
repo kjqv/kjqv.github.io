@@ -524,6 +524,9 @@
   #kjCmdOut:has(.plan) { padding: 0; border: 0; background: none; }
   #kjCmdOut .plan { --t: 77,255,149; padding: 8px 10px; border-radius: 10px; background: rgba(var(--t),.08); border: 1px solid rgba(var(--t),.45); }
   #kjCmdOut .plan .go { background: rgba(var(--t),.3) !important; border-color: rgb(var(--t)) !important; }
+  #kjCmdOut .alts { margin-top: 6px; font-size: 11px; color: rgba(255,255,255,.55); display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+  #kjCmdOut .alts button { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 10px; }
+  #kjCmdOut .alts .art { opacity: .6; font-weight: 400; }
   #kjCmdOut .cb { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
   #kjCmdOut button { font-size: 13px; font-weight: 700; padding: 5px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: #fff; }
   #kjCmdOut button.go { background: #2a8f5a; border-color: #39d97a; }
@@ -2499,7 +2502,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   // ---------------------------------------------------------------- Change song (search KaraFun's catalog)
   // KaraFun's own remote searches with GET <code>/?type=search&q=…, which also returns each song's key and length.
   var DEMO_CATALOG = [
-    [37118, "Country Girl (Shake It For Me)", "Luke Bryan", "Em", 225], [8231, "Girls Just Want to Have Fun", "Cyndi Lauper", "F#", 232],
+    [3101, "Goodbye Earl", "The Chicks", "G", 259], [3102, "Goodbye Earl (Live)", "The Chicks", "G", 265], [37118, "Country Girl (Shake It For Me)", "Luke Bryan", "Em", 225], [8231, "Girls Just Want to Have Fun", "Cyndi Lauper", "F#", 232],
     [3001, "Before He Cheats", "Carrie Underwood", "F#m", 199], [3002, "Friends in Low Places", "Garth Brooks", "A", 258],
     [3003, "Livin' on a Prayer", "Bon Jovi", "Em", 250], [3004, "Dancing Queen", "ABBA", "A", 231],
     [3005, "Total Eclipse of the Heart", "Bonnie Tyler", "Ab", 270], [3006, "I Will Survive", "Gloria Gaynor", "Am", 198],
@@ -2821,13 +2824,46 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     $("kjChips").innerHTML = names.map(function (n) { return '<button class="nm' + (nameKey(n) === nameKey(kjChipName) ? " sel" : "") + '" data-n="' + esc(n) + '">' + esc(n) + "</button>"; }).join("") +
       '<span class="sep"></span>' + acts.map(function (a) { return '<button class="ac" data-a="' + a[0] + '">' + a[1] + "</button>"; }).join("");
   }
-  var kjCmdPlan = null;
+  var kjCmdPlan = null, kjCmdShowPlan = null;
+  // "add Ember singing Goodbye Earl by the Chicks up next" / "add Jo doing Wagon Wheel" / "sign up Mike for Crazy Train at 3"
+  function kjParseAdd(t) {
+    var m = String(t || "").trim().replace(/[.!?]+$/, "").match(/^(?:add|sign up|signup|put up|put)\s+(.+?)\s+(?:singing|doing|to sing|sings|with|for|on)\s+(.+)$/i);
+    if (!m) return null;
+    var song = m[2], where = "last", w;
+    if ((w = song.match(/\s+(?:up next|next|first|to the top|at the top)$/i))) { where = "next"; song = song.slice(0, w.index); }
+    else if ((w = song.match(/\s+(?:last|at the end|to the end|at the bottom)$/i))) { song = song.slice(0, w.index); }
+    else if ((w = song.match(/\s+(?:at|to|in)\s+(?:#|number |spot |position )?(\d+)(?:st|nd|rd|th)?$/i))) { where = Math.max(1, +w[1]); song = song.slice(0, w.index); }
+    var by = song.match(/^(.+?)\s+by\s+(.+)$/i), title = by ? by[1] : song, artist = by ? by[2].replace(/^the\s+/i, "") : "";
+    title = title.replace(/^["“']|["”']$/g, "").trim(); if (!title) return null;
+    var singer = tidyName(m[1].replace(/\b\w/g, function (c) { return c.toUpperCase(); }));
+    return { do: "add", singer: singer, title: title, artist: artist, where: where };
+  }
+  function kjAddPick(a, i) {
+    var m = a.alts[i]; a.pick = i; a.songId = m.songId; a.mt = m;
+    var rest = kjRest().length, wh = a.where === "next" ? "next" : a.where === "last" ? "at the end (#" + (rest + 1) + ")" : "at #" + Math.min(a.where, rest + 1);
+    a.text = "Add " + a.singer + " · " + m.title + (m.artist ? " - " + m.artist : "") + ", " + wh;
+  }
+  function kjAdd(a) {
+    var m = a.mt; if (m.key) keyCache[m.songId] = m.key; if (m.duration) durCache[m.songId] = m.duration;
+    var cur = current, rest = queue.filter(function (it) { return !cur || String(it.id) !== String(cur.id); });
+    var idx = a.where === "next" ? 0 : a.where === "last" ? -1 : Math.min(a.where - 1, rest.length);
+    var ci = -1; if (cur) queue.forEach(function (q, n) { if (ci < 0 && String(q.id) === String(cur.id)) ci = n; });
+    var off = ci >= 0 ? ci + 1 : 0, txt = "Added " + a.text.replace(/^Add /, ""), keys = [a.singer + " · " + m.title];
+    if (DEMO) {
+      var it = { id: "add" + Date.now(), song: { id: { type: 1, id: m.songId }, title: m.title, artist: m.artist, options: { singer: a.singer } } };
+      if (idx < 0) queue.push(it); else queue.splice(off + idx, 0, it);
+      kjLog(txt, undefined, keys); render(); return;
+    }
+    var req = { song: { type: 1, id: m.songId }, options: { singer: a.singer } }; if (idx >= 0) req.position = off + idx;
+    kjLog(txt, kjSend("remote.AddToQueueRequest", req, "adding " + a.singer), keys);
+  }
   // The color of an action, matching the rest of KJ mode: up/next green, down/last/remove red,
   // key down orange, key up pink, pause yellow, anything else neutral
   function kjTone(a) {
     var G = "77,255,149", Rd = "255,90,90", O = "255,159,67", P = "255,107,214", Y = "255,207,90", N = "235,235,245";
     var it = a.id !== undefined ? queue.filter(function (q) { return String(q.id) === String(a.id); })[0] : null;
     if (a.do === "move") { var from = it ? kjRest().indexOf(it) : -1; return a.to < from ? G : a.to > from ? Rd : N; }
+    if (a.do === "add") return G;
     if (a.do === "remove" || a.do === "skip") return Rd;
     if (a.do === "play") return G;
     if (a.do === "pause" || a.do === "restart") return Y;
@@ -2838,16 +2874,29 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function kjCmdShow(html) { $("kjCmdOut").innerHTML = html; }
   function kjCmdRun() {
     var t = $("kjCmdIn").value.trim(); if (!t) { kjCmdShow(""); return; }
-    var plan = kjParse(t);
-    var show = function (p) {
+    var show = kjCmdShowPlan = function (p) {
       kjCmdPlan = p;
       var tones = p.map(kjTone), one = tones.every(function (t) { return t === tones[0]; }) ? tones[0] : "255,255,255";
       kjCmdShow('<div class="plan" style="--t:' + one + '">' + p.map(function (a, i) { return '<div class="cp" style="color:rgb(' + tones[i] + ')">→ ' + esc(a.text) + "</div>"; }).join("") +
+        (p[0].alts && p[0].alts.length > 1 ? '<div class="alts">Or: ' + p[0].alts.map(function (m, i) { return i === p[0].pick ? "" :
+          '<button data-alt="' + i + '">' + esc(m.title) + ' <span class="art">' + esc(m.artist || "") + "</span></button>"; }).join("") + "</div>" : "") +
         '<div class="cb"><button data-c="no">Cancel</button><button class="go" data-c="yes">Do it</button></div></div>');
     };
+    var add = kjParseAdd(t);
+    if (add) {   // "add Ember singing Goodbye Earl by the Chicks next": find it in KaraFun's catalog first
+      kjCmdShow('<div class="cp">Looking up “' + esc(add.title) + "” in KaraFun…</div>");
+      var row = { title: add.title, artist: add.artist };
+      scanFind(row).then(function () {
+        var ms = (row.matches || []).map(function (m) { return [scanScore(row, m), m]; }).sort(function (a, b) { return b[0] - a[0]; }).map(function (a) { return a[1]; }).slice(0, 4);
+        if (!ms.length) { kjCmdShow('<div class="err">KaraFun has nothing for “' + esc(add.title + (add.artist ? " by " + add.artist : "")) + "”. Check the spelling, or try just the title.</div>"); return; }
+        add.alts = ms; kjAddPick(add, 0); show([add]);
+      });
+      return;
+    }
+    var plan = kjParse(t);
     if (plan) { show(plan); return; }
     if (!scanKey() || DEMO) { kjCmdShow('<div class="err">Didn\'t catch that' + (/next|move|remove|key|tempo|skip/.test(t.toLowerCase()) ? " (no signup by that name?)" : "") +
-      ". Try: make Ember next · Ember to 3 · remove Ember · skip · Ember key down 2</div>"); return; }
+      ". Try: make Ember next · Ember to 3 · remove Ember · skip · Ember key down 2 · add Ember singing Goodbye Earl next</div>"); return; }
     kjCmdShow('<div class="cp">Asking Claude…</div>');
     kjAskClaude(t).then(show, function (e) { kjCmdShow('<div class="err">' + esc(e.message || String(e)) + "</div>"); });
   }
@@ -2855,7 +2904,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var p = kjCmdPlan; kjCmdPlan = null; if (!p) return;
     p.forEach(function (a) {
       var it = a.id !== undefined ? queue.filter(function (q) { return String(q.id) === String(a.id); })[0] : null;
-      if (a.do === "move") kjMove(a.id, a.to);
+      if (a.do === "add") kjAdd(a);
+      else if (a.do === "move") kjMove(a.id, a.to);
       else if (a.do === "remove") kjRemove(a.id);
       else if (a.do === "skip") pressBtn("kjSkip");   // the same as tapping the button twice
       else if (a.do === "pause") { if (playerState === 4) pressBtn("kjPlay"); }
@@ -2926,7 +2976,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if (a) { $("kjCmdIn").value = (kjChipName ? kjChipName + " " : "") + a; kjCmdRun(); }
     });
     $("kjCmdIn").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); kjCmdRun(); } });
-    $("kjCmdOut").addEventListener("click", function (e) { var c = e.target.getAttribute && e.target.getAttribute("data-c");
+    $("kjCmdOut").addEventListener("click", function (e) {
+      var ab = e.target.closest && e.target.closest("[data-alt]");
+      if (ab && kjCmdPlan && kjCmdPlan[0].alts) { kjAddPick(kjCmdPlan[0], +ab.getAttribute("data-alt")); kjCmdShowPlan(kjCmdPlan); return; }
+      var c = e.target.getAttribute && e.target.getAttribute("data-c");
       if (c === "yes") { kjCmdDo(); kjCmdClose(); } else if (c === "no") { kjCmdPlan = null; kjCmdShow(""); } });
     $("kjActHead").onclick = function () { kjActOpen = !kjActOpen; actDraw(); };
     setTimeout(actDraw, 0);   // the log loads further down the page
