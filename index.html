@@ -587,7 +587,10 @@
   #kjScanBody .more.skipped { opacity: .7; border: 0 !important; background: none !important; text-align: left; padding-left: 0 !important; }
   #kjScanBody .skiplist { opacity: .75; }
   /* Change song: search KaraFun's catalog and swap the signup's song in place */
-  #kjChange { display: block; margin: 8px 0 4px; padding: 7px 12px; font-size: 13px; font-weight: 700; border-radius: 9px;
+  #kjSheet .chrow { display: flex; gap: 8px; margin: 8px 0 4px; }
+  #kjFav { padding: 7px 12px; font-size: 13px; font-weight: 700; border-radius: 9px; border: 1px solid rgba(255,207,90,.4); background: none; color: #ffcf5a; }
+  #kjFav.on { background: rgba(255,207,90,.16); border-color: #ffcf5a; }
+  #kjChange { display: block; margin: 0; padding: 7px 12px; font-size: 13px; font-weight: 700; border-radius: 9px;
     border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.06); color: #fff; }
   body.kjsheetlive #kjChange, body.kjfind #kjChange { display: none; }
   #kjFind { display: none; margin: 8px 0 6px; }
@@ -928,7 +931,7 @@
     <div class="acts"><button id="kjScanCancel">Cancel</button><button id="kjScanAdd" class="go">Add to queue</button></div>
     <button id="kjScanForget">Forget my API key</button></div>
   <div id="kjSheet"><div class="sh">Edit signup</div><div id="kjSheetT"></div>
-    <button id="kjChange" class="ctl">Change song…</button>
+    <div class="chrow"><button id="kjChange" class="ctl">Change song…</button><button id="kjFav" class="ctl">☆ Favorite</button></div>
     <div id="kjFind" class="ctl"><input id="kjFindQ" type="search" placeholder="Search KaraFun songs or artists" autocomplete="off" enterkeyhint="search"><div id="kjFindR"></div></div>
     <label class="f ctl"><span>Singer</span><input id="kjSheetName" type="text" maxlength="60"></label>
     <div class="f ctl"><span>Key</span><button id="kjKeyDn">−</button><b id="kjSheetKey"></b><button id="kjKeyUp">+</button></div>
@@ -2226,6 +2229,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     } catch (e) { vx5Show("VX5: couldn't send", true); }
   }
   if (KJ) setTimeout(vx5Connect, 500);
+  function kjFavDraw() {
+    if (!kjEdit) return; var on = bookIsFav(kjEdit.item), ps = bookPeople(kjEdit.origSinger);
+    $("kjFav").classList.toggle("on", on); $("kjFav").disabled = !ps.length;
+    $("kjFav").textContent = (on ? "★ " : "☆ ") + (ps.length === 1 ? ps[0] + "'s favorite" : ps.length ? "Their favorite" : "Favorite");
+  }
   function kjOpenEdit(id) {
     var it = null; queue.concat(current ? [current] : []).forEach(function (q) { if (String(q.id) === String(id)) it = q; });
     if (!it || isBreakItem(it)) return;
@@ -2241,6 +2249,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     kjEdit.lead = kjEdit.leadLk ? v.lead : 50; kjEdit.back = kjEdit.backLk ? v.back : 100;   // usual: lead 50, backing 100
     $("kjVoxLead").value = kjEdit.lead; $("kjVoxBack").value = kjEdit.back;
     document.body.classList.add("kjsheet");
+    kjFavDraw();
     document.body.classList.toggle("kjsheetlive", live);   // can't swap the song that's playing
     document.body.classList.remove("kjfind"); $("kjFindQ").value = ""; $("kjFindR").innerHTML = "";
     kjDrawEdit();
@@ -2921,20 +2930,20 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function kjAddPick(a, i) {
     var m = a.alts[i]; a.pick = i; a.songId = m.songId; a.mt = m;
     var rest = kjRest().length, wh = a.where === "next" ? "next" : a.where === "last" ? "at the end (#" + (rest + 1) + ")" : "at #" + Math.min(a.where, rest + 1);
-    a.text = "Add " + a.singer + " · " + m.title + (m.artist ? " - " + m.artist : "") + ", " + wh;
+    a.text = "Add " + a.singer + " · " + (m.fav ? "★ " : "") + m.title + (m.artist ? " - " + m.artist : "") + (m.comm ? " (community)" : "") + ", " + wh;
   }
   function kjAdd(a) {
-    var m = a.mt; if (m.key) keyCache[m.songId] = m.key; if (m.duration) durCache[m.songId] = m.duration;
+    var m = a.mt, ty = m.type || 1; if (ty === 1) { if (m.key) keyCache[m.songId] = m.key; if (m.duration) durCache[m.songId] = m.duration; }
     var cur = current, rest = queue.filter(function (it) { return !cur || String(it.id) !== String(cur.id); });
     var idx = a.where === "next" ? 0 : a.where === "last" ? -1 : Math.min(a.where - 1, rest.length);
     var ci = -1; if (cur) queue.forEach(function (q, n) { if (ci < 0 && String(q.id) === String(cur.id)) ci = n; });
     var off = ci >= 0 ? ci + 1 : 0, txt = "Added " + a.text.replace(/^Add /, ""), keys = [a.singer + " · " + m.title];
     if (DEMO) {
-      var it = { id: "add" + Date.now(), song: { id: { type: 1, id: m.songId }, title: m.title, artist: m.artist, options: { singer: a.singer } } };
+      var it = { id: "add" + Date.now(), song: { id: { type: ty, id: m.songId }, title: m.title, artist: m.artist, options: { singer: a.singer } } };
       if (idx < 0) queue.push(it); else queue.splice(off + idx, 0, it);
       kjLog(txt, undefined, keys); render(); return;
     }
-    var req = { song: { type: 1, id: m.songId }, options: { singer: a.singer } }; if (idx >= 0) req.position = off + idx;
+    var req = { song: { type: ty, id: m.songId }, options: { singer: a.singer } };   // type 2 = a community track if (idx >= 0) req.position = off + idx;
     kjLog(txt, kjSend("remote.AddToQueueRequest", req, "adding " + a.singer), keys);
   }
   // The color of an action, matching the rest of KJ mode: up/next green, down/last/remove red,
@@ -2959,7 +2968,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       var tones = p.map(kjTone), one = tones.every(function (t) { return t === tones[0]; }) ? tones[0] : "255,255,255";
       kjCmdShow('<div class="plan" style="--t:' + one + '">' + p.map(function (a, i) { return '<div class="cp" style="color:rgb(' + tones[i] + ')">→ ' + esc(a.text) + "</div>"; }).join("") +
         (p[0].alts && p[0].alts.length > 1 ? '<div class="alts">Or: ' + p[0].alts.map(function (m, i) { return i === p[0].pick ? "" :
-          '<button data-alt="' + i + '">' + esc(m.title) + ' <span class="art">' + esc(m.artist || "") + "</span></button>"; }).join("") + "</div>" : "") +
+          '<button data-alt="' + i + '">' + (m.fav ? "★ " : "") + esc(m.title) + ' <span class="art">' + esc(m.artist || "") + (m.comm ? " · community" : "") + "</span></button>"; }).join("") + "</div>" : "") +
         '<div class="cb"><button data-c="no">Cancel</button><button class="go" data-c="yes">Do it</button></div></div>');
     };
     var add = kjParseAdd(t);
@@ -2977,6 +2986,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       };
       tryFind(0).then(function () {
         var ms = (row.matches || []).map(function (m) { return [add.artist ? scanScore(row, m) : Math.max(scanScore(row, m), wordsIn(scanNorm(row.title), scanNorm(m.title + " " + m.artist))), m]; }).sort(function (a, b) { return b[0] - a[0]; }).map(function (a) { return a[1]; }).slice(0, 4);
+        var hits = bookFind(add.singer, { title: add.title, artist: add.artist }).slice(0, 3), mine = hits.map(function (h) { return h.m; });
+        ms = ms.filter(function (m) { return !mine.some(function (b) { return (b.type || 1) === 1 && String(b.songId) === String(m.songId); }); });
+        // their own song (or a community track) that fits well comes first; otherwise KaraFun's best match
+        ms = hits.length && (hits[0].score >= .75 || !ms.length) ? mine.concat(ms) : ms.concat(mine);
         if (!ms.length) { kjCmdShow('<div class="err">KaraFun has nothing for “' + esc(add.title + (add.artist ? " by " + add.artist : "")) + "”. Check the spelling, or try just the title.</div>"); return; }
         add.alts = ms; kjAddPick(add, 0); show([add]);
       });
@@ -3078,6 +3091,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if (r && r.getAttribute("data-edit") && !(e.target.closest && e.target.closest("button"))) kjOpenEdit(r.getAttribute("data-edit"));
     });
     function step(k, d, lo, hi) { return function () { if (!kjEdit) return; kjEdit[k] = Math.max(lo, Math.min(hi, kjEdit[k] + d)); kjDrawEdit(); }; }
+    $("kjFav").onclick = function () { if (!kjEdit) return; var on = bookToggleFav(kjEdit.item); kjFavDraw();
+      kjLog((on ? "★ Favorite: " : "☆ Not a favorite: ") + who(kjEdit.item)); };
     $("kjChange").onclick = function () { document.body.classList.add("kjfind"); $("kjFindQ").focus(); };
     $("kjFindQ").oninput = function () { clearTimeout(findTimer); findTimer = setTimeout(kjFindRun, 350); };
     $("kjFindQ").onkeydown = function (e) { if (e.key === "Enter") { clearTimeout(findTimer); kjFindRun(); this.blur(); } };
@@ -3248,10 +3263,50 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if (kjNight.some(function (y) { return nameKey(y.name) === nk && nameKey(y.title) === tk && at - y.at < 15 * 60000; })) return;
     if (DEMO && kjNight.length) at = kjNight[kjNight.length - 1].at + 4 * 60000;   // keep the sample night's clock
     kjNight.push({ id: String(cur.id), name: x.singer || "No name", title: x.title || "", artist: x.artist || "", at: at });
+    bookNote(cur, true);
     if (!DEMO) { try {
       localStorage.setItem(nightKey(), JSON.stringify(kjNight));
       for (var i = localStorage.length - 1; i >= 0; i--) { var k = localStorage.key(i); if (/^kqv\.night\./.test(k) && k !== nightKey()) localStorage.removeItem(k); }   // keep tonight only
     } catch (e) {} }
+  }
+  // ---- Songbook: every song each singer has signed up for or sung (all nights, on this phone), plus ★ favorites.
+  // Lets ⚡ "Chris wants to sing Many Men next" find Chris's song, community tracks included (KaraFun won't let remotes search those).
+  var BOOK_KEY = "kqv.songbook", book = {}; if (!DEMO) try { book = JSON.parse(localStorage.getItem(BOOK_KEY) || "{}") || {}; } catch (e) {}
+  function bookSave() { if (!DEMO) try { localStorage.setItem(BOOK_KEY, JSON.stringify(book)); } catch (e) {} }
+  function songRef(it) { var id = it && it.song && it.song.id; return id && id.id != null ? { type: id.type || 1, id: id.id } : null; }
+  function bookPeople(n) { var p = people(n); return p.length ? p : (nameKey(n) ? [n] : []); }
+  function bookEntry(p, r, x) {
+    var k = nameKey(p), b = book[k] || (book[k] = { name: p, songs: {} }), sk = r.type + ":" + r.id, isNew = !b.songs[sk];
+    if (isNew) b.songs[sk] = { type: r.type, songId: r.id, title: x.title, artist: x.artist || "", n: 0 };
+    return { s: b.songs[sk], isNew: isNew };
+  }
+  function bookNote(it, sung) {
+    var r = songRef(it), x = info(it), ch = false; if (!r || !x || !x.title || x.special || isBreakItem(it)) return;
+    bookPeople(x.singer).forEach(function (p) { var e = bookEntry(p, r, x); if (e.isNew) ch = true; if (sung) { e.s.n++; e.s.last = Date.now(); ch = true; } });
+    if (ch) bookSave();
+  }
+  function bookIsFav(it) {
+    var r = songRef(it), x = info(it); if (!r || !x) return false; var sk = r.type + ":" + r.id, ps = bookPeople(x.singer);
+    return ps.length > 0 && ps.every(function (p) { var b = book[nameKey(p)]; return b && b.songs[sk] && b.songs[sk].fav; });
+  }
+  function bookToggleFav(it) {
+    var r = songRef(it), x = info(it); if (!r || !x) return; var on = !bookIsFav(it);
+    bookPeople(x.singer).forEach(function (p) { bookEntry(p, r, x).s.fav = on; }); bookSave(); return on;
+  }
+  // Songs from the songbook that fit what was typed: this singer's own first (★ favorites ahead), then community
+  // tracks anyone has sung here (catalog songs from other singers aren't needed: KaraFun's search finds those)
+  function bookFind(singer, row) {
+    var ks = bookPeople(singer).map(nameKey), seen = {};
+    Object.keys(book).forEach(function (k) {
+      var mine = ks.indexOf(k) >= 0;
+      for (var sk in book[k].songs) {
+        var s = book[k].songs[sk]; if (!mine && s.type === 1) continue;
+        var sc = scanScore(row, { title: s.title, artist: s.artist }) + (mine ? .05 : 0) + (mine && s.fav ? .05 : 0);
+        if (sc < .6 || (seen[sk] && seen[sk].score >= sc)) continue;
+        seen[sk] = { score: sc, m: { songId: s.songId, type: s.type, title: s.title, artist: s.artist, fav: mine && !!s.fav, comm: s.type !== 1, mine: mine } };
+      }
+    });
+    return Object.keys(seen).map(function (k) { return seen[k]; }).sort(function (a, b) { return b.score - a.score; });
   }
   function ord(n) { var s = ["th", "st", "nd", "rd"], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
   function sungCount(name) {   // one person: every song they were part of (duets count for each of them)
@@ -3326,6 +3381,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var cur = current || null;
     var playing = !!cur && (playerState === 4 || playerState === 5);
     kjLogSong(cur); actSongChange(cur); kjTidyNames(cur);
+    queue.forEach(function (it) { bookNote(it, false); });   // remember signups (community songs too) for the songbook
     function row(it, n) {
       var x = info(it), brk = isBreakItem(it), ban = isBanned(it);
       if (brk) {   // breaks: one big centered line with when it starts
