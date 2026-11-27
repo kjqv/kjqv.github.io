@@ -2446,7 +2446,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         queue.splice(at, 0, { id: "scan" + Date.now() + done, song: { id: { type: 1, id: m.songId }, title: m.title, artist: m.artist, options: { singer: r.singer } } });
         done++; scanAdded.push(r.singer + " · " + m.title); render(); setTimeout(next, 120); return;
       }
-      var p = kjSend("remote.AddToQueueRequest", { song: { type: 1, id: m.songId }, options: { singer: r.singer } }, "adding " + r.singer);
+      var p = kjSend("remote.AddToQueueRequest", { song: { type: 1, id: m.songId }, options: { singer: tidyName(r.singer) } }, "adding " + tidyName(r.singer));
       if (p && p.then) p.then(function () { scanAdded.push(r.singer + " · " + m.title); }, function () {});
       if (p && p.then) p.then(function () { done++; next(); }, function () { scanDraw(); }); else next();
     };
@@ -2966,7 +2966,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     $("kjSheetSave").onclick = function () {
       var E = kjEdit; if (!E) return;
       var nowLive = E.live || (!!current && String(current.id) === String(E.id));   // started while the sheet was open
-      E.singer = nowLive ? E.origSinger : $("kjSheetName").value.trim().slice(0, 60);
+      E.singer = nowLive ? E.origSinger : tidyName($("kjSheetName").value.trim().slice(0, 60));
       if (E.at) kjAT[E.id] = 1; else delete kjAT[E.id];
       saveAT();
       for (var ak in E.alw) { if (kjATNames[ak] === 2) continue; if (E.alw[ak]) kjATNames[ak] = 1; else if (kjATNames[ak] === 1) delete kjATNames[ak]; }
@@ -3161,11 +3161,27 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         }).join("") + "</div>";
     }).join("") : '<div class="empty">Nobody yet</div>');
   }
+  // Fix duet names in KaraFun itself: "Bonny + Russell" / "Bonny/Russell" become "Bonny & Russell" for everyone
+  // (KaraFun's own screen and remote too). Not the song that's on, so nothing changes mid-song.
+  var kjTidied = {};
+  function kjTidyNames(cur) {
+    if (!document.body.classList.contains("kjctl") || !document.body.classList.contains("kjlive")) return;
+    queue.forEach(function (it) {
+      if (isBreakItem(it) || (cur && String(it.id) === String(cur.id)) || kjTidied[it.id]) return;
+      var o = (it.song && it.song.options) || {}, raw = String(o.singer || "").trim(), t = tidyName(raw);
+      if (!raw || t === raw) return;
+      kjTidied[it.id] = 1;
+      var no = JSON.parse(JSON.stringify(o)); no.singer = t;
+      var txt = "Renamed " + raw + " → " + t, keys = [t + " · " + (info(it).title || "")];
+      if (DEMO) { it.song.options = no; kjLog(txt, undefined, keys); return; }
+      kjLog(txt, kjSend("remote.SetQueueItemOptionsRequest", { queueItemId: String(it.id), options: no }, "tidying a duet name"), keys);
+    });
+  }
   // The KJ view's upright list (kj=on)
   function renderKJ() {
     var cur = current || null;
     var playing = !!cur && (playerState === 4 || playerState === 5);
-    kjLogSong(cur); actSongChange(cur);
+    kjLogSong(cur); actSongChange(cur); kjTidyNames(cur);
     function row(it, n) {
       var x = info(it), brk = isBreakItem(it), ban = isBanned(it);
       if (brk) {   // breaks: one big centered line with when it starts
@@ -3878,7 +3894,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     "Rolling in the Deep": ["Cm", 229], "Sweet Caroline": ["", 213], "Bohemian Rhapsody": ["Bb", 362], "Crazy Train": ["A", 290] };
   var DEMO_SONGS = [
     ["Maya", "Valerie", "Amy Winehouse"], ["Rachel", "September", "Earth, Wind & Fire"],
-    ["Dana & Mike", "Picture", "Kid Rock & Sheryl Crow"], ["Priya", "Espresso", "Sabrina Carpenter", -2],
+    ["Dana + Mike", "Picture", "Kid Rock & Sheryl Crow"], ["Priya", "Espresso", "Sabrina Carpenter", -2],
     ["Kevin", "Shallow", "Lady Gaga & Bradley Cooper"], ["Mike", "Crazy Train", "Ozzy Osbourne", 0, 0, "at"],
     ["Ashley", "Man! I Feel Like a Woman!", "Shania Twain"], ["Grace", "Total Eclipse of the Heart", "Bonnie Tyler"],
     ["Luis", "Livin' la Vida Loca", "Ricky Martin"], ["Becca", "Pink Pony Club", "Chappell Roan"],
