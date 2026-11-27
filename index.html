@@ -2748,7 +2748,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       it = kjFindSinger(m[1]); var k = num(m[3]); if (it && pos(it) >= 0 && k > 0) { var to = pos(it) + (m[2] === "up" ? -k : k);
         return [{ do: "move", id: it.id, to: to, text: "Move " + who(it) + " " + m[2] + " " + k + " (to #" + (Math.max(0, to) + 1) + ")" }]; }
     }
-    if ((m = low.match(/^(?:remove|delete|drop|cancel|scratch) (.+)$/))) {
+    if ((m = low.match(/^(?:remove|delete|drop|cancel|scratch) (.+)$/)) || (m = low.match(/^(.+?) (?:remove|delete|drop|cancel|scratch|out|off the list)$/))) {
       it = kjFindSinger(m[1]); if (it && pos(it) >= 0) return [{ do: "remove", id: it.id, text: "Remove " + who(it) }];
     }
     if ((m = low.match(/^(.+?)(?:'s)? key (up|down|\+|-|−)\s*(\d+|one|two|three|four|five|six)?$/)) || (m = low.match(/^(?:key )?(up|down) (\d+|one|two|three|four|five|six)? ?(?:for|on) (.+)$/)) && (m = [m[0], m[3], m[1], m[2]])) {
