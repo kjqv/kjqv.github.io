@@ -346,12 +346,14 @@
   /* connection: a dot by the title (green = connected, red = not); tap it for the details */
   #kjDot::after { content: ""; display: block; width: 9px; height: 9px; border-radius: 50%; background: #9aa0b4; }
   body.kjlive #kjDot::after { background: #39d97a; box-shadow: 0 0 6px rgba(57,217,122,.8); }
-  body.kjoff #kjDot::after { background: #ff5a5a; box-shadow: 0 0 6px rgba(255,90,90,.8); }
+  body.kjoff #kjDot::after { background: #ff5a5a; box-shadow: 0 0 6px rgba(255,90,90,.8); animation: kjblink 1.2s ease-in-out infinite; }
+  @keyframes kjblink { 50% { opacity: .35; } }
   #kjInfo { display: none; margin-top: 10px; padding: 10px 12px; border-radius: 10px; font-size: 13px; line-height: 1.5;
     background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.15); opacity: 1 !important; }
   body.kjinfo #kjInfo { display: block; }
-  #kjOff { display: none; flex-basis: 100%; margin-top: 6px; font-size: 12px; font-weight: 700; color: #ff7b7b; }
-  body.kjoff #kjOff { display: block; }
+  #kjInfo #kjCtlSep, #kjInfo #kjCtl { display: none; }   /* the dot is just for the connection; a refused control explains itself under the buttons */
+  #kjInfo #kjVx:empty { display: none; } #kjInfo #kjVx { display: block; }
+  /* no status text up top: the dot's color says it, tap it for details */
   @media (max-width: 370px) { #kjPage .t { font-size: 16px; } }
   #kjPage .t .sep { opacity: .35; font-weight: 400; margin: 0 2px; }
   /* ⚠️ and the connection dot: two small outlined chips, like the key badges */
@@ -736,9 +738,9 @@
 <div id="kjPage"><div class="in">
   <header><div class="hd"><div class="t"><span class="nm">KJQV</span><button id="kjWarn" aria-label="About experimental features" title="Experimental">⚠️</button><button id="kjDot" aria-label="Connection details" title="Connection"></button></div>
     </div>
-    <div class="hb"><div id="kjCtrls"><div class="btns"><button id="kjPlay" aria-label="Play or pause" title="Play / pause"></button><button id="kjRestart" aria-label="Restart song" title="Restart song (tap twice)"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg></button><button id="kjSkip" aria-label="Skip song" title="Skip song (tap twice)"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M6 6l8.5 6L6 18zM16 6h2v12h-2z"/></svg></button><span id="kjArmMsg"></span></div></div><button id="kjOpts" aria-label="Options" title="Options"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div><div id="kjOff">Not connected to KaraFun</div></header>
+    <div class="hb"><div id="kjCtrls"><div class="btns"><button id="kjPlay" aria-label="Play or pause" title="Play / pause"></button><button id="kjRestart" aria-label="Restart song" title="Restart song (tap twice)"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg></button><button id="kjSkip" aria-label="Skip song" title="Skip song (tap twice)"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M6 6l8.5 6L6 18zM16 6h2v12h-2z"/></svg></button><span id="kjArmMsg"></span></div></div><button id="kjOpts" aria-label="Options" title="Options"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div></header>
 <div id="kjInfo" class="st"><span id="kjConn" class="wait">○ Connecting to KaraFun…</span><span id="kjCtlSep"></span><span id="kjCtl"></span><span id="kjVx"></span></div>
-  <div id="kjWarnMsg"><b>⚠️ KJ mode is experimental.</b> It's built and tested at one bar, so it may not work the same with every KaraFun setup. The play, skip, restart and edit controls change your real KaraFun queue, and only work if KJ mode (it shows up as <b>KJQV KJ</b>) is an admin in KaraFun: Remote Control → Participants. If the controls stop working after KJ mode reloads, make it an admin again. Tap ⚠️ again to close.</div>
+  <div id="kjWarnMsg"><b>⚠️ Experimental.</b> The controls change your real KaraFun queue. They need KJ mode to be an admin in KaraFun (tap the dot for its name).</div>
   <div id="kjAlert"><b>Banned song signed up</b><div id="kjBanList"></div></div>
   <div id="kjDeleted"></div>
   <div class="sec">NOW SINGING</div><div id="kjNow"></div>
@@ -760,7 +762,7 @@
     <div class="note noctl">Turn on KJ controls in Options to change the name, key or tempo here.</div>
     <div class="acts"><button id="kjSheetCancel">Cancel</button><button id="kjSheetSave">Save</button></div></div>
   <div id="kjNightBox"><div id="kjNightHead" role="button"></div><div id="kjNightList"></div></div>
-  <div class="foot">Tap a singer to flag autotune (and, with KJ controls on, change their name, key, tempo or vocal levels). Only you see this page, and this phone keeps its own settings (Options). KJQV is unofficial and not affiliated with KaraFun.</div>
+  <div class="foot">Tap an entry for options. <b>KJQV KJ</b> needs admin permissions in KaraFun's Remote Control for the controls to work. KJQV is unofficial and not affiliated with KaraFun.</div>
 </div></div>
 <div id="opts" class="hidden" role="dialog" aria-label="Options"><div class="in">
   <div class="top"><h2>Options</h2><div class="tb"><button id="optSaveTop">Save</button><button id="optX" aria-label="Close without saving" title="Close without saving">✕</button></div></div>
@@ -911,6 +913,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       spottime: "5-15", wipe: "random" };
     if (params.has("weather")) delete cfg.clock;
     if (params.has("theme")) { delete cfg.qrbg; delete cfg.line; delete cfg.clock; }   // let the theme pick those
+    if (/goth/i.test(params.get("theme") || "")) cfg.logo = "https://kjqv.github.io/sample-logo-red.png";   // red logo to match goth
   }
   OPTS.forEach(function (k) { if (params.has(k)) cfg[k] = params.get(k); });
   // Themes fill in any setting you didn't set yourself.
@@ -1998,7 +2001,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var i = NOTE_IX[m[1]], minor = !!m[2];
     return { slot: vx5Start + i + (minor ? 12 : 0), name: SHARPS[i] + (minor ? "m" : "") };
   }
-  function vx5Show(t, bad) { var el = $("kjVx"); if (!el) return; el.textContent = t ? " · " + t : ""; el.className = bad ? "bad" : t ? "ok" : ""; }
+  function vx5Show(t, bad) { var el = $("kjVx"); if (!el) return; el.textContent = t || ""; el.className = bad ? "bad" : t ? "ok" : ""; }
   function vx5Connect() {
     if (!KJ || !vx5Start || DEMO) return;
     if (!navigator.requestMIDIAccess) { vx5Show("VX5: needs Chrome or Edge on a computer", true); return; }
@@ -2787,7 +2790,6 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if (kc && !DEMO && !/^Equity/.test(text)) {
       var live = text === "Live";
       document.body.classList.toggle("kjoff", !live); document.body.classList.toggle("kjlive", live);
-      $("kjOff").textContent = "● " + (live ? "" : text);
       kc.textContent = live ? "● Connected to KaraFun" + (myName ? " as " + myName : "") : (bad ? "● " : "○ ") + text;
       kc.className = live ? "ok" : bad ? "bad" : "wait";
       if ($("kjCtlSep") && $("kjCtl").textContent) $("kjCtlSep").textContent = " · ";

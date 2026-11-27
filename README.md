@@ -101,7 +101,7 @@ Open your usual link on your phone with `&kj=on` added (or `&kj=on&kjcontrols=on
 
 **Controls** (off by default: Options → *KJ view: play, skip and restart*, or `kjcontrols=on`): play/pause, restart and skip at the top. Play is one tap; pause, restart and skip need a second tap so a bump doesn't stop the show. KaraFun's remote has no real restart, so restart adds a copy of the song right after the current one and skips to it.
 
-**Heads up: the controls change your real KaraFun queue.** They only work if KaraFun allows it. KJ mode joins KaraFun as **KJQV KJ** (the TV is plain **KJQV**); tap the dot next to the title to see its exact name and whether the controls are on, and make that participant an admin in KaraFun (see [Queue control](#queue-control)). KaraFun may treat KJ mode as a new participant after the page reloads (including when KJQV updates itself), so if the controls stop working, check the name and make it an admin again. Tap ⚠️ for a reminder of what's experimental, and ☰ for Options. Each device keeps its own settings.
+**Heads up: the controls change your real KaraFun queue.** They only work if KaraFun allows it. KJ mode joins KaraFun as **KJQV KJ** (the TV is plain **KJQV**); tap the dot next to the title (green = connected, blinking red = not) to see its exact name, and make that participant an admin in KaraFun (see [Queue control](#queue-control)). KaraFun may treat KJ mode as a new participant after the page reloads (including when KJQV updates itself), so if the controls stop working, check the name and make it an admin again. Tap ⚠️ for a reminder of what's experimental, and ☰ for Options. Each device keeps its own settings.
 
 <details>
 <summary><b>HeadRush VX5 key presets <i>(experimental, off by default)</i></b></summary>
@@ -226,7 +226,7 @@ Off by default. Add `applause=on` and when a singer finishes, the screen shows a
 <details>
 <summary><b>Queue control <i>(for KJ mode and Equity, experimental)</i></b></summary>
 
-KaraFun only lets a remote change the queue if you allow it. In KaraFun Pro: **Remote Control → Participants**, find **KJQV** (the TV screen) and make it an **admin**. Only do it for KJQV; turning on queue management for everyone under *Permissions* would let any guest move or delete songs. KJ mode's connection dot (tap it) shows *Queue control: on*, *checking…* or *OFF* with that reminder. If KaraFun refuses, KJQV stops trying. We haven't confirmed yet whether KaraFun keeps the admin grant when the TV reconnects, so check the KJ view after a restart.
+KaraFun only lets a remote change the queue if you allow it. In KaraFun Pro: **Remote Control → Participants**, find **KJQV** (the TV screen) and make it an **admin**. Only do it for KJQV; turning on queue management for everyone under *Permissions* would let any guest move or delete songs. If KaraFun refuses a KJ mode control, a note under the buttons says so with that reminder. If KaraFun refuses, KJQV stops trying. We haven't confirmed yet whether KaraFun keeps the admin grant when the TV reconnects, so check the KJ view after a restart.
 
 </details>
 
