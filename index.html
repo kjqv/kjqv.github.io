@@ -593,13 +593,15 @@
   #kjSheet .f.vox .lk .lkc { display: none; }
   #kjSheet .f.vox .lk.on { color: #4dff95; }
   #kjSheet .f.vox .lk.on .lkc { display: block; } #kjSheet .f.vox .lk.on .lko { display: none; }
-  #kjSheet .atrow { display: flex; gap: 8px; margin-top: 10px; }
+  #kjSheet .atrow { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  #kjSheetAlways.multi { flex-basis: 100%; }   /* a duet: one Always button per person, on its own row */
   #kjSheet .atrow button { flex: 1; min-width: 0; margin: 0 !important; padding: 9px 6px !important; font-size: 13px !important; }
   #kjPage .b.vx { background: rgba(57,217,122,.14); color: #9dffbe; }
-  #kjSheetAlways { width: 100%; margin-top: 6px; padding: 8px; font-size: 13px; font-weight: 600; border-radius: 8px; color: rgba(255,255,255,.75);
+  #kjSheetAlways { flex: 1; display: flex; gap: 6px; min-width: 0; }
+  #kjSheetAlways .alw { width: 100%; margin-top: 6px; padding: 8px; font-size: 13px; font-weight: 600; border-radius: 8px; color: rgba(255,255,255,.75);
     border: 1px dashed rgba(57,255,106,.4); background: none; }
-  #kjSheetAlways.on { color: #39ff6a; border-style: solid; }
-  #kjSheetAlways:disabled { opacity: .6; }
+  #kjSheetAlways .alw.on { color: #39ff6a; border-style: solid; }
+  #kjSheetAlways .alw:disabled { opacity: .6; }
   #kjSheet .note { font-size: 12px; opacity: .5; margin-top: 8px; }
   body:not(.kjctl) #kjSheet .ctl, body.kjctl #kjSheet .noctl { display: none; }
   #kjSheet .acts { display: flex; gap: 10px; margin-top: 14px; }
@@ -905,7 +907,7 @@
       <label class="lk" title="Lock lead for this singer tonight"><input type="checkbox" id="kjVoxLeadLk"><svg class="lko" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg><svg class="lkc" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></label></div>
     <div class="f ctl vox"><span>Backing</span><input id="kjVoxBack" type="range" min="0" max="100" step="5"><b id="kjVoxBackV"></b>
       <label class="lk" title="Lock backing for this singer tonight"><input type="checkbox" id="kjVoxBackLk"><svg class="lko" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg><svg class="lkc" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></label></div>
-    <div class="atrow"><button id="kjSheetAT"></button><button id="kjSheetAlways"></button></div>
+    <div class="atrow"><button id="kjSheetAT"></button><span id="kjSheetAlways"></span></div>
     <div class="note ctl">Name, key and tempo change the signup in KaraFun; locked vocal levels are set each time this singer's song starts (experimental).</div>
     <div class="note noctl">Turn on KJ controls in Options to change the name, key or tempo here.</div>
     <div class="acts"><button id="kjSheetRemove" class="ctl" title="Remove from the queue">Remove</button><button id="kjSheetCancel">Cancel</button><button id="kjSheetSave">Save</button></div></div>
@@ -1899,6 +1901,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     return t;
   }
 
+  function tidyName(n) { return String(n || "").replace(/\s*[+\/]\s*/g, " & ").replace(/\s{2,}/g, " ").trim(); }
   function info(item) {
     if (!item) return null;
     var sp = specialOf(item);
@@ -1913,6 +1916,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var s = item.song || {};
     var singer = String((s.options && s.options.singer) || "").trim();
     if (blankNames.indexOf(singer.toLowerCase()) !== -1) singer = "";
+    singer = tidyName(singer);
     var community = !(s.id && s.id.type === 1);
     return { singer: singer,
              title: community ? cleanCommunity(s.title) || s.title || "" : s.title || "",
@@ -2058,8 +2062,12 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   // Singers who always want autotune: from Options (Singers tab, autotune=) plus ones flagged "always" on this phone
   var kjATNames = {}; try { kjATNames = JSON.parse(localStorage.getItem("kqv.atnames") || "{}") || {}; } catch (e) {}
   function nameKey(n) { return String(n || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); }
+  // Duets: "Bonny + Russell", "Bonny/Russell" show as "Bonny & Russell", and each person counts on their own
+  // (songs sung tonight, autotune "always") as well as together
+  function people(n) { return String(n || "").split(/\s*(?:&|\+|\/|,|\band\b)\s*/i).map(function (p) { return p.trim(); }).filter(function (p) { return nameKey(p); }); }
+  function personKeys(n) { return people(n).map(nameKey); }
   String(cfg.autotune || "").split(/[,;\n]+/).forEach(function (n) { if (nameKey(n)) kjATNames[nameKey(n)] = 2; });   // 2 = from Options
-  function alwaysAT(it) { var x = info(it); return !!(x && x.singer && kjATNames[nameKey(x.singer)]); }
+  function alwaysAT(it) { var x = info(it); return !!(x && x.singer && [nameKey(x.singer)].concat(personKeys(x.singer)).some(function (k) { return kjATNames[k]; })); }
   function isAT(it) { return !!kjAT[it.id] || alwaysAT(it); }
   function saveATNames() {
     var mine = {}; for (var k in kjATNames) if (kjATNames[k] === 1) mine[k] = 1;
@@ -2189,7 +2197,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if (!it || isBreakItem(it)) return;
     var live = !!current && String(current.id) === String(id), o = optsOf(it, live), x = info(it);
     kjEdit = { id: it.id, live: live, singer: x.singer || "", pitch: o.pitch, tempo: o.tempo, at: !!kjAT[it.id] || alwaysAT(it),
-      always: alwaysAT(it), fromOpts: kjATNames[nameKey(x.singer)] === 2, item: it, orig: o, origSinger: x.singer || "" };
+      alw: {}, item: it, orig: o, origSinger: x.singer || "" };
     $("kjSheetT").textContent = [x.title, x.artist].filter(Boolean).join(" - ");
     $("kjSheetName").value = kjEdit.singer;
     $("kjSheetName").readOnly = live;   // their song is on: renaming now gets out of sync with KaraFun
@@ -2540,15 +2548,20 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     $("kjSheetAT").classList.toggle("on", kjEdit.at);
     $("kjSheetAT").textContent = kjEdit.at ? "Autotune: ON" : "Autotune: off";
     var nm = $("kjSheetName").value.trim() || kjEdit.singer;
-    $("kjSheetAlways").classList.toggle("on", kjEdit.always);
-    $("kjSheetAlways").disabled = !nm || kjEdit.fromOpts;
+    var ppl = people(nm); if (ppl.length < 2) ppl = [nm];   // one "Always" button per person in a duet
+    $("kjSheetAlways").classList.toggle("multi", ppl.length > 1);
+    $("kjSheetAlways").innerHTML = ppl.map(function (p) {
+      var k = nameKey(p), opt = kjATNames[k] === 2, on = opt || alwOn(k);
+      return '<button class="alw' + (on ? " on" : "") + '" data-k="' + esc(k) + '"' + (opt || !k ? " disabled" : "") + ">" +
+        (opt ? (ppl.length > 1 ? esc(p) + " (Options)" : "Always (Options)") : (on ? "✓ " : "") + (ppl.length > 1 ? "Always: " : "Always for ") + esc(p || "this singer")) + "</button>";
+    }).join("");
     $("kjVoxLeadV").textContent = kjEdit.lead; $("kjVoxBackV").textContent = kjEdit.back;
     $("kjVoxLeadLk").checked = kjEdit.leadLk; $("kjVoxBackLk").checked = kjEdit.backLk;
     [["kjVoxLeadLk", kjEdit.leadLk], ["kjVoxBackLk", kjEdit.backLk]].forEach(function (x) {   // older browsers without :has()
       var l = $(x[0]).parentNode; l.classList.toggle("on", x[1]);
     });
-    $("kjSheetAlways").textContent = kjEdit.fromOpts ? "Always (Options)" : (kjEdit.always ? "✓ " : "") + "Always for " + (nm || "this singer");
   }
+  function alwOn(k) { return kjEdit && k in kjEdit.alw ? kjEdit.alw[k] : kjATNames[k] === 1; }
   // ---------------------------------------------------------------- drag to reorder the queue
   var kjDrag = null;
   var kjNoClick = false;
@@ -2934,8 +2947,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     // Tempo: a slider from −50% to +50% in 5% steps, ↺ puts it back to normal
     $("kjTmp").oninput = function () { if (kjEdit) { kjEdit.tempo = Math.max(-50, Math.min(50, +this.value || 0)); kjDrawEdit(); } };
     $("kjTmpReset").onclick = function () { if (kjEdit) { kjEdit.tempo = 0; $("kjTmp").value = 0; kjDrawEdit(); } };
-    $("kjSheetAT").onclick = function () { if (kjEdit) { kjEdit.at = !kjEdit.at; if (!kjEdit.at && !kjEdit.fromOpts) kjEdit.always = false; kjDrawEdit(); } };
-    $("kjSheetAlways").onclick = function () { if (kjEdit && !kjEdit.fromOpts) { kjEdit.always = !kjEdit.always; if (kjEdit.always) kjEdit.at = true; kjDrawEdit(); } };
+    $("kjSheetAT").onclick = function () { if (kjEdit) { kjEdit.at = !kjEdit.at; if (!kjEdit.at) { var nm = $("kjSheetName").value.trim() || kjEdit.singer; personKeys(nm).concat([nameKey(nm)]).forEach(function (k) { if (kjATNames[k] !== 2) kjEdit.alw[k] = false; }); } kjDrawEdit(); } };
+    $("kjSheetAlways").onclick = function (e) {
+      var b = e.target.closest && e.target.closest("button.alw"); if (!kjEdit || !b || b.disabled) return;
+      var k = b.getAttribute("data-k"); kjEdit.alw[k] = !alwOn(k); if (kjEdit.alw[k]) kjEdit.at = true; kjDrawEdit();
+    };
     $("kjSheetCancel").onclick = kjCloseEdit;
     $("kjVoxLead").oninput = function () { if (kjEdit) { kjEdit.lead = +this.value; kjEdit.leadLk = true; kjDrawEdit(); } };
     $("kjVoxBack").oninput = function () { if (kjEdit) { kjEdit.back = +this.value; kjEdit.backLk = true; kjDrawEdit(); } };
@@ -2953,12 +2969,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       E.singer = nowLive ? E.origSinger : $("kjSheetName").value.trim().slice(0, 60);
       if (E.at) kjAT[E.id] = 1; else delete kjAT[E.id];
       saveAT();
-      if (!E.fromOpts) {
-        var nk = nameKey(E.singer || E.origSinger), ok = nameKey(E.origSinger);
-        if (ok && kjATNames[ok] === 1) delete kjATNames[ok];
-        if (E.always && nk) kjATNames[nk] = 1;
-        saveATNames();
-      }
+      for (var ak in E.alw) { if (kjATNames[ak] === 2) continue; if (E.alw[ak]) kjATNames[ak] = 1; else if (kjATNames[ak] === 1) delete kjATNames[ak]; }
+      var wk = nameKey(E.singer || E.origSinger); if (people(E.singer || E.origSinger).length > 1 && kjATNames[wk] === 1) delete kjATNames[wk];   // older whole-duet flag
+      saveATNames();
       var vk = nameKey(E.singer || E.origSinger), vo = nameKey(E.origSinger);
       if (vo && vo !== vk) delete kjVox[vo];
       if (vk) { if (E.leadLk || E.backLk) kjVox[vk] = { lead: E.leadLk ? E.lead : null, back: E.backLk ? E.back : null }; else delete kjVox[vk]; }
@@ -3098,7 +3111,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     } catch (e) {} }
   }
   function ord(n) { var s = ["th", "st", "nd", "rd"], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
-  function sungCount(name) { var k = nameKey(name); return kjNight.filter(function (x) { return nameKey(x.name) === k; }).length; }
+  function sungCount(name) {   // one person: every song they were part of (duets count for each of them)
+    var ks = personKeys(name), k = nameKey(name);
+    return kjNight.filter(function (x) { return ks.length === 1 ? personKeys(x.name).indexOf(ks[0]) >= 0 : nameKey(tidyName(x.name)) === nameKey(tidyName(name)); }).length;
+  }
+  function nameTagged(n) { var p = people(n); return p.length < 2 ? esc(n) + sungTag(n) : p.map(function (x) { return esc(x) + sungTag(x); }).join(" &amp; "); }
   // Songs sung tonight, as a little number next to the name (orange at 3+)
   // Green at 1 song, yellow around 6, red at 11+
   function cntHue(n) { return Math.max(0, 120 - (n - 1) * 12); }
@@ -3113,12 +3130,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
   function renderNight() {
     var by = {}, order = [];
-    kjNight.forEach(function (x) { var k = nameKey(x.name); if (!by[k]) { by[k] = { name: x.name, songs: [], line: 0 }; order.push(k); } by[k].songs.push(x); });
+    function each(nm, f) { var p = people(tidyName(nm)); (p.length ? p : [nm || "No name"]).forEach(function (q) { f(q, nameKey(q)); }); }   // duets go under each person
+    kjNight.forEach(function (x) { each(x.name, function (q, k) { if (!by[k]) { by[k] = { name: q, songs: [], line: 0 }; order.push(k); } by[k].songs.push(x); }); });
     queue.forEach(function (it) {   // also count who's still in line
       if (isBreakItem(it) || (current && it.id === current.id)) return;
-      var nm = info(it).singer || "No name", k = nameKey(nm);
-      if (!by[k]) { by[k] = { name: nm, songs: [], line: 0 }; order.push(k); }
-      by[k].line++;
+      each(info(it).singer, function (q, k) { if (!by[k]) { by[k] = { name: q, songs: [], line: 0 }; order.push(k); } by[k].line++; });
     });
     order.sort(function (a, b) { return by[b].songs.length - by[a].songs.length || by[b].line - by[a].line; });
     $("kjNightHead").innerHTML = "<b>HISTORY</b><span class=\"cnt\">" + kjNight.length + (kjNight.length === 1 ? " song" : " songs") + " · " + order.length + (order.length === 1 ? " singer" : " singers") + '</span><span class="chev">' + (kjNightOpen ? "▴" : "▾") + "</span>";
@@ -3126,18 +3142,23 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var tabs = '<div class="ntabs"><button data-nv="log"' + (kjNightView === "log" ? ' class="on"' : "") + '>In order</button><button data-nv="singer"' +
       (kjNightView === "singer" ? ' class="on"' : "") + '>By singer</button></div>';
     if (kjNightView === "log") {
-      var n = kjNight.length, run = {}, nth = kjNight.map(function (x) { var k = nameKey(x.name); run[k] = (run[k] || 0) + 1; return run[k]; });
+      var n = kjNight.length, run = {}, nth = kjNight.map(function (x) {   // each person's running count (their 2nd, 3rd… song)
+        var p = people(tidyName(x.name)); if (!p.length) p = [x.name || "No name"];
+        return p.map(function (q) { var k = nameKey(q); run[k] = (run[k] || 0) + 1; return [q, run[k]]; });
+      });
       $("kjNightList").innerHTML = tabs + (n ? kjNight.slice().reverse().map(function (x, i) {   // newest first
-        var c = nth[n - 1 - i];   // this was their c-th song tonight
-        return '<div class="nl"><span class="nn">' + (n - i) + '</span><span class="nt">' + esc(hhmm(x.at, true)) + '</span><div class="nw"><b>' + esc(x.name) +
-          (c >= 2 ? ' <span class="cnt"' + cntStyle(c) + '>' + ord(c) + "</span>" : "") + '</b><div>' + songHTML(x.title, x.artist, "-") + "</div></div></div>";
+        var nm = nth[n - 1 - i].map(function (pc) { var c = pc[1]; return esc(pc[0]) + (c >= 2 ? ' <span class="cnt"' + cntStyle(c) + '>' + ord(c) + "</span>" : ""); }).join(" &amp; ");
+        return '<div class="nl"><span class="nn">' + (n - i) + '</span><span class="nt">' + esc(hhmm(x.at, true)) + '</span><div class="nw"><b>' + nm + '</b><div>' + songHTML(x.title, x.artist, "-") + "</div></div></div>";
       }).join("") : '<div class="empty">Nothing sung yet</div>');
       return;
     }
     $("kjNightList").innerHTML = tabs + (order.length ? order.map(function (k) {
       var g = by[k], n = g.songs.length;
       return '<div class="ng"><div class="nh"><b>' + esc(g.name) + (n ? sungTag(g.name) : "") + '</b><span>' + n + " sung" + (g.line ? " · " + g.line + " in line" : "") + '</span></div>' +
-        g.songs.map(function (x) { return '<div class="ns"><i>' + esc(hhmm(x.at, true)) + '</i>' + songHTML(x.title, x.artist, "-") + "</div>"; }).join("") + "</div>";
+        g.songs.map(function (x) {
+          var w = people(tidyName(x.name)).filter(function (q) { return nameKey(q) !== k; });   // a duet: who they sang it with
+          return '<div class="ns"><i>' + esc(hhmm(x.at, true)) + '</i>' + songHTML(x.title, x.artist, "-") + (w.length ? ' <span class="art">with ' + esc(w.join(" & ")) + "</span>" : "") + "</div>";
+        }).join("") + "</div>";
     }).join("") : '<div class="empty">Nobody yet</div>');
   }
   // The KJ view's upright list (kj=on)
@@ -3154,13 +3175,13 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       }
       var what = brk ? esc(x.title || "") : songHTML(x.title, x.artist);
       return '<div class="r' + (brk ? " brk" : "") + (ban ? " ban" : "") + '" data-qid="' + esc(String(it.id)) + '"' + (brk ? "" : ' data-edit="' + esc(String(it.id)) + '"') + '><span class="n">' + (n || "") + '</span><div class="w"><div class="who">' +
-        esc(x.singer || (brk ? "" : "No name")) + (brk ? "" : sungTag(x.singer)) + '</div><div class="what">' + what + '</div>' + (brk ? "" : kjBadges(it, false)) + '</div>' +
+        (brk ? esc(x.singer || "") : x.singer ? nameTagged(x.singer) : "No name") + '</div><div class="what">' + what + '</div>' + (brk ? "" : kjBadges(it, false)) + '</div>' +
         '<div class="rt">' + (ban ? '<span class="tag">BANNED</span>' : '<span class="ke" data-id="' + esc(String(it.id)) + '"></span>') +
         (brk ? "" : kjBadges(it, false, true)) + '</div>' + '<button class="swdel" data-rm="' + esc(String(it.id)) + '">Remove</button></div>';
     }
     if (cur) {
       var c = info(cur);
-      $("kjNow").innerHTML = '<div class="now" id="kjNowCard"><div class="top"><div class="who">' + esc(c.singer || (isBreakItem(cur) ? "Break" : "No name")) + (isBreakItem(cur) ? "" : sungTag(c.singer)) +
+      $("kjNow").innerHTML = '<div class="now" id="kjNowCard"><div class="top"><div class="who">' + (isBreakItem(cur) ? esc(c.singer || "Break") : c.singer ? nameTagged(c.singer) : "No name") +
         '</div><span id="kjLeft"></span></div><div class="what"><span class="st">' + songHTML(c.title, c.artist) + '</span>' +
         (isBreakItem(cur) ? "" : kjBadges(cur, true, true)) + '</div>' + (isBreakItem(cur) ? "" : kjBadges(cur, true)) + '<div class="kbar"><i id="kjBar"></i></div></div>';
       $("kjNowCard").setAttribute("data-edit", isBreakItem(cur) ? "" : String(cur.id));

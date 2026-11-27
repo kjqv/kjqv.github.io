@@ -91,11 +91,11 @@ Open your usual link on your phone with `&kj=on` added (or `&kj=on&kjcontrols=on
 - **Keys** from KaraFun on every signup. A moved key shows just the new key, colored by how far it moved: orange getting redder the further down, pink getting more violet the further up. Set *KJ view: show keys as* in Options (`keys=sharp` or `keys=flat`) to match your gear.
 - **Queue size** (Options → *KJ view: queue size*): **Compact** by default (about 10 or more on screen), **Tiny** (one line per signup) or **Roomy** (bigger text).
 - **Song counts:** a row of small dots by each name, one per song tonight, from green through yellow to red, so you know when someone's had plenty of turns.
-- **History** at the bottom: tonight's songs in order, or **By singer**. It's kept on your phone and resets at 6am. Restarts don't count as new songs.
+- **History** at the bottom: tonight's songs in order, or **By singer**. It's kept on your phone and resets at 6am. Restarts don't count as new songs. **Duets** (*Bonny + Russell*, *Bonny/Russell*, *Bonny & Russell*) show as *Bonny & Russell* everywhere (on the TV too), and count for each person: if Russell sings 5 duets and 2 solos, his count is 7 and every song is under his name in *By singer* (with who he sang it with).
 - An *EXPLICIT* tag on songs KaraFun marks explicit, and a green **AUTO** tag for singers flagged for autotune.
 
 **Swipe a signup left** to remove it. **Tap a singer** to:
-- Flag them for **autotune** (just this song, or *Always for …*; you can also list names in Options → **Singers**).
+- Flag them for **autotune** (just this song, or *Always for …*; you can also list names in Options → **Singers**). Duets get one *Always* button per person, and a duet gets autotune if anyone in it is set to always.
 - Change their **name** (not while they're singing), **key** (up to 6 steps either way) and **tempo** (−50% to +50%).
 - **Change song…**: search KaraFun's catalog and swap a different song into their spot in line.
 - **Remove** them: swipe a signup left (like an iPhone list) and tap the red **Remove**, then **Remove?** to confirm. Or tap it and use **Remove** on the edit screen.
