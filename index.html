@@ -531,6 +531,7 @@
   #kjChips button.nm { font-weight: 700; }
   #kjChips button.nm.sel { background: #4dff95; color: #0b0920; border-color: #4dff95; }
   #kjChips button.ac { border-color: rgba(57,217,122,.45); color: #4dff95; }
+  #kjChips button.ac.sel { background: #4dff95; color: #0b0920; border-color: #4dff95; }
   #kjChips .sep { flex-basis: 100%; height: 0; }
   #kjCmdOut:not(:empty) { margin-top: 6px; padding: 8px 10px; border-radius: 10px; background: rgba(57,217,122,.07); border: 1px solid rgba(57,217,122,.3); font-size: 13px; }
   #kjCmdOut .cp { margin: 2px 0; } #kjCmdOut .err { color: #ffcf5a; }
@@ -2925,8 +2926,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var acts = kjChipName ? [["next", "next"], ["last", "last"], ["remove", "remove"], ["key down 1", "key −1"], ["key up 1", "key +1"]]
       : [["skip", "skip"], ["pause", "pause"], ["play", "play"], ["restart", "restart"]];
     $("kjChips").innerHTML = names.map(function (n) { return '<button class="nm' + (nameKey(n) === nameKey(kjChipName) ? " sel" : "") + '" data-n="' + esc(n) + '">' + esc(n) + "</button>"; }).join("") +
-      '<span class="sep"></span>' + acts.map(function (a) { return '<button class="ac" data-a="' + a[0] + '">' + a[1] + "</button>"; }).join("");
+      '<span class="sep"></span>' + acts.map(function (a) { return '<button class="ac' + (a[0] === kjChipAct && kjCmdPlan ? " sel" : "") + '" data-a="' + a[0] + '">' + a[1] + "</button>"; }).join("");
   }
+  var kjChipAct = "";   // the action chip whose plan is waiting for Do it (shown filled green)
   var kjCmdPlan = null, kjCmdShowPlan = null;
   // "add Ember singing Goodbye Earl by the Chicks up next" / "add Jo doing Wagon Wheel" / "sign up Mike for Crazy Train at 3"
   function kjParseAdd(t) {
@@ -2984,9 +2986,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       kjCmdPlan = p;
       var tones = p.map(kjTone), one = tones.every(function (t) { return t === tones[0]; }) ? tones[0] : "255,255,255";
       kjCmdShow('<div class="plan" style="--t:' + one + '">' + p.map(function (a, i) { return '<div class="cp" style="color:rgb(' + tones[i] + ')">→ ' + esc(a.text) + "</div>"; }).join("") +
-        (p[0].alts && p[0].alts.length > 1 ? (function () {   // the song it'll add in a green bubble, the other choices listed under a line
+        (p[0].alts && p[0].alts.length ? (function () {   // the song it'll add in a green bubble, the other choices listed under a line
           var lab = function (m) { return (m.fav ? "★ " : "") + esc(m.title) + ' <span class="art">' + esc(m.artist || "") + (m.comm ? " · community" : "") + "</span>"; };
-          return '<div class="alts"><div class="sel">✓ ' + lab(p[0].alts[p[0].pick]) + '</div><div class="or">or pick another</div>' +
+          return '<div class="alts"><div class="sel">✓ ' + lab(p[0].alts[p[0].pick]) + "</div>" + (p[0].alts.length > 1 ? '<div class="or">or pick another</div>' : "") +
             p[0].alts.map(function (m, i) { return i === p[0].pick ? "" : '<button data-alt="' + i + '">' + lab(m) + "</button>"; }).join("") + "</div>";
         })() : "") +
         '<div class="cb"><button data-c="no">Cancel</button><button class="go" data-c="yes">Do it</button></div></div>');
@@ -3094,15 +3096,15 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     $("kjChips").addEventListener("click", function (e) {
       var b = e.target.closest && e.target.closest("button"); if (!b) return;
       var n = b.getAttribute("data-n"), a = b.getAttribute("data-a");
-      if (n !== null) { kjChipName = nameKey(n) === nameKey(kjChipName) ? "" : n; $("kjCmdIn").value = kjChipName; kjCmdShow(""); kjChipsDraw(); return; }
-      if (a) { $("kjCmdIn").value = (kjChipName ? kjChipName + " " : "") + a; kjCmdRun(); }
+      if (n !== null) { kjChipAct = ""; kjChipName = nameKey(n) === nameKey(kjChipName) ? "" : n; $("kjCmdIn").value = kjChipName; kjCmdShow(""); kjChipsDraw(); return; }
+      if (a) { $("kjCmdIn").value = (kjChipName ? kjChipName + " " : "") + a; kjChipAct = a; kjCmdRun(); kjChipsDraw(); }
     });
-    $("kjCmdIn").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); kjCmdRun(); } });
+    $("kjCmdIn").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); kjChipAct = ""; kjCmdRun(); kjChipsDraw(); } });
     $("kjCmdOut").addEventListener("click", function (e) {
       var ab = e.target.closest && e.target.closest("[data-alt]");
       if (ab && kjCmdPlan && kjCmdPlan[0].alts) { kjAddPick(kjCmdPlan[0], +ab.getAttribute("data-alt")); kjCmdShowPlan(kjCmdPlan); return; }
       var c = e.target.getAttribute && e.target.getAttribute("data-c");
-      if (c === "yes") { kjCmdDo(); kjCmdClose(); } else if (c === "no") { kjCmdPlan = null; kjCmdShow(""); } });
+      if (c === "yes") { kjCmdDo(); kjCmdClose(); } else if (c === "no") { kjCmdPlan = null; kjChipAct = ""; kjCmdShow(""); kjChipsDraw(); } });
     $("kjActHead").onclick = function () { kjActOpen = !kjActOpen; actDraw(); };
     setTimeout(actDraw, 0);   // the log loads further down the page
     $("kjPage").addEventListener("click", function (e) {
