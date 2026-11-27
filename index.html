@@ -500,7 +500,9 @@
   #kjSheet .f button { width: 40px; height: 36px; font-size: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); color: #fff; }
   #kjSheet .f button:disabled { opacity: .25; }
   /* command box: type what you want, check it, tap Do it */
-  #kjCmd { display: none; margin: 10px 0 2px; }
+  #kjCmd { display: none; position: fixed; left: 10px; right: 10px; top: 60px; max-width: 520px; margin: 0 auto; z-index: 60; box-sizing: border-box;
+    padding: 10px; border-radius: 14px; background: #17142e; border: 1px solid rgba(77,255,149,.35); box-shadow: 0 14px 44px rgba(0,0,0,.65);
+    max-height: 70vh; overflow: auto; }   /* a popup under the ⚡, over the page (nothing gets pushed down) */
   body.kjctl.kjcmd #kjCmd { display: block; }
   #kjPage header #kjCmdBtn { display: none; }
   body.kjctl #kjPage header #kjCmdBtn { display: inline-flex; }
@@ -2899,8 +2901,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if (!kjRmTap("sheet:" + kjEdit.id, this, "Remove")) return;
       var id = kjEdit.id; kjCloseEdit(); kjRemove(id);
     };
+    function kjCmdClose() { document.body.classList.remove("kjcmd"); kjCmdPlan = null; kjCmdShow(""); }
+    document.addEventListener("pointerdown", function (e) {   // tap anywhere outside the popup to close it
+      if (!document.body.classList.contains("kjcmd") || !e.target.closest || e.target.closest("#kjCmd, #kjCmdBtn")) return;
+      kjCmdClose(); kjNoClick = true; setTimeout(function () { kjNoClick = false; }, 400);
+    }, true);
     $("kjCmdBtn").onclick = function () {
       var on = document.body.classList.toggle("kjcmd");
+      if (on) { var hb = $("kjCmdBtn").getBoundingClientRect(); $("kjCmd").style.top = Math.max(8, hb.bottom + 8) + "px"; }
       kjChipName = ""; if (on) kjChipsDraw(); else { kjCmdPlan = null; kjCmdShow(""); }   // chips first; tap the box to type
     };
     $("kjChips").addEventListener("click", function (e) {
@@ -2911,7 +2919,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     });
     $("kjCmdIn").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); kjCmdRun(); } });
     $("kjCmdOut").addEventListener("click", function (e) { var c = e.target.getAttribute && e.target.getAttribute("data-c");
-      if (c === "yes") kjCmdDo(); else if (c === "no") { kjCmdPlan = null; kjCmdShow(""); } });
+      if (c === "yes") { kjCmdDo(); kjCmdClose(); } else if (c === "no") { kjCmdPlan = null; kjCmdShow(""); } });
     $("kjActHead").onclick = function () { kjActOpen = !kjActOpen; actDraw(); };
     setTimeout(actDraw, 0);   // the log loads further down the page
     $("kjPage").addEventListener("click", function (e) {
