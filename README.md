@@ -101,7 +101,7 @@ Open your usual link on your phone with `&kj=on` added (or `&kj=on&kjcontrols=on
 - **Remove** them: swipe a signup left (like an iPhone list) and tap the red **Remove**, then **Remove?** to confirm. Or tap it and use **Remove** on the edit screen.
 - Set their **lead and backing vocal** levels. Tap the lock to keep them for the night; they're set again each time their song starts.
 
-**Switching KaraFun sessions** (home and the bar, say): tap the connection dot, then **Switch KaraFun code**, and type the other 6-digit code. KJ mode reconnects, and the address changes to the new code, so a home-screen icon or bookmark you open from that page afterwards uses it.
+**Logging out of a code** (home and the bar, say): tap the connection dot, then **Log out of this code**. KJQV forgets that code and asks for a new 6-digit one. KJ mode reconnects, and the address changes to the new code, so a home-screen icon or bookmark you open from that page afterwards uses it.
 
 **BPM** (off by default: Options → *KJ view: BPM next to the key*, or `bpm=on`): each song's tempo in beats per minute, just left of its key. KaraFun doesn't share BPM, so KJ mode looks each song up by title and artist on Deezer's free public music API and remembers it on your phone; a tempo change in KaraFun adjusts the number (orange slower, pink faster). Songs Deezer doesn't know show no BPM.
 
