@@ -391,11 +391,12 @@
     background: rgba(255,255,255,.07); border: 2px solid #fff; border-radius: 10px; box-shadow: 0 8px 26px rgba(0,0,0,.55); position: relative; z-index: 3; }
   body.kjmoving #kjQueue .r:not(.moving) { opacity: .55; }
   body.kjmoving #kjQueue, body.kjctl #kjQueue .r { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }   /* holding a row: no copy/select menu */
-  #kjMoveBar { display: none; position: fixed; left: 10px; right: 10px; bottom: 14px; z-index: 40; padding: 10px 12px; border-radius: 12px;
-    background: #14123a; border: 1px solid rgba(255,255,255,.85); box-shadow: 0 8px 30px rgba(0,0,0,.6); font-size: 14px; }
-  body.kjmoving #kjMoveBar { display: block; }
-  #kjMoveBar .mb { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
-  #kjMoveBar button { font-size: 14px; font-weight: 700; padding: 7px 14px; border-radius: 9px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: #fff; }
+  /* a small tag stuck to the signup being moved (under it, or over it near the bottom of the screen) */
+  #kjMoveBar { display: none; position: fixed; z-index: 40; padding: 5px 5px 5px 10px; border-radius: 10px; align-items: center; gap: 8px;
+    background: #14123a; border: 1px solid rgba(255,255,255,.85); box-shadow: 0 6px 20px rgba(0,0,0,.6); font-size: 13px; white-space: nowrap; }
+  body.kjmoving #kjMoveBar { display: flex; }
+  #kjMoveBar .mb { display: flex; gap: 6px; margin: 0; }
+  #kjMoveBar button { font-size: 13px; font-weight: 700; padding: 5px 11px; border-radius: 9px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: #fff; }
   #kjMoveBar button.go { background: #2a8f5a; border-color: #39d97a; }
   #kjMoveBar button.go:disabled { opacity: .35; }
   #kjQueue .r .rm-unused { display: none; flex: none; align-self: center; width: 30px; height: 30px; padding: 0; border-radius: 8px; font-size: 13px;
@@ -2705,8 +2706,21 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function kjMoveText() {
     var m = kjMoving; if (!m) return;
     var it = queue.filter(function (q) { return String(q.id) === m.id; })[0], w = it ? (isBreakItem(it) ? "the break" : who(it)) : "this signup";
-    $("kjMoveTxt").innerHTML = m.to === m.from ? "Drag <b>" + esc(w) + "</b> to a new spot." : "Move <b>" + esc(w) + "</b> from #" + (m.from + 1) + " to #" + (m.to + 1) + "?";
+    $("kjMoveTxt").innerHTML = m.to === m.from ? "Drag to a new spot" : "#" + (m.from + 1) + " → <b>#" + (m.to + 1) + "</b>?";
+    $("kjMoveTxt").title = it ? w : "";
     $("kjMoveYes").disabled = m.to === m.from;
+    if (!kjMoveLoop) { kjMoveLoop = true; kjMovePlace(); }
+  }
+  var kjMoveLoop = false;
+  function kjMovePlace() {   // keep the tag on the moving signup while it's dragged or the page scrolls (one loop)
+    if (!kjMoving) { kjMoveLoop = false; return; }
+    var row = $("kjQueue").querySelector('.r[data-qid="' + (window.CSS && CSS.escape ? CSS.escape(kjMoving.id) : kjMoving.id) + '"]'), bar = $("kjMoveBar");
+    if (row) {
+      var r = row.getBoundingClientRect(), h = bar.offsetHeight || 40, vh = window.innerHeight;
+      var top = r.bottom + 6 + h > vh - 8 ? r.top - h - 6 : r.bottom + 6;
+      bar.style.top = Math.max(8, Math.min(vh - h - 8, top)) + "px"; bar.style.right = Math.max(8, window.innerWidth - r.right) + "px"; bar.style.left = "auto";
+    }
+    requestAnimationFrame(kjMovePlace);
   }
   function kjMoveEnd(go) {
     var m = kjMoving; kjMoving = null; document.body.classList.remove("kjmoving");
