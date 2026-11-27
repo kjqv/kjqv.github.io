@@ -101,7 +101,7 @@ Open your usual link on your phone with `&kj=on` added (or `&kj=on&kjcontrols=on
 - **Remove** them: swipe a signup left (like an iPhone list) and tap the red **Remove**, then **Remove?** to confirm. Or tap it and use **Remove** on the edit screen.
 - Set their **lead and backing vocal** levels. Tap the lock to keep them for the night; they're set again each time their song starts.
 
-**Logging out of a code** (home and the bar, say): tap the connection dot, then **Log out** (next to the name it joined as). KJQV forgets that code and asks for a new 6-digit one. KJ mode reconnects, and the address changes to the new code, so a home-screen icon or bookmark you open from that page afterwards uses it.
+**Logging out of a code** (home and the bar, say): tap the connection dot, then **Log out** (next to the name it joined as). KJQV forgets that code and asks for a new 6-digit one. KJ mode reconnects, and the address changes to the new code, so a home-screen icon or bookmark you open from that page afterwards uses it. Each code keeps its own History, Action log, songbook, favorites and singer settings on your phone, so the bar's night doesn't mix with home.
 
 **Songbook and favorites:** KJ mode remembers every song each singer signs up for or sings (all nights, on your phone), and you can star one on the edit screen (**☆ Chris's favorite**). Then ⚡ *Chris wants to sing Many Men next* picks Chris's own song first, even a **community** track, which KaraFun doesn't let remotes search for. Community tracks anyone has sung here can be re-added the same way; KaraFun's catalog results show up as other choices.
 

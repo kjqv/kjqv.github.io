@@ -2098,7 +2098,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var kjPitch = 0, kjEdit = null;
   var kjAT = {}; try { kjAT = JSON.parse(localStorage.getItem("kqv.autotune") || "{}") || {}; } catch (e) {}
   // Singers who always want autotune: from Options (Singers tab, autotune=) plus ones flagged "always" on this phone
-  var kjATNames = {}; try { kjATNames = JSON.parse(localStorage.getItem("kqv.atnames") || "{}") || {}; } catch (e) {}
+  var kjATNames = {}; try { kjATNames = JSON.parse(localStorage.getItem("kqv.atnames" + (code ? "." + code : "")) || "{}") || {}; } catch (e) {}
   function nameKey(n) { return String(n || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); }
   // Duets: "Bonny + Russell", "Bonny/Russell" show as "Bonny & Russell", and each person counts on their own
   // (songs sung tonight, autotune "always") as well as together
@@ -2109,7 +2109,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function isAT(it) { return !!kjAT[it.id] || alwaysAT(it); }
   function saveATNames() {
     var mine = {}; for (var k in kjATNames) if (kjATNames[k] === 1) mine[k] = 1;
-    try { localStorage.setItem("kqv.atnames", JSON.stringify(mine)); } catch (e) {}
+    try { localStorage.setItem("kqv.atnames" + (code ? "." + code : ""), JSON.stringify(mine)); } catch (e) {}
   }
   // After Change song, carry the autotune flag over to the new signup once KaraFun shows it in the queue
   var kjATPending = null;
@@ -2168,12 +2168,12 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
   // Tap a singer to open the editor: name, key and tempo (with KJ controls on) and the autotune flag (always)
   // ---- Vocal levels locked to a singer for the night (KJ controls on): applied each time their song starts
-  function voxKey() { var d = new Date(Date.now() - 6 * 3600000); return "kqv.vox." + d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); }
+  function voxKey() { var d = new Date(Date.now() - 6 * 3600000); return "kqv.vox." + d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate() + (code ? "." + code : ""); }
   var kjVox = {}; try { kjVox = JSON.parse(localStorage.getItem(voxKey()) || "{}") || {}; } catch (e) {}
   function saveVox() {
     if (DEMO) return;
     try { localStorage.setItem(voxKey(), JSON.stringify(kjVox));
-      for (var i = localStorage.length - 1; i >= 0; i--) { var k = localStorage.key(i); if (/^kqv\.vox\./.test(k) && k !== voxKey()) localStorage.removeItem(k); } } catch (e) {}
+      for (var i = localStorage.length - 1; i >= 0; i--) { var k = localStorage.key(i); if (/^kqv\.vox\./.test(k) && k.indexOf(voxKey().replace(/\.\d+$/, "")) !== 0) localStorage.removeItem(k); } } catch (e) {}
   }
   function voxOf(it) { var x = info(it); return x && x.singer ? kjVox[nameKey(x.singer)] : null; }
   function curLevel(type, dflt) { var v = dflt; kjTracks.forEach(function (t) { if (trackType(t) === type) v = t.volume; }); return v; }
@@ -3198,7 +3198,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     };
   }
   // ---- Tonight: who's sung what (KJ mode). Logged on this phone while KJ mode is open; a "night" runs until 6am.
-  function nightKey() { var d = new Date(Date.now() - 6 * 3600000); return "kqv.night." + d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); }
+  // Each KaraFun code (home, the bar…) keeps its own History, Action log, songbook and singer settings on this phone
+  function codeTag() { return code ? "." + code : ""; }
+  function nightDate() { var d = new Date(Date.now() - 6 * 3600000); return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); }
+  function nightKey() { return "kqv.night." + nightDate() + codeTag(); }
   var kjNight = []; try { kjNight = JSON.parse(localStorage.getItem(nightKey()) || "[]") || []; } catch (e) {}
   // ---- Actions: everything KJ mode changed in KaraFun tonight (kept on this phone till 6am)
   function actKey() { return nightKey().replace("kqv.night.", "kqv.acts."); }
@@ -3288,12 +3291,12 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     bookNote(cur, true);
     if (!DEMO) { try {
       localStorage.setItem(nightKey(), JSON.stringify(kjNight));
-      for (var i = localStorage.length - 1; i >= 0; i--) { var k = localStorage.key(i); if (/^kqv\.night\./.test(k) && k !== nightKey()) localStorage.removeItem(k); }   // keep tonight only
+      for (var i = localStorage.length - 1; i >= 0; i--) { var k = localStorage.key(i); if (/^kqv\.night\./.test(k) && k.indexOf("kqv.night." + nightDate()) !== 0) localStorage.removeItem(k); }   // keep tonight only (every code)
     } catch (e) {} }
   }
   // ---- Songbook: every song each singer has signed up for or sung (all nights, on this phone), plus ★ favorites.
   // Lets ⚡ "Chris wants to sing Many Men next" find Chris's song, community tracks included (KaraFun won't let remotes search those).
-  var BOOK_KEY = "kqv.songbook", book = {}; if (!DEMO) try { book = JSON.parse(localStorage.getItem(BOOK_KEY) || "{}") || {}; } catch (e) {}
+  var BOOK_KEY = "kqv.songbook" + (code ? "." + code : ""), book = {}; if (!DEMO) try { book = JSON.parse(localStorage.getItem(BOOK_KEY) || "{}") || {}; } catch (e) {}
   function bookSave() { if (!DEMO) try { localStorage.setItem(BOOK_KEY, JSON.stringify(book)); } catch (e) {} }
   function songRef(it) { var id = it && it.song && it.song.id; return id && id.id != null ? { type: id.type || 1, id: id.id } : null; }
   function bookPeople(n) { var p = people(n); return p.length ? p : (nameKey(n) ? [n] : []); }
