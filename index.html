@@ -536,8 +536,11 @@
   #kjCmdOut:has(.plan) { padding: 0; border: 0; background: none; }
   #kjCmdOut .plan { --t: 77,255,149; padding: 8px 10px; border-radius: 10px; background: rgba(var(--t),.08); border: 1px solid rgba(var(--t),.45); }
   #kjCmdOut .plan .go { background: rgba(var(--t),.3) !important; border-color: rgb(var(--t)) !important; }
-  #kjCmdOut .alts { margin-top: 6px; font-size: 11px; color: rgba(255,255,255,.55); display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
-  #kjCmdOut .alts button { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 10px; }
+  #kjCmdOut .alts { margin-top: 8px; font-size: 12px; }
+  #kjCmdOut .alts .sel { display: inline-block; padding: 4px 10px; border-radius: 12px; background: rgba(77,255,149,.18); border: 1px solid #4dff95; color: #4dff95; font-weight: 700; }
+  #kjCmdOut .alts .or { margin: 8px 0 0; padding-top: 6px; border-top: 1px solid rgba(255,255,255,.12); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); }
+  #kjCmdOut .alts button { display: block; width: 100%; text-align: left; font-size: 12px !important; font-weight: 600 !important; padding: 7px 2px !important;
+    border: 0 !important; border-bottom: 1px solid rgba(255,255,255,.07) !important; border-radius: 0 !important; background: none !important; color: rgba(255,255,255,.85); }
   #kjCmdOut .alts .art { opacity: .6; font-weight: 400; }
   #kjCmdOut .cb { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
   #kjCmdOut button { font-size: 13px; font-weight: 700; padding: 5px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: #fff; }
@@ -2967,8 +2970,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       kjCmdPlan = p;
       var tones = p.map(kjTone), one = tones.every(function (t) { return t === tones[0]; }) ? tones[0] : "255,255,255";
       kjCmdShow('<div class="plan" style="--t:' + one + '">' + p.map(function (a, i) { return '<div class="cp" style="color:rgb(' + tones[i] + ')">→ ' + esc(a.text) + "</div>"; }).join("") +
-        (p[0].alts && p[0].alts.length > 1 ? '<div class="alts">Or: ' + p[0].alts.map(function (m, i) { return i === p[0].pick ? "" :
-          '<button data-alt="' + i + '">' + (m.fav ? "★ " : "") + esc(m.title) + ' <span class="art">' + esc(m.artist || "") + (m.comm ? " · community" : "") + "</span></button>"; }).join("") + "</div>" : "") +
+        (p[0].alts && p[0].alts.length > 1 ? (function () {   // the song it'll add in a green bubble, the other choices listed under a line
+          var lab = function (m) { return (m.fav ? "★ " : "") + esc(m.title) + ' <span class="art">' + esc(m.artist || "") + (m.comm ? " · community" : "") + "</span>"; };
+          return '<div class="alts"><div class="sel">✓ ' + lab(p[0].alts[p[0].pick]) + '</div><div class="or">or pick another</div>' +
+            p[0].alts.map(function (m, i) { return i === p[0].pick ? "" : '<button data-alt="' + i + '">' + lab(m) + "</button>"; }).join("") + "</div>";
+        })() : "") +
         '<div class="cb"><button data-c="no">Cancel</button><button class="go" data-c="yes">Do it</button></div></div>');
     };
     var add = kjParseAdd(t);
