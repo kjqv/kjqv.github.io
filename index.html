@@ -484,6 +484,9 @@
   #kjPage .rt { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
   #kjPage .bs { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
   #kjPage .b { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 5px; background: rgba(255,255,255,.1); color: #fff; letter-spacing: .02em; }
+  #kjPage .b.bpm { background: rgba(255,255,255,.06); color: rgba(255,255,255,.6); font-variant-numeric: tabular-nums; }
+  #kjPage .b.bpm small { font-size: 8px; opacity: .8; letter-spacing: .06em; }
+  #kjPage .b.bpm.dn { color: #ffa040; } #kjPage .b.bpm.up { color: #ff6fcf; }   /* tempo changed: same colors as the key */
   #kjPage .b.key { background: rgba(255,255,255,.08); color: rgba(255,255,255,.75); }
   #kjPage .b.key.dn { background: rgba(255,150,40,.2); color: #ffa040; }   /* moved lower: orange */
   #kjPage .b.key.up { background: rgba(255,80,190,.2); color: #ff6fcf; }    /* moved higher: pink */
@@ -1078,7 +1081,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var CFG_KEY = "kqv.cfg";
   var cfg = {};
   try { cfg = JSON.parse(load(CFG_KEY) || "{}") || {}; } catch (e) { cfg = {}; }
-  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette", "flicker", "away", "spottime", "lite", "wipe", "nowtext", "nexttext", "comingtext", "noisetext", "thankstext", "thankssub", "emptytext", "signuptext", "lastcalltext", "musictext", "backtext", "ban", "banalert", "banmove", "kjcontrols", "keys", "autotune", "weather", "songreveal", "vx5", "photoscan", "kjrows"];
+  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette", "flicker", "away", "spottime", "lite", "wipe", "nowtext", "nexttext", "comingtext", "noisetext", "thankstext", "thankssub", "emptytext", "signuptext", "lastcalltext", "musictext", "backtext", "ban", "banalert", "banmove", "kjcontrols", "keys", "autotune", "weather", "songreveal", "vx5", "photoscan", "kjrows", "bpm"];
   // A link with any look options replaces the saved look; a bare link (just code=) keeps it.
   // The preview never uses what this device saved.
   if (DEMO || OPTS.some(function (k) { return params.has(k); })) cfg = {};
@@ -2142,7 +2145,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if (kt) keyOnly = '<span class="b key' + (o.pitch < 0 ? " dn" : o.pitch > 0 ? " up" : "") + (at ? " at" : "") + '"' + keyColor(o.pitch, true) + ">" + prettyKey(kt) + "</span>";
     if (voxOf(it) && document.body.classList.contains("kjctl")) { var vv = voxOf(it); h += '<span class="b vx">' + (vv.lead != null ? "LEAD " + vv.lead : "") + (vv.lead != null && vv.back != null ? " · " : "") + (vv.back != null ? "BACK " + vv.back : "") + "</span>"; }
     var autoTag = at ? '<span class="b at" title="Autotune">AUTO</span>' : "";
-    if (wantKey) return autoTag || keyOnly ? '<div class="kr">' + autoTag + keyOnly + "</div>" : "";
+    var bpmTag = "";
+    if (BPM_ON) { bpmNeed(it); var bk = durKey(it), bv = bk !== null ? bpmCache[bk] : 0;
+      if (bv > 0) bpmTag = '<span class="b bpm' + (o.tempo < 0 ? " dn" : o.tempo > 0 ? " up" : "") + '" title="Beats per minute' + (o.tempo ? " at tempo " + signed(o.tempo) + "%" : "") + '">' +
+        Math.round(bv * (1 + (o.tempo || 0) / 100)) + "<small> BPM</small></span>"; }
+    if (wantKey) return autoTag || keyOnly || bpmTag ? '<div class="kr">' + autoTag + bpmTag + keyOnly + "</div>" : "";
     if (o.tempo) h += '<span class="b">Tempo ' + signed(o.tempo) + "%</span>";
     var ek = durKey(it); if (ek !== null && explicitCache[ek]) h += '<span class="b ex">EXPLICIT</span>';
     return h ? '<div class="bs">' + h + "</div>" : "";
@@ -3409,6 +3416,39 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
   function durOf(it) { var k = durKey(it); return k !== null && durCache[k] ? durCache[k] : 0; }
   var keyCache = {}, explicitCache = {};
+  // BPM (bpm=on, KJ view): KaraFun doesn't share tempo, so it's looked up by title + artist on Deezer's free public API
+  // (as JSONP: Deezer's API doesn't allow ordinary browser requests) and remembered on this phone. 0 = Deezer doesn't know.
+  var BPM_ON = /^(on|yes|1|true)$/i.test(String(cfg.bpm || ""));
+  var bpmCache = {}; try { bpmCache = JSON.parse(localStorage.getItem("kqv.bpm") || "{}") || {}; } catch (e) {}
+  var bpmBusy = false, bpmQ = [];
+  function jsonp(url) {
+    return new Promise(function (ok, bad) {
+      var cb = "kqvdz" + Date.now() + Math.floor(Math.random() * 1e4), sc = document.createElement("script");
+      var t = setTimeout(function () { done(); bad(new Error("timeout")); }, 8000);
+      function done() { clearTimeout(t); window[cb] = function () {}; if (sc.parentNode) sc.parentNode.removeChild(sc); }
+      window[cb] = function (d) { done(); ok(d); }; sc.onerror = function () { done(); bad(new Error("load")); };
+      sc.src = url + (url.indexOf("?") < 0 ? "?" : "&") + "output=jsonp&callback=" + cb; document.head.appendChild(sc);
+    });
+  }
+  function bpmNeed(it) {
+    if (!BPM_ON) return; var k = durKey(it); if (k === null || k in bpmCache || bpmQ.some(function (q) { return q.k === k; })) return;
+    var x = info(it); if (!x || !x.title || x.special) return;
+    bpmQ.push({ k: k, t: x.title, a: x.artist }); bpmPump();
+  }
+  function bpmPump() {
+    if (bpmBusy || !bpmQ.length) return; bpmBusy = true; var q = bpmQ.shift();
+    var clean = function (v) { return String(v || "").replace(/\(.*?\)|\[.*?\]/g, "").trim(); }, DZ = "https://api.deezer.com/";
+    jsonp(DZ + "search?limit=5&q=" + encodeURIComponent('artist:"' + clean(q.a) + '" track:"' + clean(q.t) + '"')).then(function (d) {
+      var l = (d && d.data) || []; if (l.length) return l;
+      return jsonp(DZ + "search?limit=5&q=" + encodeURIComponent(clean(q.t) + " " + clean(q.a))).then(function (e) { return (e && e.data) || []; });
+    }).then(function (l) {
+      var tn = scanNorm(clean(q.t)), best = l.filter(function (r) { var rn = scanNorm(clean(r.title)); return rn === tn || rn.indexOf(tn) === 0 || dice(rn, tn) > .75; })[0];
+      if (!best) return 0;
+      return jsonp(DZ + "track/" + best.id).then(function (t) { return t && t.bpm > 0 ? Math.round(t.bpm) : 0; });
+    }).then(function (b) {
+      bpmCache[q.k] = b; try { localStorage.setItem("kqv.bpm", JSON.stringify(bpmCache)); } catch (e) {} render();
+    }, function () {}).then(function () { bpmBusy = false; setTimeout(bpmPump, 150); });
+  }
   function fetchDurations(items) {
     var songs = [], comm = [];
     items.forEach(function (it) {
@@ -4244,6 +4284,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["keys", "KJ view: show keys as", [["", "Default (# + b)"], ["sharp", "Sharps only (#)"], ["flat", "Flats only (b)"]]],
     ["vx5", "KJ view: VX5 key presets (laptop + USB)", [["", "Off"], ["100", "Presets 100–124"], ["1", "Presets 1–25"]]],
     ["photoscan", "KJ view: signup sheet", [["", "Paste from Live Text (free)"], ["on", "Photo read by Claude (your API key)"], ["off", "Off"]]],
+    ["bpm", "KJ view: BPM next to the key", [["", "Off"], ["on", "On"]]],
     ["kjrows", "KJ view: queue size", [["", "Compact (about 10 on screen)"], ["tiny", "Tiny (about 15, one line each)"], ["roomy", "Roomy (bigger text)"]]],
     ["#", "Old Fire Sticks"],
     ["lite", "Simple GFX mode (for old Fire Sticks)", [["", "Auto"], ["on", "On"], ["off", "Off"]]]
