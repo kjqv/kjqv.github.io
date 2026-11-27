@@ -354,6 +354,7 @@
   #kjInfo { display: none; margin-top: 10px; padding: 10px 12px; border-radius: 10px; font-size: 13px; line-height: 1.5;
     background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.15); opacity: 1 !important; }
   body.kjinfo #kjInfo { display: block; }
+  #kjSwitch { display: block; margin-top: 8px; font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.06); color: #fff; }
   #kjInfo #kjCtlSep, #kjInfo #kjCtl { display: none; }   /* the dot is just for the connection; a refused control explains itself under the buttons */
   #kjInfo #kjVx:empty { display: none; } #kjInfo #kjVx { display: block; }
   /* no status text up top: the dot's color says it, tap it for details */
@@ -902,7 +903,7 @@
   <header><div class="hd"><div class="t"><span class="nm">KJQV</span><button id="kjWarn" aria-label="About experimental features" title="Experimental">⚠️</button><button id="kjKeyBtn" aria-label="Claude API key" title="Claude API key"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3 20 3M16 7l3 3M18 5l2 2"/></svg></button><button id="kjDot" aria-label="Connection details" title="Connection"></button><button id="kjCmdBtn" aria-label="Quick actions" title="Quick actions"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></button></div>
     </div>
     <div class="hb"><div id="kjCtrls"><div class="btns"><button id="kjScanBtn" aria-label="Add signups from a photo of the sheet" title="Signup sheet: add from a photo"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/></svg></button><button id="kjPlay" aria-label="Play or pause" title="Play / pause"></button><button id="kjRestart" aria-label="Restart song" title="Restart song (tap twice)"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg></button><button id="kjSkip" aria-label="Skip song" title="Skip song (tap twice)"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M6 6l8.5 6L6 18zM16 6h2v12h-2z"/></svg></button><span id="kjArmMsg"></span></div></div><button id="kjOpts" aria-label="Options" title="Options"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div></header>
-<div id="kjInfo" class="st"><span id="kjConn" class="wait">○ Connecting to KaraFun…</span><span id="kjCtlSep"></span><span id="kjCtl"></span><span id="kjVx"></span></div>
+<div id="kjInfo" class="st"><span id="kjConn" class="wait">○ Connecting to KaraFun…</span><span id="kjCtlSep"></span><span id="kjCtl"></span><span id="kjVx"></span><button id="kjSwitch">Switch KaraFun code</button></div>
   <div id="kjWarnMsg"><b>⚠️ Experimental.</b> The controls change your real KaraFun queue. They need KJ mode to be an admin in KaraFun (tap the dot for its name).</div>
   <div id="kjAlert"><b>Banned song signed up</b><div id="kjBanList"></div></div>
   <div id="kjDeleted"></div>
@@ -3925,6 +3926,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     fetchSession(entry).then(function () {
       code = entry;
       save(STORE_KEY, code);
+      if (params.has("code") || KJ) {   // keep the address (your bookmark) on the new code; KJ mode reconnects its controls fresh
+        var u = new URL(location.href); u.searchParams.set("code", code);
+        if (KJ) { location.replace(u.toString()); return; }
+        try { history.replaceState(null, "", u.toString()); } catch (e) {}
+      }
       if (cfg.qr) applyLook();   // the QR code carries the new code
       showView();
     }).catch(function () {
@@ -4203,6 +4209,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     closeMenu();
   });
   $("btnCode").addEventListener("click", function () { closeMenu(); showSetup(); });
+  if ($("kjSwitch")) $("kjSwitch").addEventListener("click", function () { document.body.classList.remove("kjinfo"); showSetup(); });
   $("btnOptions").addEventListener("click", function () { closeMenu(); openOpts(); });
   // A tap or click on the live screen brings up the same small menu (it closes itself after 10 seconds).
   $("view").addEventListener("click", function (e) {
