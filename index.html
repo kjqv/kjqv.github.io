@@ -380,7 +380,7 @@
   #kjPage .r { display: flex; align-items: baseline; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
   /* rearrange (with KJ controls on): tap ⇅ Rearrange, then drag rows; Done turns it off */
   #kjPage .sec.qh { display: flex; align-items: center; gap: 6px; }
-  /* moving one signup: swipe it right, drag it, then confirm */
+  /* moving one signup: press and hold it, drag it, then confirm */
   body.kjmoving #kjQueue .r.moving { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: none; cursor: grab;
     background: rgba(255,255,255,.07); border: 2px solid #fff; border-radius: 10px; box-shadow: 0 8px 26px rgba(0,0,0,.55); position: relative; z-index: 3; }
   body.kjmoving #kjQueue .r:not(.moving) { opacity: .55; }
@@ -403,9 +403,6 @@
     background: #000; color: #ff4d4d; box-shadow: inset 0 0 0 1.5px #ff4d4d; font-size: 14px; font-weight: 800; }
   #kjQueue .swdel.arm { background: #e02626; color: #fff; box-shadow: none; }
   body.kjctl:not(.kjmoving) #kjQueue .swdel { display: block; }
-  #kjQueue .swre { display: none; position: absolute; top: 4px; bottom: 4px; left: -96px; width: 88px; border-radius: 10px; align-items: center; justify-content: center;
-    background: #4dff95; color: #0b0920; font-size: 12px; font-weight: 800; text-align: center; line-height: 1.2; padding: 0 6px; box-sizing: border-box; }
-  body.kjctl:not(.kjmoving) #kjQueue .swre { display: flex; }
   #kjQueue .r .rm.arm { width: auto; padding: 0 8px; background: #c83c3c; color: #fff; border-color: #ff8a8a; font-weight: 800; font-size: 11px; }
   #kjSheetRemove { margin-right: auto; color: #ff4d4d !important; border-color: #ff4d4d !important; background: #000 !important; }
   #kjSheetRemove.arm { background: #e02626 !important; border-color: #e02626 !important; color: #fff !important; }
@@ -916,7 +913,7 @@
   <div id="kjActBox"><div id="kjActHead" role="button"></div><div id="kjActList"></div></div>
   <div id="kjMissBox"><div id="kjMissHead" role="button"></div><div id="kjMissList"></div></div>
   <div id="kjMoveBar"><div id="kjMoveTxt"></div><div class="mb"><button id="kjMoveNo">Cancel</button><button id="kjMoveYes" class="go">Move</button></div></div>
-  <div class="foot">Tap an entry for options. Swipe it left to remove it. Press and hold it (or swipe right) to move it. <b>KJQV KJ</b> needs admin permissions in KaraFun's Remote Control for the controls to work. KJQV is unofficial and not affiliated with KaraFun.</div>
+  <div class="foot">Tap an entry for options. Swipe it left to remove it. Press and hold it to move it. <b>KJQV KJ</b> needs admin permissions in KaraFun's Remote Control for the controls to work. KJQV is unofficial and not affiliated with KaraFun.</div>
 </div></div>
 <div id="opts" class="hidden" role="dialog" aria-label="Options"><div class="in">
   <div class="top"><h2>Options</h2><div class="tb"><button id="optSaveTop">Save</button><button id="optX" aria-label="Close without saving" title="Close without saving">✕</button></div></div>
@@ -2589,7 +2586,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var to = Array.prototype.indexOf.call($("kjQueue").children, d.row);
     kjMoving.to = to; kjMoveText();
   }
-  // ---------------------------------------------------------------- move one signup: swipe right, drag, confirm
+  // ---------------------------------------------------------------- move one signup: press and hold, drag, confirm
   var kjMoving = null;   // { id, from, to }
   function kjMoveStart(row) {
     var kids = Array.prototype.slice.call($("kjQueue").children);
@@ -2681,7 +2678,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if (Math.abs(dx) < 10) return;
       s.on = true;
     }
-    s.dx = Math.max(-KJ_SW - 20, Math.min(s.open ? 0 : KJ_SW + 20, s.base + dx));   // left: Remove, right: Rearrange
+    s.dx = Math.max(-KJ_SW - 20, Math.min(0, s.base + dx));   // left only: Remove (press and hold moves)
     s.row.style.transform = "translateX(" + s.dx + "px)";
   }
   function swUp(e) {
@@ -2694,9 +2691,6 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     }
     s.on = false;
     kjNoClick = true; setTimeout(function () { kjNoClick = false; }, 350);   // that was a swipe, not a tap
-    if (s.dx > KJ_SW / 2) {   // swiped right far enough: pick this one up to move it
-      var row = s.row; kjSwipe = null; row.style.transform = ""; kjMoveStart(row); return;
-    }
     if (s.dx < -KJ_SW / 2) {
       s.row.classList.add("snap"); s.row.style.transform = "translateX(" + -KJ_SW + "px)"; s.open = true;
       setTimeout(function () { s.row.classList.remove("snap"); }, 200);
@@ -3156,13 +3150,13 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if (brk) {   // breaks: one big centered line with when it starts
         var sp = specialOf(it), lbl = sp.kind === "brb" ? (sp.mins ? sp.mins + " min break" : "Short break") : sp.kind === "dance" ? "Dance party"
           : sp.kind === "lastcall" ? "Last call" : (sp.mins ? sp.mins + " min break" : "Break");
-        return '<div class="r brk" data-qid="' + esc(String(it.id)) + '"><span class="bl">' + esc(lbl) + '</span>' + (sp.kind === "lastcall" ? '<span class="ke" data-id="' + esc(String(it.id)) + '"></span>' : "") + '<span class="swre">Move</span><button class="swdel" data-rm="' + esc(String(it.id)) + '">Remove</button></div>';   // only LAST CALL shows when
+        return '<div class="r brk" data-qid="' + esc(String(it.id)) + '"><span class="bl">' + esc(lbl) + '</span>' + (sp.kind === "lastcall" ? '<span class="ke" data-id="' + esc(String(it.id)) + '"></span>' : "") + '<button class="swdel" data-rm="' + esc(String(it.id)) + '">Remove</button></div>';   // only LAST CALL shows when
       }
       var what = brk ? esc(x.title || "") : songHTML(x.title, x.artist);
       return '<div class="r' + (brk ? " brk" : "") + (ban ? " ban" : "") + '" data-qid="' + esc(String(it.id)) + '"' + (brk ? "" : ' data-edit="' + esc(String(it.id)) + '"') + '><span class="n">' + (n || "") + '</span><div class="w"><div class="who">' +
         esc(x.singer || (brk ? "" : "No name")) + (brk ? "" : sungTag(x.singer)) + '</div><div class="what">' + what + '</div>' + (brk ? "" : kjBadges(it, false)) + '</div>' +
         '<div class="rt">' + (ban ? '<span class="tag">BANNED</span>' : '<span class="ke" data-id="' + esc(String(it.id)) + '"></span>') +
-        (brk ? "" : kjBadges(it, false, true)) + '</div>' + '<span class="swre">Move</span><button class="swdel" data-rm="' + esc(String(it.id)) + '">Remove</button></div>';
+        (brk ? "" : kjBadges(it, false, true)) + '</div>' + '<button class="swdel" data-rm="' + esc(String(it.id)) + '">Remove</button></div>';
     }
     if (cur) {
       var c = info(cur);
