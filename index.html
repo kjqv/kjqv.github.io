@@ -449,6 +449,42 @@
   #kjSheet .f input { flex: 1; font-size: 16px; padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); color: #fff; }
   #kjSheet .f button { width: 40px; height: 36px; font-size: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); color: #fff; }
   #kjSheet .f button:disabled { opacity: .25; }
+  /* Signups from a photo */
+  #kjCtrls .btns #kjScanBtn { display: none; }
+  body.kjctl.kjphoto #kjCtrls .btns #kjScanBtn { display: flex; }
+  #kjScan { display: none; position: fixed; inset: 0; z-index: 60; overflow-y: auto; padding: 18px 14px 30px; background: #0b0920; }
+  body.kjscan #kjScan { display: block; }
+  #kjScan .sh { font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; opacity: .7; margin-bottom: 10px; }
+  #kjScan p { font-size: 13px; line-height: 1.45; opacity: .8; margin: 0 0 10px; }
+  #kjScanKey { display: none; } body.kjscankey #kjScanKey { display: block; }
+  #kjScanKey input { width: 100%; box-sizing: border-box; padding: 10px 12px; font-size: 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,.3); background: rgba(255,255,255,.07); color: #fff; margin-bottom: 8px; }
+  #kjScan button { font-size: 14px; font-weight: 700; padding: 8px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: #fff; }
+  #kjScan .acts { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+  #kjScan .acts .go { background: #2a8f5a; border-color: #39d97a; }
+  #kjScan .acts .go:disabled { opacity: .35; }
+  #kjScanForget { display: block; margin: 22px auto 0; font-size: 12px !important; font-weight: 400 !important; border: 0 !important; background: none !important; opacity: .5; text-decoration: underline; }
+  #kjScanBody .msg { font-size: 14px; opacity: .75; padding: 10px 0; }
+  #kjScanBody .row { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
+  #kjScanBody .row input[type=checkbox] { width: 20px; height: 20px; margin-top: 6px; flex: none; accent-color: #39d97a; }
+  #kjScanBody .row .bd { flex: 1; min-width: 0; }
+  #kjScanBody .row input[type=text] { width: 100%; box-sizing: border-box; padding: 6px 8px; font-size: 15px; font-weight: 700; border-radius: 8px; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); color: #fff; }
+  #kjScanBody .row .wrote { font-size: 12px; opacity: .55; margin: 4px 0; }
+  #kjScanBody .pick { font-size: 14px; font-weight: 700; margin-top: 2px; }
+  #kjScanBody .pick .art, #kjScanBody .opt .art { opacity: .55; font-weight: 400; }
+  #kjScanBody .pick .chg { font-size: 12px !important; font-weight: 400 !important; padding: 0 0 0 6px !important; border: 0 !important; background: none !important; color: #5ef0ff !important; text-decoration: underline; }
+  #kjScanBody .lbl { font-size: 12px; color: #ffcf5a; margin: 4px 0 2px; }
+  #kjScanBody .pick.guess { color: #ffcf5a; }
+  #kjScanBody .pct { font-size: 11px; font-weight: 800; color: #ffcf5a; background: rgba(255,207,90,.14); border-radius: 6px; padding: 1px 6px; margin-left: auto; flex: none; white-space: nowrap; }
+  #kjScanBody .pick .pct { margin-left: 4px; }
+  #kjScanBody .opt { display: flex; gap: 8px; align-items: center; padding: 6px 0; font-size: 14px; }
+  #kjScanBody .opt input { width: 18px; height: 18px; flex: none; accent-color: #39d97a; }
+  #kjScanBody .srch { width: 100%; box-sizing: border-box; margin-top: 6px; padding: 7px 10px; font-size: 15px; border-radius: 8px; border: 1px solid rgba(94,240,255,.4); background: rgba(255,255,255,.06); color: #fff; }
+  #kjScanBody .row select { width: 100%; padding: 6px; font-size: 14px; border-radius: 8px; background: #1a1636; color: #fff; border: 1px solid rgba(255,255,255,.2); }
+  #kjScanBody .row .note { font-size: 12px; color: #ffcf5a; margin-top: 4px; }
+  #kjScanBody .row.off { opacity: .5; }
+  #kjScanBody .more { display: block; width: 100%; margin-top: 10px; font-size: 13px !important; font-weight: 600 !important; border-style: dashed !important; }
+  #kjScanBody .more.skipped { opacity: .7; border: 0 !important; background: none !important; text-align: left; padding-left: 0 !important; }
+  #kjScanBody .skiplist { opacity: .75; }
   /* Change song: search KaraFun's catalog and swap the signup's song in place */
   #kjChange { display: block; margin: 8px 0 4px; padding: 7px 12px; font-size: 13px; font-weight: 700; border-radius: 9px;
     border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.06); color: #fff; }
@@ -499,7 +535,20 @@
   #kjNightHead .cnt { opacity: .6; font-size: 12px; }
   #kjNightHead .chev { margin-left: auto; font-size: 13px; opacity: .7; color: #fff; }
   #kjNightList:not(:empty) { padding: 4px 14px 10px; border-top: 1px solid rgba(255,255,255,.15); }
-  #kjNightList { filter: grayscale(1); opacity: .72; }   /* history: black & white, a step back from the live queue */
+  #kjNightList { filter: grayscale(1); opacity: .72; }
+  /* Not added from photos: tonight's sheet lines that didn't make it into KaraFun */
+  #kjMissBox { display: none; margin-top: 12px; border: 1px solid rgba(255,207,90,.35); border-radius: 12px; background: rgba(255,207,90,.04); overflow: hidden; }
+  body.kjmiss #kjMissBox { display: block; }
+  #kjMissHead { cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 12px 14px; font-size: 13px; }
+  #kjMissHead b { font-weight: 800; letter-spacing: .12em; color: #ffcf5a; }
+  #kjMissHead .cnt { opacity: .6; font-size: 12px; } #kjMissHead .chev { margin-left: auto; color: #ffcf5a; }
+  #kjMissList:not(:empty) { padding: 2px 14px 10px; border-top: 1px solid rgba(255,207,90,.18); }
+  #kjMissList .m { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.06); font-size: 14px; }
+  #kjMissList .m .tx { flex: 1; min-width: 0; }
+  #kjMissList .m .tx small { display: block; font-size: 12px; opacity: .55; }
+  #kjMissList .m .x { border: 0; background: none; color: #fff; opacity: .45; font-size: 16px; padding: 4px 6px; }
+  .yt { display: inline-block; font-size: 12px; font-weight: 700; color: #ff6b6b; text-decoration: none; border: 1px solid rgba(255,107,107,.45); border-radius: 7px; padding: 2px 8px; white-space: nowrap; }
+  #kjScanBody .yt { margin-top: 6px; }   /* history: black & white, a step back from the live queue */
   #kjNightList .ng { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
   #kjNightList .nh { display: flex; justify-content: space-between; align-items: baseline; font-size: 16px; }
   #kjNightList .nh span { font-size: 13px; opacity: .65; }
@@ -738,7 +787,7 @@
 <div id="kjPage"><div class="in">
   <header><div class="hd"><div class="t"><span class="nm">KJQV</span><button id="kjWarn" aria-label="About experimental features" title="Experimental">⚠️</button><button id="kjDot" aria-label="Connection details" title="Connection"></button></div>
     </div>
-    <div class="hb"><div id="kjCtrls"><div class="btns"><button id="kjPlay" aria-label="Play or pause" title="Play / pause"></button><button id="kjRestart" aria-label="Restart song" title="Restart song (tap twice)"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg></button><button id="kjSkip" aria-label="Skip song" title="Skip song (tap twice)"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M6 6l8.5 6L6 18zM16 6h2v12h-2z"/></svg></button><span id="kjArmMsg"></span></div></div><button id="kjOpts" aria-label="Options" title="Options"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div></header>
+    <div class="hb"><div id="kjCtrls"><div class="btns"><button id="kjScanBtn" aria-label="Add signups from a photo of the sheet" title="Signup sheet: add from a photo"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/></svg></button><button id="kjPlay" aria-label="Play or pause" title="Play / pause"></button><button id="kjRestart" aria-label="Restart song" title="Restart song (tap twice)"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg></button><button id="kjSkip" aria-label="Skip song" title="Skip song (tap twice)"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M6 6l8.5 6L6 18zM16 6h2v12h-2z"/></svg></button><span id="kjArmMsg"></span></div></div><button id="kjOpts" aria-label="Options" title="Options"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div></header>
 <div id="kjInfo" class="st"><span id="kjConn" class="wait">○ Connecting to KaraFun…</span><span id="kjCtlSep"></span><span id="kjCtl"></span><span id="kjVx"></span></div>
   <div id="kjWarnMsg"><b>⚠️ Experimental.</b> The controls change your real KaraFun queue. They need KJ mode to be an admin in KaraFun (tap the dot for its name).</div>
   <div id="kjAlert"><b>Banned song signed up</b><div id="kjBanList"></div></div>
@@ -746,7 +795,14 @@
   <div class="sec">NOW SINGING</div><div id="kjNow"></div>
   <div id="kjVols"></div><div id="kjCtrlMsg"></div>
   <div class="sec">QUEUE <span id="kjCount"></span></div><div id="kjQueue"></div>
+  <input id="kjScanFile" type="file" accept="image/*" hidden>
   <div id="kjSheetBg"></div>
+  <div id="kjScan"><div class="sh">Signups from a photo</div>
+    <div id="kjScanKey"><p>Reading handwriting uses Claude, with your own Anthropic API key (about a cent a photo, billed to you). It's saved only on this phone and only ever sent to Anthropic.</p>
+      <input id="kjScanKeyIn" type="password" placeholder="sk-ant-…" autocomplete="off"><button id="kjScanKeySave">Save key</button></div>
+    <div id="kjScanBody"></div>
+    <div class="acts"><button id="kjScanCancel">Cancel</button><button id="kjScanAdd" class="go">Add to queue</button></div>
+    <button id="kjScanForget">Forget my API key</button></div>
   <div id="kjSheet"><div class="sh">Edit signup</div><div id="kjSheetT"></div>
     <button id="kjChange" class="ctl">Change song…</button>
     <div id="kjFind" class="ctl"><input id="kjFindQ" type="search" placeholder="Search KaraFun songs or artists" autocomplete="off" enterkeyhint="search"><div id="kjFindR"></div></div>
@@ -762,6 +818,7 @@
     <div class="note noctl">Turn on KJ controls in Options to change the name, key or tempo here.</div>
     <div class="acts"><button id="kjSheetCancel">Cancel</button><button id="kjSheetSave">Save</button></div></div>
   <div id="kjNightBox"><div id="kjNightHead" role="button"></div><div id="kjNightList"></div></div>
+  <div id="kjMissBox"><div id="kjMissHead" role="button"></div><div id="kjMissList"></div></div>
   <div class="foot">Tap an entry for options. <b>KJQV KJ</b> needs admin permissions in KaraFun's Remote Control for the controls to work. KJQV is unofficial and not affiliated with KaraFun.</div>
 </div></div>
 <div id="opts" class="hidden" role="dialog" aria-label="Options"><div class="in">
@@ -902,7 +959,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var CFG_KEY = "kqv.cfg";
   var cfg = {};
   try { cfg = JSON.parse(load(CFG_KEY) || "{}") || {}; } catch (e) { cfg = {}; }
-  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette", "flicker", "away", "spottime", "lite", "wipe", "nowtext", "nexttext", "comingtext", "noisetext", "thankstext", "thankssub", "emptytext", "signuptext", "lastcalltext", "musictext", "backtext", "ban", "banalert", "banmove", "kjcontrols", "keys", "autotune", "weather", "songreveal", "vx5"];
+  var OPTS = ["logo", "bg1", "bg2", "up1", "up2", "now", "next", "icons", "pulse", "songs", "title", "artist", "count", "time", "font", "idle", "clock", "eta", "gap", "long", "dance", "numbers", "line", "theme", "bgimg", "pattern", "mic", "mics", "excited", "dots", "equity", "upin", "align", "vu", "applause", "qr", "qrtext", "qrbg", "drip", "scroll", "nextflicker", "flourish", "qrswap", "caps", "spotlight", "spin", "logosize", "vignette", "flicker", "away", "spottime", "lite", "wipe", "nowtext", "nexttext", "comingtext", "noisetext", "thankstext", "thankssub", "emptytext", "signuptext", "lastcalltext", "musictext", "backtext", "ban", "banalert", "banmove", "kjcontrols", "keys", "autotune", "weather", "songreveal", "vx5", "photoscan"];
   // A link with any look options replaces the saved look; a bare link (just code=) keeps it.
   // The preview never uses what this device saved.
   if (DEMO || OPTS.some(function (k) { return params.has(k); })) cfg = {};
@@ -2050,6 +2107,268 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     document.body.classList.remove("kjfind"); $("kjFindQ").value = ""; $("kjFindR").innerHTML = "";
     kjDrawEdit();
   }
+  // ---------------------------------------------------------------- Signups from a photo (experimental)
+  // Snap the paper signup sheet; Claude (with the KJ's own API key, kept only on this phone, never in a link)
+  // reads singer / song / artist off it; KJ mode finds each song in KaraFun's catalog; you check the list and
+  // tap Add, which appends them to the real KaraFun queue in sheet order.
+  var SCAN_MODEL = "claude-sonnet-5-5", SCAN_KEY = "kqv.claudekey", scanRows = [], scanVisible = [];
+  function scanKey() { return load(SCAN_KEY) || ""; }
+  // Tonight's sheet lines that didn't get added (not in KaraFun, or left unticked), kept on this phone till 6am
+  function missKey() { return nightKey().replace("kqv.night.", "kqv.miss."); }
+  var kjMiss = []; try { kjMiss = JSON.parse(load(missKey()) || "[]") || []; } catch (e) {}
+  var kjMissOpen = false;
+  function ytLink(title, artist) {
+    return '<a class="yt" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query=' +
+      encodeURIComponent([title, artist, "karaoke"].filter(Boolean).join(" ")) + '">▶ YouTube karaoke</a>';
+  }
+  function missSave() { if (!DEMO) save(missKey(), JSON.stringify(kjMiss)); missDraw(); }
+  function missDraw() {
+    document.body.classList.toggle("kjmiss", kjMiss.length > 0);
+    if (!kjMiss.length) return;
+    $("kjMissHead").innerHTML = "<b>NOT ADDED FROM PHOTOS</b><span class=\"cnt\">" + kjMiss.length + '</span><span class="chev">' + (kjMissOpen ? "▴" : "▾") + "</span>";
+    $("kjMissList").innerHTML = kjMissOpen ? kjMiss.map(function (x, i) {
+      return '<div class="m"><div class="tx"><b>' + esc(x.singer || "?") + "</b> " + songHTML(x.title || "?", x.artist) + "<small>" + esc(x.why) + "</small></div>" +
+        ytLink(x.title, x.artist) + '<button class="x" data-i="' + i + '" aria-label="Remove from this list">✕</button></div>';
+    }).join("") : "";
+  }
+  function scanOpen() {
+    document.body.classList.add("kjscan");
+    document.body.classList.toggle("kjscankey", !scanKey() && !DEMO);
+    $("kjScanForget").style.display = scanKey() ? "" : "none";
+  }
+  function scanClose() { document.body.classList.remove("kjscan", "kjscankey"); scanRows = []; scanVisible = []; scanShow = 5; scanShowSkipped = false; $("kjScanBody").innerHTML = ""; $("kjScanFile").value = ""; }
+  function scanMsg(t) { $("kjScanBody").innerHTML = '<div class="msg">' + t + "</div>"; $("kjScanAdd").disabled = true; }
+  function shrinkPhoto(file) {   // phones take huge photos; ~1600px is plenty to read handwriting and keeps it fast and cheap
+    return new Promise(function (ok, bad) {
+      var img = new Image(), url = URL.createObjectURL(file);
+      img.onload = function () {
+        var k = Math.min(1, 1600 / Math.max(img.width, img.height)), c = document.createElement("canvas");
+        c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+        ok(c.toDataURL("image/jpeg", .85).split(",")[1]);
+      };
+      img.onerror = function () { bad(new Error("Couldn't open that photo")); };
+      img.src = url;
+    });
+  }
+  function scanRead(b64) {
+    var prompt = "This is a photo of a karaoke signup sheet. List every signup in order, top to bottom. For each one give the " +
+      "singer's name, the song title and the artist as written (fix the spelling of well-known songs and artists). If a line is " +
+      "crossed out, has a check mark or line in the left margin by the name, or is otherwise marked as already sung, set done to true. If a word is scribbled out, use " +
+      "what's written instead of it. Use an empty string for anything unreadable or left blank (like a ? for the artist). Skip headers, " +
+      "blank lines and doodles. Reply with only " +
+      'JSON, no other text: [{"singer":"","title":"","artist":"","done":false}]';
+    return fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-api-key": scanKey(), "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+      body: JSON.stringify({ model: SCAN_MODEL, max_tokens: 6000, messages: [{ role: "user", content: [
+        { type: "image", source: { type: "base64", media_type: "image/jpeg", data: b64 } }, { type: "text", text: prompt }] }] })
+    }).then(function (r) { return r.json().then(function (j) {
+      if (!r.ok) throw new Error((j && j.error && j.error.message) || ("Claude said " + r.status));
+      var t = (j.content || []).filter(function (c) { return c.type === "text"; }).map(function (c) { return c.text; }).join("\n");
+      return scanParse(t, j.stop_reason);
+    }); });
+  }
+  // Claude's reply should be a JSON list, but be forgiving: code fences, a sentence around it, trailing commas,
+  // or a reply cut off partway (a very long sheet) still give every complete line it did read
+  function scanParse(t, stop) {
+    t = String(t || "").replace(/```(?:json)?/gi, "");
+    var a = t.indexOf("["), b = t.lastIndexOf("]");
+    if (a >= 0 && b > a) { try { return JSON.parse(t.slice(a, b + 1).replace(/,\s*([\]}])/g, "$1")); } catch (e) {} }
+    var rows = [];
+    (t.match(/\{[^{}]*\}/g) || []).forEach(function (o) { try { rows.push(JSON.parse(o.replace(/,\s*}/g, "}"))); } catch (e) {} });
+    if (rows.length) return rows;
+    throw new Error(stop === "max_tokens" ? "the sheet was too long to read in one go. Try a photo of half the sheet." :
+      "Claude didn't send back a list (it said: \"" + t.trim().slice(0, 140) + (t.length > 140 ? "…" : "") + "\")");
+  }
+  var DEMO_SHEET = [{ singer: "Kevin", title: "Friends in Low Places", artist: "Garth Brooks", done: true }, { singer: "Rachel", title: "Dancing Queen", artist: "ABBA" },
+    { singer: "Tasha", title: "Before He Cheats", artist: "Carrie Underwood" }, { singer: "Shane", title: "Dead or Alive", artist: "Bon Jovi" },
+    { singer: "Dana", title: "Total Eclips of the Heart", artist: "Bonnie Tyler" }, { singer: "Jo", title: "Wagon Wheel", artist: "Darius Rucker" },
+    { singer: "Kev", title: "Sweet Caroline", artist: "Neil Diamond" }, { singer: "Gloria", title: "I Will Survive", artist: "" },
+    { singer: "Big Mike", title: "Livin on a Prayer", artist: "Bon Jovi" }, { singer: "Tasha", title: "Bohemian Rapsody", artist: "Queen" },
+    { singer: "Maya", title: "Valerie", artist: "Amy Winehouse" }];
+  function scanSearch(q) {
+    if (DEMO) { var w = q.toLowerCase().split(/\s+/).filter(function (x) { return x.length > 2; });
+      return Promise.resolve(DEMO_CATALOG.map(function (x) { var h = (x.title + " " + x.artist).toLowerCase(); return [w.filter(function (y) { return h.indexOf(y) >= 0; }).length, x]; })
+        .filter(function (a) { return a[0] >= 2; }).sort(function (a, b) { return b[0] - a[0]; }).map(function (a) { return a[1]; })); }
+    return fetch(KF_HOST + code + "/?type=search&q=" + encodeURIComponent(q) + "&types=karaoke").then(function (r) { return r.json(); }).then(function (l) { return l || []; }, function () { return []; });
+  }
+  function scanFind(row) {   // title + artist first; if that finds nothing, the title alone
+    return scanSearch((row.title + " " + (row.artist || "")).trim()).then(function (l) {
+      return l.length || !row.artist ? l : scanSearch(row.title).then(function (t) { return t.length ? t : scanSearch(row.artist); });
+    }).then(function (l) { row.matches = l.filter(function (x) { return x && x.songId; }).slice(0, 5); });
+  }
+  // Same singer + same song (KaraFun's id, or the title) already in the queue, or already sung tonight (History)?
+  function scanSameSong(r, m, title) {
+    var a = scanNorm(title), w = scanNorm(r.title);
+    return (m && a === scanNorm(m.title)) || (!!w && (a === w || (a.length > 3 && w.length > 3 && (a.indexOf(w) >= 0 || w.indexOf(a) >= 0))));
+  }
+  function scanSkip(r, m) {
+    if (r.done) return "Crossed off on the sheet";
+    var nk = nameKey(r.singer);
+    if (queue.some(function (it) { var x = info(it); return nameKey(x.singer) === nk && ((m && songIdOf(it) === m.songId) || scanSameSong(r, m, x.title)); })) return "Already in the queue";
+    if (kjNight.some(function (y) { return nameKey(y.name) === nk && scanSameSong(r, m, y.title); })) return "Already sung tonight";
+    return "";
+  }
+  function scanNorm(t) { return String(t || "").toLowerCase().replace(/\(.*?\)|\[.*?\]/g, "").replace(/&/g, "and").replace(/[^a-z0-9]+/g, " ").trim(); }
+  // Exact enough: same title (ignoring case, punctuation and "(feat …)") and, if they wrote an artist, a matching artist
+  function scanExact(r, m) {
+    if (!m) return false;
+    var a = scanNorm(r.title), b = scanNorm(m.title), wa = scanNorm(r.artist), ma = scanNorm(m.artist);
+    return !!a && a === b && (!wa || ma.indexOf(wa) >= 0 || wa.indexOf(ma) >= 0);
+  }
+  // How close a KaraFun song is to what was written, 0–1: the title counts most (spelling, and how many of the
+  // written words it has, so "Dead or Alive" finds "Wanted Dead or Alive"), the artist the rest
+  function bigrams(t) { var o = {}, n = 0; t = " " + t + " "; for (var i = 0; i < t.length - 1; i++) { var g = t.substr(i, 2); o[g] = (o[g] || 0) + 1; n++; } return { g: o, n: n }; }
+  function dice(a, b) {
+    if (!a || !b) return 0; if (a === b) return 1;
+    var A = bigrams(a), B = bigrams(b), hit = 0;
+    for (var g in A.g) if (B.g[g]) hit += Math.min(A.g[g], B.g[g]);
+    return 2 * hit / (A.n + B.n);
+  }
+  function wordsIn(a, b) { var w = a.split(" ").filter(Boolean), h = " " + b + " "; return w.length ? w.filter(function (x) { return h.indexOf(" " + x + " ") >= 0; }).length / w.length : 0; }
+  function scanScore(r, m) {
+    var a = scanNorm(r.title), b = scanNorm(m.title), wa = scanNorm(r.artist), ma = scanNorm(m.artist);
+    var t = Math.max(dice(a, b), .95 * wordsIn(a, b));
+    if (!wa) return t;
+    var ar = Math.max(dice(wa, ma), wordsIn(wa, ma), wordsIn(ma, wa) * .9);
+    return .75 * t + .25 * ar;
+  }
+  var scanShow = 5, scanShowSkipped = false;
+  function scanRowHTML(r, i) {
+    var m = r.matches || [];
+    if (r.exact === undefined) {
+      m.forEach(function (x) { x._s = scanScore(r, x); });
+      m.sort(function (x, y) { return scanExact(r, y) - scanExact(r, x) || y._s - x._s; });   // exact first, then best guess
+      r.exact = scanExact(r, m[0]);
+      if (r.exact || (m[0] && m[0]._s >= .8)) r.pick = 0;   // a clear best guess gets picked too, marked as a guess
+    }
+    var chosen = r.pick !== undefined ? m[r.pick] : null;
+    if (r.on === undefined) r.on = !!chosen && !r.skip;
+    var song;
+    if (chosen && !r.open) {
+      var guess = !scanExact(r, chosen);
+      song = '<div class="pick' + (guess ? " guess" : "") + '">' + (guess ? "≈ " : "✓ ") + esc(chosen.title) + ' <span class="art">· ' + esc(chosen.artist) + "</span>" +
+        (guess ? ' <span class="pct">' + Math.round((chosen._s || 0) * 100) + "% guess</span>" : "") + ' <button class="chg" data-a="open">change</button></div>';
+    } else {
+      song = (m.length ? '<div class="opts"><div class="lbl">' + (chosen ? "Pick the song:" : "No exact match. Closest in KaraFun:") + "</div>" +
+        m.map(function (x, n) { return '<label class="opt"><input type="radio" name="sc' + i + '" value="' + n + '"' + (r.pick === n ? " checked" : "") + "> <span>" +
+          esc(x.title) + ' <span class="art">· ' + esc(x.artist) + "</span></span>" + (x._s !== undefined && !scanExact(r, x) ? '<span class="pct">' + Math.round(x._s * 100) + "%</span>" : "") + "</label>"; }).join("") + "</div>"
+        : '<div class="lbl">Not found in KaraFun.</div>' + ytLink(r.title, r.artist)) +
+        '<input class="srch" type="search" placeholder="Search KaraFun for this one" enterkeyhint="search" value="' + esc(r.q || "") + '">';
+    }
+    return '<div class="row' + (r.on || !chosen ? "" : " off") + '" data-i="' + i + '"><input type="checkbox"' + (r.on ? " checked" : "") + (chosen ? "" : " disabled") + ">" +
+      '<div class="bd"><input type="text" class="nm" value="' + esc(r.singer || "") + '" maxlength="60">' +
+      '<div class="wrote">Wrote: ' + esc([r.title, r.artist].filter(Boolean).join(" · ") || "?") + "</div>" + song +
+      (r.skip ? '<div class="note">' + r.skip + "</div>" : "") + "</div></div>";
+  }
+  function scanDraw() {
+    if (!scanRows.length) { scanMsg("No signups found in that photo."); return; }
+    scanRows.forEach(function (r) {
+      if (r.skip === undefined) { var m = r.matches || []; r.skip = scanSkip(r, m[0] && (scanExact(r, m[0]) || (m[0]._s || scanScore(r, m[0])) >= .8) ? m[0] : null); }
+    });
+    var act = [], skipped = [];
+    scanRows.forEach(function (r, i) { (r.skip ? skipped : act).push(i); });
+    var shown = act.slice(0, scanShow), more = act.length - shown.length;
+    scanVisible = shown;
+    $("kjScanBody").innerHTML = (act.length ? "<p>" + act.length + (act.length === 1 ? " new signup" : " new signups") + " on the sheet. Check them, untick anything you don't want, then tap <b>Add</b>. They go after everyone already in line, in sheet order.</p>"
+        : "<p>Nothing new on this sheet: everything is crossed off, already in the queue or already sung tonight.</p>") +
+      shown.map(function (i) { return scanRowHTML(scanRows[i], i); }).join("") +
+      (more ? '<button class="more" data-a="more">Show ' + Math.min(5, more) + " more (" + more + " left)</button>" : "") +
+      (skipped.length ? '<button class="more skipped" data-a="skipped">' + (scanShowSkipped ? "▴ " : "▾ ") + skipped.length + " skipped: crossed off, in the queue or already sung</button>" +
+        (scanShowSkipped ? '<div class="skiplist">' + skipped.map(function (i) { return scanRowHTML(scanRows[i], i); }).join("") + "</div>" : "") : "");
+    scanCount();
+  }
+  function scanTodo() {
+    return scanRows.filter(function (r, i) { return r.on && r.matches && r.pick !== undefined && r.matches[r.pick] && (scanVisible.indexOf(i) >= 0 || (r.skip && scanShowSkipped)); });
+  }
+  function scanCount() {
+    var n = scanTodo().length;
+    $("kjScanAdd").disabled = !n && !scanVisible.length; $("kjScanAdd").textContent = n ? "Add " + n + " to queue" : "Done";
+  }
+  function scanPhoto(file) {
+    if (!file) return;
+    scanOpen(); scanMsg("Reading the sheet…");
+    var got = DEMO && !scanKey() ? new Promise(function (ok) { setTimeout(function () { ok(JSON.parse(JSON.stringify(DEMO_SHEET))); }, 900); })
+      : shrinkPhoto(file).then(scanRead);
+    got.then(function (rows) {
+      scanRows = (rows || []).filter(function (r) { return r && (r.singer || r.title); }).map(function (r) {
+        return { singer: String(r.singer || "").trim().slice(0, 60), title: String(r.title || "").trim(), artist: String(r.artist || "").trim(), done: !!r.done };
+      });
+      scanMsg("Found " + scanRows.length + " signups. Finding the songs in KaraFun…");
+      var left = scanRows.slice(), done = 0;
+      var worker = function () { var r = left.shift(); if (!r) return Promise.resolve();
+        return scanFind(r).then(function () { done++; scanMsg("Found " + scanRows.length + " signups. Finding the songs in KaraFun… " + done + " of " + scanRows.length); return worker(); }); };
+      return Promise.all([worker(), worker(), worker(), worker()]);   // four at a time
+    }).then(scanDraw, function (e) { scanMsg("Couldn't read that photo: " + esc(e.message || String(e)) + (/auth|api.key|x-api-key/i.test(String(e.message)) ? " Check your API key." : "")); });
+  }
+  function scanAdd() {
+    var todo = scanTodo();
+    scanVisible.forEach(function (i) {
+      var r = scanRows[i]; if (todo.indexOf(r) >= 0) return;
+      var found = r.matches && r.matches.length;
+      kjMiss.push({ singer: r.singer, title: r.title, artist: r.artist, why: found ? "Left unticked" : "Not in KaraFun", at: Date.now() });
+    });
+    missSave();
+    if (!todo.length) { scanClose(); return; }
+    $("kjScanAdd").disabled = true;
+    var done = 0;
+    var next = function () {
+      if (!todo.length) { scanClose(); $("kjCtrlMsg").textContent = "Added " + done + (done === 1 ? " signup" : " signups") + " from the photo."; return; }
+      var r = todo.shift(), m = r.matches[r.pick || 0];
+      if (m.key) keyCache[m.songId] = m.key; if (m.duration) durCache[m.songId] = m.duration;
+      $("kjScanAdd").textContent = "Adding " + (done + 1) + "…";
+      if (DEMO) {
+        var at = queue.length; queue.forEach(function (it, n) { if (it.tail && at === queue.length) at = n; });
+        queue.splice(at, 0, { id: "scan" + Date.now() + done, song: { id: { type: 1, id: m.songId }, title: m.title, artist: m.artist, options: { singer: r.singer } } });
+        done++; render(); setTimeout(next, 120); return;
+      }
+      var p = kjSend("remote.AddToQueueRequest", { song: { type: 1, id: m.songId }, options: { singer: r.singer } }, "adding " + r.singer);
+      if (p && p.then) p.then(function () { done++; next(); }, function () { scanDraw(); }); else next();
+    };
+    next();
+  }
+  if (KJ) {
+    if (/^(on|yes|1|true)$/i.test(String(cfg.photoscan || "")) || DEMO) document.body.classList.add("kjphoto");   // off unless you turn it on
+    $("kjScanBtn").onclick = function () { if (!scanKey() && !DEMO) { scanOpen(); scanMsg(""); return; } $("kjScanFile").click(); };
+    $("kjScanFile").onchange = function () { scanPhoto(this.files && this.files[0]); };
+    $("kjScanKeySave").onclick = function () {
+      var k = $("kjScanKeyIn").value.trim(); if (!/^sk-/.test(k)) { $("kjScanKeyIn").focus(); return; }
+      save(SCAN_KEY, k); $("kjScanKeyIn").value = ""; document.body.classList.remove("kjscankey"); $("kjScanForget").style.display = "";
+      scanMsg("Key saved on this phone. Now take the photo."); $("kjScanFile").click();
+    };
+    $("kjScanForget").onclick = function () { try { localStorage.removeItem(SCAN_KEY); } catch (e) {} scanClose(); };
+    $("kjScanCancel").onclick = scanClose;
+    $("kjScanAdd").onclick = scanAdd;
+    $("kjMissHead").onclick = function () { kjMissOpen = !kjMissOpen; missDraw(); };
+    $("kjMissList").onclick = function (e) { var b = e.target.closest && e.target.closest(".x"); if (b) { kjMiss.splice(+b.getAttribute("data-i"), 1); missSave(); } };
+    missDraw();
+    var scanRow = function (e) { var row = e.target.closest && e.target.closest(".row"); return row ? scanRows[+row.getAttribute("data-i")] : null; };
+    $("kjScanBody").addEventListener("change", function (e) {
+      var r = scanRow(e); if (!r) return;
+      if (e.target.type === "checkbox") { r.on = e.target.checked; e.target.closest(".row").classList.toggle("off", !r.on); scanCount(); }
+      if (e.target.type === "radio") { r.pick = +e.target.value; r.open = false; r.on = true; scanDraw(); }   // picking a song ticks the line
+    });
+    $("kjScanBody").addEventListener("input", function (e) {
+      var r = scanRow(e); if (r && e.target.classList.contains("nm")) r.singer = e.target.value.trim().slice(0, 60);
+    });
+    $("kjScanBody").addEventListener("click", function (e) {
+      var act = e.target.getAttribute && e.target.getAttribute("data-a");
+      if (act === "more") { scanShow += 5; scanDraw(); return; }
+      if (act === "skipped") { scanShowSkipped = !scanShowSkipped; scanDraw(); return; }
+      var r = scanRow(e); if (r && act === "open") { r.open = true; scanDraw(); }
+    });
+    $("kjScanBody").addEventListener("keydown", function (e) {
+      var r = scanRow(e); if (!r || !e.target.classList.contains("srch") || e.key !== "Enter") return;
+      var q = e.target.value.trim(); if (q.length < 2) return;
+      r.q = q; e.target.blur();
+      scanSearch(q).then(function (l) {
+        r.matches = l.filter(function (x) { return x && x.songId; }).slice(0, 5);
+        r.matches.forEach(function (x) { x._s = scanScore(r, x); });
+        r.pick = undefined; r.on = false; r.open = true; scanDraw();
+      });
+    });
+  }
   // ---------------------------------------------------------------- Change song (search KaraFun's catalog)
   // KaraFun's own remote searches with GET <code>/?type=search&q=…, which also returns each song's key and length.
   var DEMO_CATALOG = [
@@ -2057,7 +2376,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     [3001, "Before He Cheats", "Carrie Underwood", "F#m", 199], [3002, "Friends in Low Places", "Garth Brooks", "A", 258],
     [3003, "Livin' on a Prayer", "Bon Jovi", "Em", 250], [3004, "Dancing Queen", "ABBA", "A", 231],
     [3005, "Total Eclipse of the Heart", "Bonnie Tyler", "Ab", 270], [3006, "I Will Survive", "Gloria Gaynor", "Am", 198],
-    [3007, "Wagon Wheel", "Darius Rucker", "A", 268], [3008, "Bohemian Rhapsody", "Queen", "Bb", 355]
+    [3007, "Wagon Wheel", "Darius Rucker", "A", 268], [3008, "Bohemian Rhapsody", "Queen", "Bb", 355],
+    [3010, "Wanted Dead or Alive", "Bon Jovi", "D", 309]
   ].map(function (a) { return { songId: a[0], title: a[1], artist: a[2], key: a[3], duration: a[4] }; });
   var findTimer = 0, findSeq = 0, findResults = [];
   function mmss(s) { s = Math.round(s || 0); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
@@ -3205,6 +3525,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["kjcontrols", "KJ view: play, skip and restart", [["", "Off"], ["on", "On (experimental)"]]],
     ["keys", "KJ view: show keys as", [["", "Default (# + b)"], ["sharp", "Sharps only (#)"], ["flat", "Flats only (b)"]]],
     ["vx5", "KJ view: VX5 key presets (laptop + USB)", [["", "Off"], ["100", "Presets 100–124"], ["1", "Presets 1–25"]]],
+    ["photoscan", "KJ view: signups from a photo (your own Claude API key)", [["", "Off"], ["on", "On"]]],
     ["#", "Old Fire Sticks"],
     ["lite", "Simple GFX mode (for old Fire Sticks)", [["", "Auto"], ["on", "On"], ["off", "Off"]]]
   ];
