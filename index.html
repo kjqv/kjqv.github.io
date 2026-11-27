@@ -357,10 +357,10 @@
   @media (max-width: 370px) { #kjPage .t { font-size: 16px; } }
   #kjPage .t .sep { opacity: .35; font-weight: 400; margin: 0 2px; }
   /* ⚠️ and the connection dot: two small outlined chips, like the key badges */
-  #kjPage header #kjWarn, #kjPage header #kjDot, #kjPage header #kjCmdBtn { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
+  #kjPage header #kjWarn, #kjPage header #kjDot, #kjPage header #kjCmdBtn, #kjPage header #kjKeyBtn { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
     height: 24px; min-width: 24px; padding: 0 4px; margin-left: 5px; vertical-align: middle; position: relative; top: -2px; cursor: pointer;
     border: 1px solid rgba(255,255,255,.22); border-radius: 7px; background: rgba(255,255,255,.06); font-size: 13px; line-height: 1; }
-  #kjPage header #kjDot, #kjPage header #kjCmdBtn { margin-left: 4px; }
+  #kjPage header #kjDot, #kjPage header #kjCmdBtn, #kjPage header #kjKeyBtn { margin-left: 4px; }
   #kjWarnMsg { display: none; margin-top: 10px; padding: 10px 12px; border-radius: 10px; font-size: 13px; line-height: 1.45;
     background: rgba(255,207,90,.1); border: 1px solid rgba(255,207,90,.4); color: rgba(255,255,255,.85); }
   #kjWarnMsg b { color: #ffcf5a; } body.kjwarn #kjWarnMsg { display: block; }
@@ -504,7 +504,10 @@
     padding: 10px; border-radius: 14px; background: #17142e; border: 1px solid rgba(77,255,149,.35); box-shadow: 0 14px 44px rgba(0,0,0,.65);
     max-height: 70vh; overflow: auto; }   /* a popup under the ⚡, over the page (nothing gets pushed down) */
   body.kjctl.kjcmd #kjCmd { display: block; }
-  #kjPage header #kjCmdBtn { display: none; }
+  #kjPage header #kjCmdBtn, #kjPage header #kjKeyBtn { display: none; }
+  #kjPage header #kjKeyBtn { color: rgba(255,255,255,.8); }
+  #kjPage header #kjKeyBtn.has { color: #4dff95; }   /* green once a key is saved */
+  body.kjctl #kjPage header #kjKeyBtn { display: inline-flex; }
   body.kjctl #kjPage header #kjCmdBtn { display: inline-flex; }
   #kjPage header #kjCmdBtn { color: #fff; }
   body.kjcmd #kjPage header #kjCmdBtn { background: rgba(57,217,122,.2); border-color: #4dff95; color: #4dff95; }
@@ -535,6 +538,7 @@
   body.kjctl.kjphoto #kjCtrls .btns #kjScanBtn { display: flex; }
   #kjScan { display: none; position: fixed; inset: 0; z-index: 60; overflow-y: auto; padding: 18px 14px 30px; background: #0b0920; }
   body.kjscan #kjScan { display: block; }
+  body.kjkeyonly #kjScanAdd { display: none; }
   #kjScan .sh { font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; opacity: .7; margin-bottom: 10px; }
   #kjScan p { font-size: 13px; line-height: 1.45; opacity: .8; margin: 0 0 10px; }
   #kjScanKey { display: none; } body.kjscankey #kjScanKey { display: block; }
@@ -881,7 +885,7 @@
 
 <!-- Options (only shown when someone opens it) -->
 <div id="kjPage"><div class="in">
-  <header><div class="hd"><div class="t"><span class="nm">KJQV</span><button id="kjWarn" aria-label="About experimental features" title="Experimental">⚠️</button><button id="kjDot" aria-label="Connection details" title="Connection"></button><button id="kjCmdBtn" aria-label="Quick actions" title="Quick actions"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></button></div>
+  <header><div class="hd"><div class="t"><span class="nm">KJQV</span><button id="kjWarn" aria-label="About experimental features" title="Experimental">⚠️</button><button id="kjDot" aria-label="Connection details" title="Connection"></button><button id="kjCmdBtn" aria-label="Quick actions" title="Quick actions"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></button><button id="kjKeyBtn" aria-label="Claude API key" title="Claude API key"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3 20 3M16 7l3 3M18 5l2 2"/></svg></button></div>
     </div>
     <div class="hb"><div id="kjCtrls"><div class="btns"><button id="kjScanBtn" aria-label="Add signups from a photo of the sheet" title="Signup sheet: add from a photo"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/></svg></button><button id="kjPlay" aria-label="Play or pause" title="Play / pause"></button><button id="kjRestart" aria-label="Restart song" title="Restart song (tap twice)"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg></button><button id="kjSkip" aria-label="Skip song" title="Skip song (tap twice)"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M6 6l8.5 6L6 18zM16 6h2v12h-2z"/></svg></button><span id="kjArmMsg"></span></div></div><button id="kjOpts" aria-label="Options" title="Options"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div></header>
 <div id="kjInfo" class="st"><span id="kjConn" class="wait">○ Connecting to KaraFun…</span><span id="kjCtlSep"></span><span id="kjCtl"></span><span id="kjVx"></span></div>
@@ -896,8 +900,8 @@
   <div class="sec qh">QUEUE <span id="kjCount"></span></div><div id="kjQueue"></div>
   <input id="kjScanFile" type="file" accept="image/*" hidden>
   <div id="kjSheetBg"></div>
-  <div id="kjScan"><div class="sh">Signups from a photo</div>
-    <div id="kjScanKey"><p>Reading handwriting uses Claude, with your own Anthropic API key (about a cent a photo, billed to you). It's saved only on this phone and only ever sent to Anthropic.</p>
+  <div id="kjScan"><div class="sh" id="kjScanTitle">Signups from a photo</div>
+    <div id="kjScanKey"><p id="kjKeyNote"></p><p>Reading handwriting (and quick actions it doesn't recognize) uses Claude, with your own Anthropic API key (about a cent a photo, billed to you). It's saved only on this phone and only ever sent to Anthropic.</p>
       <input id="kjScanKeyIn" type="password" placeholder="sk-ant-…" autocomplete="off"><button id="kjScanKeySave">Save key</button></div>
     <div id="kjScanBody"></div>
     <div class="acts"><button id="kjScanCancel">Cancel</button><button id="kjScanAdd" class="go">Add to queue</button></div>
@@ -2240,12 +2244,20 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         ytLink(x.title, x.artist) + '<button class="x" data-i="' + i + '" aria-label="Remove from this list">✕</button></div>';
     }).join("") : "";
   }
+  var scanKeyOnly = false;
+  function keyBtnDraw() { $("kjKeyBtn").classList.toggle("has", !!scanKey()); $("kjKeyBtn").title = scanKey() ? "Claude API key: saved" : "Claude API key: not set"; }
+  function keyOpen() {   // the 🔑 in the header: add, change or forget the key, nothing else
+    scanKeyOnly = true; document.body.classList.add("kjscan", "kjscankey", "kjkeyonly"); scanMsg(""); $("kjScanTitle").textContent = "Claude API key";
+    $("kjKeyNote").innerHTML = scanKey() ? "<b>✓ A key is saved on this phone.</b> Paste a new one to replace it." : "<b>No key saved yet.</b>";
+    $("kjScanForget").style.display = scanKey() ? "" : "none";
+  }
   function scanOpen() {
+    scanKeyOnly = false; $("kjKeyNote").innerHTML = ""; $("kjScanTitle").textContent = "Signups from a photo";
     document.body.classList.add("kjscan");
     document.body.classList.toggle("kjscankey", !scanKey() && !DEMO);
     $("kjScanForget").style.display = scanKey() ? "" : "none";
   }
-  function scanClose() { document.body.classList.remove("kjscan", "kjscankey"); scanRows = []; scanVisible = []; scanShow = 5; scanShowSkipped = false; $("kjScanBody").innerHTML = ""; $("kjScanFile").value = ""; }
+  function scanClose() { document.body.classList.remove("kjscan", "kjscankey", "kjkeyonly"); scanRows = []; scanVisible = []; scanShow = 5; scanShowSkipped = false; $("kjScanBody").innerHTML = ""; $("kjScanFile").value = ""; }
   function scanMsg(t) { $("kjScanBody").innerHTML = '<div class="msg">' + t + "</div>"; $("kjScanAdd").disabled = true; }
   function shrinkPhoto(file) {   // phones take huge photos; ~1600px is plenty to read handwriting and keeps it fast and cheap
     return new Promise(function (ok, bad) {
@@ -2464,10 +2476,12 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     $("kjScanFile").onchange = function () { scanPhoto(this.files && this.files[0]); };
     $("kjScanKeySave").onclick = function () {
       var k = $("kjScanKeyIn").value.trim(); if (!/^sk-/.test(k)) { $("kjScanKeyIn").focus(); return; }
-      save(SCAN_KEY, k); $("kjScanKeyIn").value = ""; document.body.classList.remove("kjscankey"); $("kjScanForget").style.display = "";
+      save(SCAN_KEY, k); $("kjScanKeyIn").value = ""; document.body.classList.remove("kjscankey"); $("kjScanForget").style.display = ""; keyBtnDraw();
+      if (scanKeyOnly) { scanClose(); $("kjCtrlMsg").textContent = "Claude API key saved on this phone."; return; }
       scanMsg("Key saved on this phone. Now take the photo."); $("kjScanFile").click();
     };
-    $("kjScanForget").onclick = function () { try { localStorage.removeItem(SCAN_KEY); } catch (e) {} scanClose(); };
+    $("kjScanForget").onclick = function () { try { localStorage.removeItem(SCAN_KEY); } catch (e) {} scanClose(); keyBtnDraw(); };
+    $("kjKeyBtn").onclick = keyOpen; keyBtnDraw();
     $("kjScanCancel").onclick = scanClose;
     $("kjScanAdd").onclick = scanAdd;
     $("kjMissHead").onclick = function () { kjMissOpen = !kjMissOpen; missDraw(); };
@@ -2827,10 +2841,13 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var kjCmdPlan = null, kjCmdShowPlan = null;
   // "add Ember singing Goodbye Earl by the Chicks up next" / "add Jo doing Wagon Wheel" / "sign up Mike for Crazy Train at 3"
   function kjParseAdd(t) {
-    var m = String(t || "").trim().replace(/[.!?]+$/, "").match(/^(?:add|sign up|signup|put up|put)\s+(.+?)\s+(?:singing|doing|to sing|sings|with|for|on)\s+(.+)$/i);
+    t = String(t || "").trim().replace(/[.!?]+$/, "");
+    var m = t.match(/^(?:add|sign up|signup|put up|put)\s+(.+?)\s+(?:singing|doing|to sing|sings|with|for|on)\s+(.+)$/i) ||
+      t.match(/^(?:let |have )?(.+?)\s+(?:wants to sing|wants to do|would like to sing|would like|wants|is gonna sing|is going to sing|will sing|is singing|is doing|sings|requested|requests)\s+(.+)$/i);
     if (!m) return null;
     var song = m[2], where = "last", w;
-    if ((w = song.match(/\s+(?:up next|next|first|to the top|at the top)$/i))) { where = "next"; song = song.slice(0, w.index); }
+    if (/^(?:up )?(?:nex|next|first|last)$/i.test(song.trim())) return null;   // "Mike wants to sing next" is a move, not a song
+    if ((w = song.match(/\s+(?:up nex|up next|nex|next|first|to the top|at the top)$/i))) { where = "next"; song = song.slice(0, w.index); }
     else if ((w = song.match(/\s+(?:last|at the end|to the end|at the bottom)$/i))) { song = song.slice(0, w.index); }
     else if ((w = song.match(/\s+(?:at|to|in)\s+(?:#|number |spot |position )?(\d+)(?:st|nd|rd|th)?$/i))) { where = Math.max(1, +w[1]); song = song.slice(0, w.index); }
     var by = song.match(/^(.+?)\s+by\s+(.+)$/i), title = by ? by[1] : song, artist = by ? by[2].replace(/^the\s+/i, "") : "";
@@ -2886,8 +2903,17 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if (add) {   // "add Ember singing Goodbye Earl by the Chicks next": find it in KaraFun's catalog first
       kjCmdShow('<div class="cp">Looking up “' + esc(add.title) + "” in KaraFun…</div>");
       var row = { title: add.title, artist: add.artist };
-      scanFind(row).then(function () {
-        var ms = (row.matches || []).map(function (m) { return [scanScore(row, m), m]; }).sort(function (a, b) { return b[0] - a[0]; }).map(function (a) { return a[1]; }).slice(0, 4);
+      // no "by": if the words together find nothing, try the last few words as the artist ("goodbye earl the chicks")
+      var tryFind = function (k) {
+        return scanFind(row).then(function () {
+          var wd = add.title.split(/\s+/);
+          if ((row.matches || []).length || add.artist || k >= Math.min(4, wd.length - 1)) return;
+          row = { title: wd.slice(0, wd.length - k - 1).join(" "), artist: wd.slice(wd.length - k - 1).join(" ").replace(/^the\s+/i, "") };
+          return tryFind(k + 1);
+        });
+      };
+      tryFind(0).then(function () {
+        var ms = (row.matches || []).map(function (m) { return [add.artist ? scanScore(row, m) : Math.max(scanScore(row, m), wordsIn(scanNorm(row.title), scanNorm(m.title + " " + m.artist))), m]; }).sort(function (a, b) { return b[0] - a[0]; }).map(function (a) { return a[1]; }).slice(0, 4);
         if (!ms.length) { kjCmdShow('<div class="err">KaraFun has nothing for “' + esc(add.title + (add.artist ? " by " + add.artist : "")) + "”. Check the spelling, or try just the title.</div>"); return; }
         add.alts = ms; kjAddPick(add, 0); show([add]);
       });
