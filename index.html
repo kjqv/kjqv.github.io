@@ -522,6 +522,9 @@
   #kjChips .sep { flex-basis: 100%; height: 0; }
   #kjCmdOut:not(:empty) { margin-top: 6px; padding: 8px 10px; border-radius: 10px; background: rgba(57,217,122,.07); border: 1px solid rgba(57,217,122,.3); font-size: 13px; }
   #kjCmdOut .cp { margin: 2px 0; } #kjCmdOut .err { color: #ffcf5a; }
+  #kjCmdOut:has(.plan) { padding: 0; border: 0; background: none; }
+  #kjCmdOut .plan { --t: 77,255,149; padding: 8px 10px; border-radius: 10px; background: rgba(var(--t),.08); border: 1px solid rgba(var(--t),.45); }
+  #kjCmdOut .plan .go { background: rgba(var(--t),.3) !important; border-color: rgb(var(--t)) !important; }
   #kjCmdOut .cb { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
   #kjCmdOut button { font-size: 13px; font-weight: 700; padding: 5px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: #fff; }
   #kjCmdOut button.go { background: #2a8f5a; border-color: #39d97a; }
@@ -2820,14 +2823,28 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       '<span class="sep"></span>' + acts.map(function (a) { return '<button class="ac" data-a="' + a[0] + '">' + a[1] + "</button>"; }).join("");
   }
   var kjCmdPlan = null;
+  // The color of an action, matching the rest of KJ mode: up/next green, down/last/remove red,
+  // key down orange, key up pink, pause yellow, anything else neutral
+  function kjTone(a) {
+    var G = "77,255,149", Rd = "255,90,90", O = "255,159,67", P = "255,107,214", Y = "255,207,90", N = "235,235,245";
+    var it = a.id !== undefined ? queue.filter(function (q) { return String(q.id) === String(a.id); })[0] : null;
+    if (a.do === "move") { var from = it ? kjRest().indexOf(it) : -1; return a.to < from ? G : a.to > from ? Rd : N; }
+    if (a.do === "remove" || a.do === "skip") return Rd;
+    if (a.do === "play") return G;
+    if (a.do === "pause" || a.do === "restart") return Y;
+    if (a.do === "opts" && it && a.pitch !== undefined) { var was = optsOf(it, isCur(it)).pitch || 0; return a.pitch < was ? O : a.pitch > was ? P : N; }
+    if (a.do === "at") return a.on ? G : N;
+    return N;
+  }
   function kjCmdShow(html) { $("kjCmdOut").innerHTML = html; }
   function kjCmdRun() {
     var t = $("kjCmdIn").value.trim(); if (!t) { kjCmdShow(""); return; }
     var plan = kjParse(t);
     var show = function (p) {
       kjCmdPlan = p;
-      kjCmdShow(p.map(function (a) { return '<div class="cp">→ ' + esc(a.text) + "</div>"; }).join("") +
-        '<div class="cb"><button data-c="no">Cancel</button><button class="go" data-c="yes">Do it</button></div>');
+      var tones = p.map(kjTone), one = tones.every(function (t) { return t === tones[0]; }) ? tones[0] : "255,255,255";
+      kjCmdShow('<div class="plan" style="--t:' + one + '">' + p.map(function (a, i) { return '<div class="cp" style="color:rgb(' + tones[i] + ')">→ ' + esc(a.text) + "</div>"; }).join("") +
+        '<div class="cb"><button data-c="no">Cancel</button><button class="go" data-c="yes">Do it</button></div></div>');
     };
     if (plan) { show(plan); return; }
     if (!scanKey() || DEMO) { kjCmdShow('<div class="err">Didn\'t catch that' + (/next|move|remove|key|tempo|skip/.test(t.toLowerCase()) ? " (no signup by that name?)" : "") +
