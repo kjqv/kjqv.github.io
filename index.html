@@ -400,14 +400,15 @@
   body.kjctl #kjQueue .r { position: relative; touch-action: pan-y; }
   #kjQueue .r.snap { transition: transform .18s ease-out; }
   #kjQueue .swdel { display: none; position: absolute; top: 4px; bottom: 4px; right: -96px; width: 88px; border: 0; border-radius: 10px;
-    background: #d63c3c; color: #fff; font-size: 14px; font-weight: 800; }
+    background: #000; color: #ff4d4d; box-shadow: inset 0 0 0 1.5px #ff4d4d; font-size: 14px; font-weight: 800; }
+  #kjQueue .swdel.arm { background: #e02626; color: #fff; box-shadow: none; }
   body.kjctl:not(.kjmoving) #kjQueue .swdel { display: block; }
   #kjQueue .swre { display: none; position: absolute; top: 4px; bottom: 4px; left: -96px; width: 88px; border-radius: 10px; align-items: center; justify-content: center;
     background: #4dff95; color: #0b0920; font-size: 12px; font-weight: 800; text-align: center; line-height: 1.2; padding: 0 6px; box-sizing: border-box; }
   body.kjctl:not(.kjmoving) #kjQueue .swre { display: flex; }
   #kjQueue .r .rm.arm { width: auto; padding: 0 8px; background: #c83c3c; color: #fff; border-color: #ff8a8a; font-weight: 800; font-size: 11px; }
-  #kjSheetRemove { margin-right: auto; color: #ff8a8a !important; border-color: rgba(255,107,107,.45) !important; background: rgba(255,107,107,.08) !important; }
-  #kjSheetRemove.arm { background: #c83c3c !important; color: #fff !important; }
+  #kjSheetRemove { margin-right: auto; color: #ff4d4d !important; border-color: #ff4d4d !important; background: #000 !important; }
+  #kjSheetRemove.arm { background: #e02626 !important; border-color: #e02626 !important; color: #fff !important; }
   body.kjsheetlive #kjSheetRemove { display: none; }
   #kjPage .r.dragging { background: rgba(57,217,122,.12); border-radius: 10px; box-shadow: 0 8px 26px rgba(0,0,0,.55); position: relative; z-index: 3; transform: scale(1.02); transition: transform .12s; }
   #kjPage .r .n { width: 20px; flex: none; text-align: right; font-size: 12px; opacity: .5; }
