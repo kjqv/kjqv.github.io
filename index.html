@@ -280,6 +280,9 @@
   body.nomic #nowBar .labelmic, body.nomic #hero .labelmic { display: none !important; }   /* mic=off */
   /* Animated equalizer bars: transform-only animation, light on the Fire Stick */
   .wave { flex: none; display: flex; align-items: center; gap: .45vh; height: 4.4vh; }
+  #kjPage .kjwave { display: inline-flex; height: .8em; gap: 2px; margin-left: 10px; vertical-align: middle; position: relative; top: -2px; }
+  #kjPage .kjwave i { width: 3px; border-radius: 2px; background: #4dff95; }
+  #kjPage .kjwave.still i { animation-play-state: paused; opacity: .5; }   /* paused or not started */
   .wave i { display: block; width: .75vh; height: 100%; border-radius: 1vh; background: rgb(var(--now));
     transform-origin: center; animation: eq 1s ease-in-out infinite; }
   .wave i:nth-child(2) { animation-delay: -.2s; } .wave i:nth-child(3) { animation-delay: -.5s; }
@@ -3273,7 +3276,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     }
     if (cur) {
       var c = info(cur);
-      $("kjNow").innerHTML = '<div class="now" id="kjNowCard"><div class="top"><div class="who">' + (isBreakItem(cur) ? esc(c.singer || "Break") : c.singer ? nameTagged(c.singer) : "No name") +
+      $("kjNow").innerHTML = '<div class="now" id="kjNowCard"><div class="top"><div class="who">' + (isBreakItem(cur) ? esc(c.singer || "Break") : esc(c.singer || "No name") + '<span class="wave kjwave' + (playerState === 4 ? "" : " still") + '"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>') +
         '</div><span id="kjLeft"></span></div><div class="what"><span class="st">' + songHTML(c.title, c.artist) + '</span>' +
         (isBreakItem(cur) ? "" : kjBadges(cur, true, true)) + '</div>' + (isBreakItem(cur) ? "" : kjBadges(cur, true)) + '<div class="kbar"><i id="kjBar"></i></div></div>';
       $("kjNowCard").setAttribute("data-edit", isBreakItem(cur) ? "" : String(cur.id));
