@@ -1718,6 +1718,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     try { if (client && client.close) client.close(); } catch (e) {}
     var c = WebKCS.Client.fromAddress(url);
     client = c;
+    // an error in one of our handlers must never break KaraFun's connection loop
+    var addEv = c.addEventHandler.bind(c);
+    c.addEventHandler = function (t, f) { return addEv(t, function (e) { try { return f(e); } catch (x) { if (window.console) console.log("KJQV " + t, x); try { render(); } catch (y) {} } }); };
     c.setUrlProvider(freshUrl);
     c.setErrorHandler(function (e) { if (window.console) console.log("kcs error", e); });
     c.addReadyHandler(function () { setPill("Live", false); nameSelf(c, 1); setAway(false); setTimeout(function () { checkPermissions(c); }, 1500); });
@@ -3434,9 +3437,17 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     $("kjCount").textContent = n ? "· " + n + (n === 1 ? " singer" : " singers") : "";
     renderNight();
   }
-  function render() {
-    banCheck();
-    if (KJ) { kjATCarry(); renderKJ(); kjControls(); applyVox(); vx5Sync(); }
+  var renderErrs = 0;
+  function render() {   // never let one odd queue item (a YouTube video, a quiz…) freeze the screen
+    try { renderAll(); } catch (e) {
+      renderErrs++; if (window.console) console.log("KJQV render error", e);
+      try { if (KJ && renderErrs < 50) kjLog("⚠️ Couldn't show something in the queue (" + (e && e.message || e) + "). Still connected.", false); } catch (x) {}
+    }
+  }
+  function renderAll() {
+    try { banCheck(); } catch (e) { if (window.console) console.log("banCheck", e); }
+    if (KJ) { try { kjATCarry(); renderKJ(); } catch (e) { if (window.console) console.log("renderKJ", e); }
+      try { kjControls(); applyVox(); vx5Sync(); } catch (e) { if (window.console) console.log("kj extras", e); } }
     // The current song is also the first queue item. Use status.current when we have it.
     var sq = shownQueue();
     var cur = current || sq[0] || null;
@@ -3960,7 +3971,18 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   window.addEventListener("resize", function () { fitCache = {}; fitName(); renderList(); });
 
   var pillTimer = null;
+  // Watchdog: KaraFun's library sometimes never comes back after the app switches screens or the phone sleeps.
+  // If we've been not-Live for 25s, or the page comes back to the front / back online while not Live, connect from scratch.
+  var pillLive = false, notLiveSince = 0;
+  setInterval(function () {
+    if (DEMO || !code || pillLive || !notLiveSince) return;
+    if (Date.now() - notLiveSince > 25000) { notLiveSince = Date.now(); if (window.console) console.log("KJQV: reconnecting from scratch"); connect(); }
+  }, 5000);
+  function wakeCheck() { if (!DEMO && code && !pillLive && document.visibilityState !== "hidden") { notLiveSince = Date.now(); connect(); } }
+  document.addEventListener("visibilitychange", wakeCheck); window.addEventListener("online", wakeCheck); window.addEventListener("pageshow", function (e) { if (e.persisted) wakeCheck(); });
   function setPill(text, bad) {
+    var nowLive = text === "Live" || /^Equity/.test(text) && pillLive;
+    if (!/^Equity/.test(text)) { if (nowLive) notLiveSince = 0; else if (pillLive || !notLiveSince) notLiveSince = Date.now(); pillLive = nowLive; }
     // KJ mode: say plainly whether we're connected to the KaraFun queue (Equity's own message isn't about the connection)
     var kc = $("kjConn");
     if (kc && !DEMO && !/^Equity/.test(text)) {
