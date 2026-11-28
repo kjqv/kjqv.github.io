@@ -3308,7 +3308,23 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     });
     if (gone.length) kjLog("~ Added " + gone.length + " song" + (gone.length > 1 ? "s" : "") + " to History that played while KJ mode wasn't watching: " + gone.map(function (g) { return g.name; }).join(", "));
   }
+  // A signup that sat as "now singing" for 90s+ without KaraFun playing it (say, a stand-in song while the
+  // real one plays on YouTube) still counts as sung once it's done.
+  var kjCurSeen = null;
+  function kjStandIn(cur) {
+    var id = cur && !isBreakItem(cur) ? String(cur.id) : "";
+    if (kjCurSeen && kjCurSeen.id !== id) {
+      var w = kjCurSeen; kjCurSeen = null;
+      if (Date.now() - w.since >= 90000 && !kjNight.some(function (x) { return x.id === w.id; })) {
+        kjNight.push({ id: w.id, name: w.name, title: w.title, artist: w.artist, at: w.since, outside: true });
+        kjNightSave(); kjLog("✓ Counted " + w.name + " · " + w.title + " as sung (it was up for " + Math.round((Date.now() - w.since) / 60000) + " min without playing in KaraFun)");
+      }
+    }
+    if (id && (!kjCurSeen || kjCurSeen.id !== id)) { var x = info(cur) || {}; kjCurSeen = { id: id, since: Date.now(), name: x.singer || "No name", title: x.title || "", artist: x.artist || "" }; }
+  }
+  function kjNightSave() { if (!DEMO) try { localStorage.setItem(nightKey(), JSON.stringify(kjNight)); } catch (e) {} }
   function kjLogSong(cur) {
+    kjStandIn(cur);
     if (!cur || isBreakItem(cur) || !(playerState === 4 || playerState === 5)) return;
     if (kjNight.some(function (x) { return x.id === String(cur.id); })) return;
     var x = info(cur), at = Date.now();
