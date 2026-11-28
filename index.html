@@ -3978,7 +3978,31 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if (DEMO || !code || pillLive || !notLiveSince) return;
     if (Date.now() - notLiveSince > 25000) { notLiveSince = Date.now(); if (window.console) console.log("KJQV: reconnecting from scratch"); connect(); }
   }, 5000);
-  function wakeCheck() { if (!DEMO && code && !pillLive && document.visibilityState !== "hidden") { notLiveSince = Date.now(); connect(); } }
+  // A phone that slept (or switched apps) can come back with a connection that looks Live but is dead and gets no
+  // more updates. So when the page comes back, and every 45s while it's open, ask KaraFun something tiny:
+  // any answer (even "no handler") means we're alive; silence for 5s means start over.
+  var hiddenAt = 0, probing = false;
+  function probe(why) {
+    if (DEMO || !code || probing || !client || document.visibilityState === "hidden") return;
+    if (!pillLive) { notLiveSince = Date.now(); connect(); return; }
+    probing = true; var c = client, done = false;
+    var fin = function () { done = true; probing = false; };
+    try {
+      var p = c.send("remote.GetPermissionsRequest", {});
+      if (p && p.then) p.then(fin, fin); else fin();
+    } catch (e) { fin(); }
+    setTimeout(function () {
+      if (done || client !== c) { probing = false; return; }
+      probing = false; if (window.console) console.log("KJQV: no answer from KaraFun (" + why + "), reconnecting");
+      if (KJ) try { kjLog("↻ Reconnected to KaraFun (the connection had gone quiet)"); } catch (x) {}
+      notLiveSince = Date.now(); connect();
+    }, 5000);
+  }
+  setInterval(function () { probe("check"); }, 45000);
+  function wakeCheck() {
+    if (document.visibilityState === "hidden") { hiddenAt = Date.now(); return; }
+    if (!DEMO && code) probe("woke up");
+  }
   document.addEventListener("visibilitychange", wakeCheck); window.addEventListener("online", wakeCheck); window.addEventListener("pageshow", function (e) { if (e.persisted) wakeCheck(); });
   function setPill(text, bad) {
     var nowLive = text === "Live" || /^Equity/.test(text) && pillLive;
