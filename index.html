@@ -2762,8 +2762,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     kjRmArm = { id: "", until: 0, el: null };
     return true;
   }
+  var kjRemovedIds = {};
   function kjRemove(id) {
     var it = queue.filter(function (q) { return String(q.id) === String(id); })[0]; if (!it) return;
+    kjRemovedIds[String(id)] = 1;
     var w = isBreakItem(it) ? "a break" : who(it);
     if (DEMO) kjLog("Removed " + w, undefined, [w]);
     else kjLog("Removed " + w, kjSend("remote.RemoveFromQueueRequest", { queueItemId: String(id) }, "removing that signup"), [w]);
@@ -3282,6 +3284,30 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       .map(function (d, i) { return { id: "night" + i, name: d[0], title: d[1], artist: d[2], at: t0 - d[3] * m }; })
       .sort(function (a, b) { return a.at - b.at; });
   }
+  // Songs sung while this phone wasn't watching (asleep, another app, reloading): KaraFun drops a song from the
+  // queue once it's sung, so compare with the last queue this phone saw (saved per code). Signups that were ahead of
+  // the song that's on now, and are gone, were sung (or skipped/removed elsewhere): they go in History marked "~".
+  function snapKey() { return "kqv.snap" + codeTag(); }
+  var kjSnapSig = "";
+  function kjSnap(cur) {
+    if (DEMO) return;
+    var items = queue.filter(function (it) { return !isBreakItem(it); }).map(function (it) { var x = info(it) || {}; return { id: String(it.id), name: x.singer || "No name", title: x.title || "", artist: x.artist || "" }; });
+    var sig = (cur ? cur.id : "") + "|" + (playerState === 4 || playerState === 5 ? 1 : 0) + "|" + items.map(function (i) { return i.id; }).join(",");
+    if (sig === kjSnapSig) return; kjSnapSig = sig;
+    try { localStorage.setItem(snapKey(), JSON.stringify({ at: Date.now(), cur: cur ? String(cur.id) : "", playing: playerState === 4 || playerState === 5, items: items })); } catch (e) {}
+  }
+  function kjGapFill(cur, at) {
+    if (DEMO) return; var snap; try { snap = JSON.parse(localStorage.getItem(snapKey()) || "null"); } catch (e) {}
+    if (!snap || !snap.items || at - snap.at > 6 * 3600000) return;
+    var ids = snap.items.map(function (i) { return i.id; }), stop = ids.indexOf(String(cur.id));
+    if (stop < 0) return;   // the new song wasn't in that queue: can't tell what happened in between
+    var logged = {}; kjNight.forEach(function (x) { logged[x.id] = 1; });
+    var gone = snap.items.slice(0, stop).filter(function (i) { return !logged[i.id] && !kjRemovedIds[i.id] && !queue.some(function (q) { return String(q.id) === i.id; }) && (i.id !== snap.cur || snap.playing); });
+    gone.forEach(function (g, n) {   // spread their times between when we last looked and now
+      kjNight.push({ id: g.id, name: g.name, title: g.title, artist: g.artist, at: Math.round(snap.at + (at - snap.at) * (n + 1) / (gone.length + 1)), guess: true });
+    });
+    if (gone.length) kjLog("~ Added " + gone.length + " song" + (gone.length > 1 ? "s" : "") + " to History that played while KJ mode wasn't watching: " + gone.map(function (g) { return g.name; }).join(", "));
+  }
   function kjLogSong(cur) {
     if (!cur || isBreakItem(cur) || !(playerState === 4 || playerState === 5)) return;
     if (kjNight.some(function (x) { return x.id === String(cur.id); })) return;
@@ -3290,6 +3316,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var nk = nameKey(x.singer || "No name"), tk = nameKey(x.title);
     if (kjNight.some(function (y) { return nameKey(y.name) === nk && nameKey(y.title) === tk && at - y.at < 15 * 60000; })) return;
     if (DEMO && kjNight.length) at = kjNight[kjNight.length - 1].at + 4 * 60000;   // keep the sample night's clock
+    kjGapFill(cur, at);
     kjNight.push({ id: String(cur.id), name: x.singer || "No name", title: x.title || "", artist: x.artist || "", at: at });
     bookNote(cur, true);
     if (!DEMO) { try {
@@ -3375,7 +3402,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       });
       $("kjNightList").innerHTML = tabs + (n ? kjNight.slice().reverse().map(function (x, i) {   // newest first
         var nm = nth[n - 1 - i].map(function (pc) { var c = pc[1]; return esc(pc[0]) + (c >= 2 ? ' <span class="cnt"' + cntStyle(c) + '>' + ord(c) + "</span>" : ""); }).join(" &amp; ");
-        return '<div class="nl"><span class="nn">' + (n - i) + '</span><span class="nt">' + esc(hhmm(x.at, true)) + '</span><div class="nw"><b>' + nm + '</b><div>' + songHTML(x.title, x.artist, "-") + "</div></div></div>";
+        return '<div class="nl"><span class="nn">' + (n - i) + '</span><span class="nt"' + (x.guess ? ' title="Played while KJ mode wasn\'t watching (time is a guess)"' : "") + ">" + (x.guess ? "~" : "") + esc(hhmm(x.at, true)) + '</span><div class="nw"><b>' + nm + '</b><div>' + songHTML(x.title, x.artist, "-") + "</div></div></div>";
       }).join("") : '<div class="empty">Nothing sung yet</div>');
       return;
     }
@@ -3408,7 +3435,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function renderKJ() {
     var cur = current || null;
     var playing = !!cur && (playerState === 4 || playerState === 5);
-    kjLogSong(cur); actSongChange(cur); kjTidyNames(cur);
+    kjLogSong(cur); kjSnap(cur); actSongChange(cur); kjTidyNames(cur);
     queue.forEach(function (it) { bookNote(it, false); });   // remember signups (community songs too) for the songbook
     function row(it, n) {
       var x = info(it), brk = isBreakItem(it), ban = isBanned(it);
